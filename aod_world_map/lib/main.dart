@@ -9,26 +9,38 @@ import 'aod/aod_face.dart';
 import 'aod/aod_palette.dart';
 import 'aod/dot_grid.dart';
 import 'aod/liquid_wave_loader.dart';
+import 'aod/settings_menu.dart';
 import 'aod/solar_math.dart';
 
 void main() => runApp(const AodApp());
 
-class AodApp extends StatelessWidget {
+class AodApp extends StatefulWidget {
   const AodApp({super.key});
+
+  @override
+  State<AodApp> createState() => _AodAppState();
+}
+
+class _AodAppState extends State<AodApp> {
+  // Starts from the OS setting; the settings toggle overrides it.
+  bool _dark =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'AOD World Map',
         debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.system,
+        themeMode: _dark ? ThemeMode.dark : ThemeMode.light,
         theme: ThemeData(brightness: Brightness.light, useMaterial3: true),
         darkTheme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
-        home: const AodScreen(),
+        home: AodScreen(isDark: _dark, onDarkChanged: (v) => setState(() => _dark = v)),
       );
 }
 
 class AodScreen extends StatefulWidget {
-  const AodScreen({super.key});
+  const AodScreen({super.key, required this.isDark, required this.onDarkChanged});
+  final bool isDark;
+  final ValueChanged<bool> onDarkChanged;
 
   @override
   State<AodScreen> createState() => _AodScreenState();
@@ -60,10 +72,8 @@ class _AodScreenState extends State<AodScreen> {
     super.dispose();
   }
 
-  /// Two lookups race in parallel:
-  ///  - IP lookup: ~city-level, answers in a fraction of a second, no prompt.
-  ///  - GPS/browser fix: precise but slow; overrides the IP guess when it lands.
-  /// The loader hides as soon as either one answers (or after 4 s).
+  /// Two lookups race in parallel: a fast IP lookup (city-level) and the
+  /// slower precise fix, which overrides it when it lands.
   void _locate() {
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted && _loading) setState(() => _loading = false);
@@ -108,8 +118,6 @@ class _AodScreenState extends State<AodScreen> {
     }
   }
 
-  /// BigDataCloud free client endpoint. With coordinates it names the place;
-  /// without, it locates the caller by IP address.
   Future<Map<String, dynamic>?> _geocode([double? lat, double? lon]) async {
     try {
       final uri = Uri.https('api.bigdatacloud.net', '/data/reverse-geocode-client', {
@@ -151,6 +159,20 @@ class _AodScreenState extends State<AodScreen> {
             user: _user,
             locationLabel: _label,
             localUtcOffset: _now.timeZoneOffset,
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: SettingsMenu(
+                  palette: palette,
+                  isDark: widget.isDark,
+                  onDarkChanged: widget.onDarkChanged,
+                ),
+              ),
+            ),
           ),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),
