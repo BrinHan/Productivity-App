@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import 'aod_palette.dart';
+import 'cursor_field.dart';
 import 'dot_grid.dart';
 import 'solar_math.dart';
 
@@ -41,7 +42,8 @@ class WorldMapPainter extends CustomPainter {
     required this.user,
     this.cities = const [],
     this.dotFill = 0.62,
-  });
+    this.cursor,
+  }) : super(repaint: cursor); // repaints on every cursor tick, no widget rebuild
 
   final DotGrid grid;
   final SolarPosition solar;
@@ -49,23 +51,40 @@ class WorldMapPainter extends CustomPainter {
   final GeoPoint user;
   final List<CityMarker> cities;
   final double dotFill;
+  final CursorField? cursor;
 
   /// Sun-height band for the day/night fade (sin(alt) = 0 is the terminator).
   static const double _nightSin = -0.10;
   static const double _daySin = 0.06;
   static const double _invRange = 1 / (_daySin - _nightSin);
 
-  /// How much the map may stretch vertically to fill the window.
-  /// 1.0 = never stretched (letterboxed). Lower = more compressed.
   static const double _maxStretch = 1.25;
-
-  /// Fraction of the window the map occupies, leaving a small margin.
   static const double _mapScale = 0.96;
+
+  /// Cursor repel: radius in grid pitches, and how far the centre dots are
+  /// shoved (fraction of the radius). Keep pushFactor <= 0.5.
+  static const double _radiusPitches = 5;
+  static const double _pushFactor = 0.2;
+
+  double _radius(double pitch) => (pitch * _radiusPitches).clamp(56.0, 140.0).toDouble();
+
+  Offset _displace(Offset p, double pitch) {
+    final cur = cursor;
+    if (cur == null || cur.strength < 0.001) return p;
+    final r = _radius(pitch);
+    final dx = p.dx - cur.pos.dx, dy = p.dy - cur.pos.dy;
+    final d2 = dx * dx + dy * dy;
+    if (d2 >= r * r) return p;
+    final d = math.sqrt(d2) + 0.001;
+    final f = 1 - d / r;
+    final push = f * f * r * _pushFactor * cur.strength;
+    return Offset(p.dx + dx / d * push, p.dy + dy / d * push);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     var w = size.width * _mapScale, h = size.height * _mapScale;
-    final natural = w / grid.aspectRatio; // undistorted height at this width
+    final natural = w / grid.aspectRatio;
     final stretch = h / natural;
     if (stretch > _maxStretch) {
       h = natural * _maxStretch;
@@ -78,7 +97,8 @@ class WorldMapPainter extends CustomPainter {
     _paintDots(canvas, ox, oy, w, h, pitch);
     _paintTerminator(canvas, ox, oy, w, h, pitch);
 
-    Offset at(GeoPoint p) => Offset(ox + grid.xOf(p.longitude) * w, oy + grid.yOf(p.latitude) * h);
+    Offset at(GeoPoint p) =>
+        _displace(Offset(ox + grid.xOf(p.longitude) * w, oy + grid.yOf(p.latitude) * h), pitch);
 
     final cityPaint = Paint()..color = palette.city;
     for (final c in cities) {
@@ -100,8 +120,10 @@ class WorldMapPainter extends CustomPainter {
     }
 
     final u = at(user);
-    canvas.drawCircle(u, pitch * 2.6, Paint()..color = palette.userHalo.withValues(alpha: 0.22));
-    canvas.drawCircle(u, pitch * 1.3, Paint()..color = palette.user);
+    canvas.drawCircle(u, pitch * 1.7, Paint()..color = palette.userHalo.withValues(alpha: 0.22));
+    canvas.drawCircle(u, pitch * 1, Paint()..color = palette.user);
+
+    _paintCursor(canvas);
   }
 
   void _paintDots(Canvas canvas, double ox, double oy, double w, double h, double pitch) {
@@ -112,16 +134,37 @@ class WorldMapPainter extends CustomPainter {
     final dotX = grid.dotX, dotY = grid.dotY;
     final sLat = grid.sinLat, cLat = grid.cosLat, sLon = grid.sinLon, cLon = grid.cosLon;
 
+    final cur = cursor;
+    final strength = cur?.strength ?? 0.0;
+    final pushing = strength > 0.001;
+    final cx = cur?.pos.dx ?? 0.0, cy = cur?.pos.dy ?? 0.0;
+    final r = _radius(pitch), r2 = r * r;
+    final kPush = r * _pushFactor * strength;
+
     for (var i = 0; i < n; i++) {
       final sinAlt = solar.sinAltitude(sLat[i], cLat[i], sLon[i], cLon[i]);
       var t = (sinAlt - _nightSin) * _invRange;
       t = t < 0 ? 0 : (t > 1 ? 1 : t);
       t = t * t * (3 - 2 * t); // smoothstep
       final lvl = (t * (_levels - 1) + 0.5).toInt();
+
+      var x = ox + dotX[i] * w, y = oy + dotY[i] * h;
+      if (pushing) {
+        final dx = x - cx, dy = y - cy;
+        final d2 = dx * dx + dy * dy;
+        if (d2 < r2) {
+          final d = math.sqrt(d2) + 0.001;
+          final f = 1 - d / r;
+          final push = f * f * kPush;
+          x += dx / d * push;
+          y += dy / d * push;
+        }
+      }
+
       final buf = bins[lvl];
       var k = counts[lvl];
-      buf[k++] = ox + dotX[i] * w;
-      buf[k++] = oy + dotY[i] * h;
+      buf[k++] = x;
+      buf[k++] = y;
       counts[lvl] = k;
     }
 
@@ -139,17 +182,32 @@ class WorldMapPainter extends CustomPainter {
     }
   }
 
-  /// Thin terminator line, no glow. Its brightness varies along its length:
+  /// The circle cursor: a ring with a centre dot, fading in/out.
+  void _paintCursor(Canvas canvas) {
+    final cur = cursor;
+    if (cur == null || cur.strength < 0.01) return;
+    final a = 0.9 * cur.strength;
+    canvas.drawCircle(
+      cur.target,
+      12,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..isAntiAlias = true
+        ..color = palette.text.withValues(alpha: a),
+    );
+    canvas.drawCircle(cur.target, 2, Paint()..color = palette.text.withValues(alpha: a));
+  }
+
+  /// Thin terminator line, no glow. Brightness varies along its length:
   /// dim at both ends and in the middle, brightest a quarter of the way in
-  /// from each end. It is clipped to the map's top/bottom and faded near
-  /// those edges so it never ends in a hard cut.
+  /// from each end. Clipped to the map's top/bottom and faded near those edges.
   void _paintTerminator(Canvas canvas, double ox, double oy, double w, double h, double pitch) {
     const steps = 720;
     final top = oy, bottom = oy + h;
-    final maxPiece = math.max(4.0, pitch); // keeps brightness changes smooth
+    final maxPiece = math.max(4.0, pitch);
 
-    // 1) Sample the curve, clip it to the map's height, split into short pieces.
-    final segs = <double>[]; // x0, y0, x1, y1 per piece
+    final segs = <double>[];
     var total = 0.0;
     double px = 0, py = 0;
     for (var i = 0; i <= steps; i++) {
@@ -195,7 +253,6 @@ class WorldMapPainter extends CustomPainter {
     }
     if (segs.isEmpty || total <= 0) return;
 
-    // 2) Draw each piece with its own brightness.
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.butt
@@ -206,11 +263,11 @@ class WorldMapPainter extends CustomPainter {
     for (var s = 0; s < segs.length; s += 4) {
       final x0 = segs[s], y0 = segs[s + 1], x1 = segs[s + 2], y1 = segs[s + 3];
       final len = math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
-      final u = (acc + len / 2) / total; // 0..1 along the line
+      final u = (acc + len / 2) / total;
       acc += len;
 
       final wave = math.sin(2 * math.pi * u);
-      final along = 0.10 + 0.90 * wave * wave; // 0.10 at ends & centre, 1.0 at 1/4 and 3/4
+      final along = 0.10 + 0.90 * wave * wave;
 
       final ym = (y0 + y1) / 2;
       var e = math.min(ym - top, bottom - ym) / edgeBand;
@@ -226,6 +283,7 @@ class WorldMapPainter extends CustomPainter {
   bool shouldRepaint(WorldMapPainter old) =>
       old.grid != grid ||
       old.palette != palette ||
+      old.cursor != cursor ||
       old.solar.declination != solar.declination ||
       old.solar.subsolarLongitude != solar.subsolarLongitude ||
       old.user.latitude != user.latitude ||
