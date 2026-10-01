@@ -58,7 +58,7 @@ class _AodAppState extends State<AodApp> {
                 isDark: _dark,
                 onDarkChanged: (v) => setState(() => _dark = v),
               ),
-              IslandScreen(island: widget.shell.island),
+              IslandScreen(island: widget.shell.island, onShortcut: widget.shell.runShortcut),
             ];
             return IndexedStack(
               index: index,
@@ -212,6 +212,7 @@ class _AodScreenState extends State<AodScreen> {
                   onExit: widget.shell.showHome,
                   onMinimize: () => widget.shell.enterIsland(),
                   onQuit: () => widget.shell.quit(),
+                  onShortcut: widget.shell.runShortcut,
                 ),
               ),
             ),
