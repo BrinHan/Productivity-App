@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\accessibility_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\app_info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\device_info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\dialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\display_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\drag_source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\drop_target.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\file_dialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\foundation\color.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\foundation\dispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\foundation\handle_table.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\foundation\id_allocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\foundation\keyboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\menu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\positioning_strategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\preferences.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\secure_storage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\shortcut.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\shortcut_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\tray_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\url_opener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\window_drag_session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\window_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\window_registry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\accessibility_manager_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\app_info_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\application_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\device_info_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\dispatcher_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\display_manager_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\display_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\dpi_utils_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\drag_source_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\drop_target_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\file_dialog_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\image_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\keyboard_monitor_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\launch_at_login_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\menu_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\message_dialog_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\notification_manager_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\preferences_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\secure_storage_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\shortcut_manager_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\tray_icon_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\tray_manager_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\url_opener_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\window_drag_session_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\window_manager_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\window_message_dispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\platform\windows\window_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\accessibility_manager_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\app_info_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\application_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\color_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\device_info_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\dialog_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\display_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\display_manager_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\drag_source_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\drop_target_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\file_dialog_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\geometry_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\image_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\keyboard_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\keyboard_monitor_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\launch_at_login_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\menu_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\message_dialog_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\notification_manager_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\placement_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\positioning_strategy_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\preferences_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\secure_storage_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\shortcut_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\shortcut_manager_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\string_utils_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\tray_icon_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\tray_manager_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\url_opener_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\window_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\window_drag_session_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\window_manager_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{D8E7F826-07B4-31DE-AB04-18AB51BEA5C0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

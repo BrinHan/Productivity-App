@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\CMakeFiles\b017326a2115c4815401045b0bc539ad\flutter_windows.dll.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\CMakeFiles\ab7c5b25eb82baa0aaf89a39615dc412\flutter_assemble.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\flutter_assemble" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{C1F92C60-0108-37C8-9CA9-789B572C2825}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

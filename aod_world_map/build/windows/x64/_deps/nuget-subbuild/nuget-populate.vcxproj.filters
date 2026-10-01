@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-copyfile.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\be6561b037f60292cb76caaa424e018b\nuget-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\25d5ea88f53f30c6c35df3fa89d4c123\nuget-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\639b90b6d9984394981150af97e7951e\nuget-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\CMakeFiles\nuget-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{007471ED-316A-3178-A2EE-5ED30730BCE5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

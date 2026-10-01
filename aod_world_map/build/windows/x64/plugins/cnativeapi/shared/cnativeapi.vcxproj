@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Profile|x64">
+      <Configuration>Profile</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3456CB59-839A-3FD6-A86A-659B5603F48C}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>cnativeapi</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cnativeapi.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cnativeapi</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\Profile\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">cnativeapi.dir\Profile\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">cnativeapi</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cnativeapi.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cnativeapi</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;DART_SHARED_LIB;UNICODE;_UNICODE;CMAKE_INTDIR="Debug";cnativeapi_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;DART_SHARED_LIB;UNICODE;_UNICODE;CMAKE_INTDIR=\"Debug\";cnativeapi_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>nativeapi\Debug\nativeapi.lib;ole32.lib;uuid.lib;user32.lib;shell32.lib;ole32.lib;uuid.lib;comctl32.lib;dwmapi.lib;gdiplus.lib;crypt32.lib;advapi32.lib;version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/Debug/cnativeapi.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/Debug/cnativeapi.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;DART_SHARED_LIB;UNICODE;_UNICODE;CMAKE_INTDIR="Profile";cnativeapi_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;DART_SHARED_LIB;UNICODE;_UNICODE;CMAKE_INTDIR=\"Profile\";cnativeapi_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>nativeapi\Profile\nativeapi.lib;ole32.lib;uuid.lib;user32.lib;shell32.lib;ole32.lib;uuid.lib;comctl32.lib;dwmapi.lib;gdiplus.lib;crypt32.lib;advapi32.lib;version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/Profile/cnativeapi.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/Profile/cnativeapi.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;DART_SHARED_LIB;UNICODE;_UNICODE;CMAKE_INTDIR="Release";cnativeapi_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;DART_SHARED_LIB;UNICODE;_UNICODE;CMAKE_INTDIR=\"Release\";cnativeapi_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>nativeapi\Release\nativeapi.lib;ole32.lib;uuid.lib;user32.lib;shell32.lib;ole32.lib;uuid.lib;comctl32.lib;dwmapi.lib;gdiplus.lib;crypt32.lib;advapi32.lib;version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/Release/cnativeapi.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/Release/cnativeapi.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\src\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Projects/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/cnativeapi/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Projects/Productivity-App/aod_world_map/windows -BC:/Projects/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Building Custom Rule C:/Projects/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/cnativeapi/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Projects/Productivity-App/aod_world_map/windows -BC:/Projects/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Projects/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/cnativeapi/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Projects/Productivity-App/aod_world_map/windows -BC:/Projects/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\accessibility_manager_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\app_info_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\application_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\color_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\device_info_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\dialog_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\display_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\display_manager_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\drag_source_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\drop_target_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\file_dialog_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\geometry_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\image_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\keyboard_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\keyboard_monitor_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\launch_at_login_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\menu_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\message_dialog_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\notification_manager_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\placement_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\positioning_strategy_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\preferences_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\secure_storage_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\shortcut_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\shortcut_manager_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\string_utils_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\tray_icon_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\tray_manager_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\url_opener_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\window_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\window_drag_session_c.cpp" />
+    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\.plugin_symlinks\cnativeapi\cxx_impl\src\capi\window_manager_c.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\ZERO_CHECK.vcxproj">
+      <Project>{DA411779-329A-3A85-9952-64AE561ECB84}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\plugins\cnativeapi\shared\nativeapi\nativeapi.vcxproj">
+      <Project>{4CE98DE9-2D0D-31E5-8E0E-95CA4C82028F}</Project>
+      <Name>nativeapi</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
