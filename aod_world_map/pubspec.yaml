@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   geolocator: ^14.1.1
   http: ^1.6.0
+  window_manager: ^0.5.2
+  tray_manager: ^0.7.0
+  screen_retriever: ^0.2.2
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +61,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/tray_icon.ico
 
   # To add assets to your application, add an assets section, like this:
   # assets:
