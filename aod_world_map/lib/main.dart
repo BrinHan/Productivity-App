@@ -11,18 +11,26 @@ import 'aod/dot_grid.dart';
 import 'aod/liquid_wave_loader.dart';
 import 'aod/settings_menu.dart';
 import 'aod/solar_math.dart';
+import 'desktop/dynamic_island.dart';
+import 'desktop/home_page.dart';
+import 'desktop/window_shell.dart';
 
-void main() => runApp(const AodApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final shell = ShellController();
+  await shell.init();
+  runApp(AodApp(shell: shell));
+}
 
 class AodApp extends StatefulWidget {
-  const AodApp({super.key});
+  const AodApp({super.key, required this.shell});
+  final ShellController shell;
 
   @override
   State<AodApp> createState() => _AodAppState();
 }
 
 class _AodAppState extends State<AodApp> {
-  // Starts from the OS setting; the settings toggle overrides it.
   bool _dark =
       WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
 
@@ -33,12 +41,46 @@ class _AodAppState extends State<AodApp> {
         themeMode: _dark ? ThemeMode.dark : ThemeMode.light,
         theme: ThemeData(brightness: Brightness.light, useMaterial3: true),
         darkTheme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
-        home: AodScreen(isDark: _dark, onDarkChanged: (v) => setState(() => _dark = v)),
+        home: ListenableBuilder(
+          listenable: widget.shell,
+          builder: (context, _) {
+            // IndexedStack keeps the map and home page alive (location,
+            // tasks) while another screen is showing. Indexes match AppMode.
+            final index = widget.shell.mode.index;
+            final screens = <Widget>[
+              AodScreen(
+                shell: widget.shell,
+                isDark: _dark,
+                onDarkChanged: (v) => setState(() => _dark = v),
+              ),
+              HomePage(
+                shell: widget.shell,
+                isDark: _dark,
+                onDarkChanged: (v) => setState(() => _dark = v),
+              ),
+              IslandScreen(island: widget.shell.island),
+            ];
+            return IndexedStack(
+              index: index,
+              sizing: StackFit.expand,
+              children: [
+                for (var i = 0; i < screens.length; i++)
+                  TickerMode(enabled: i == index, child: screens[i]),
+              ],
+            );
+          },
+        ),
       );
 }
 
 class AodScreen extends StatefulWidget {
-  const AodScreen({super.key, required this.isDark, required this.onDarkChanged});
+  const AodScreen({
+    super.key,
+    required this.shell,
+    required this.isDark,
+    required this.onDarkChanged,
+  });
+  final ShellController shell;
   final bool isDark;
   final ValueChanged<bool> onDarkChanged;
 
@@ -54,7 +96,7 @@ class _AodScreenState extends State<AodScreen> {
   late GeoPoint _user = GeoPoint(35, _now.timeZoneOffset.inMinutes / 60 * 15);
   String _label = 'Locating…';
   bool _loading = true;
-  bool _precise = false; // true once a real GPS fix has arrived
+  bool _precise = false;
 
   @override
   void initState() {
@@ -72,8 +114,6 @@ class _AodScreenState extends State<AodScreen> {
     super.dispose();
   }
 
-  /// Two lookups race in parallel: a fast IP lookup (city-level) and the
-  /// slower precise fix, which overrides it when it lands.
   void _locate() {
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted && _loading) setState(() => _loading = false);
@@ -113,9 +153,7 @@ class _AodScreenState extends State<AodScreen> {
       });
       final data = await _geocode(pos.latitude, pos.longitude);
       if (mounted && data != null) setState(() => _label = _nameFrom(data) ?? _label);
-    } catch (_) {
-      // Keep whatever the IP lookup found.
-    }
+    } catch (_) {}
   }
 
   Future<Map<String, dynamic>?> _geocode([double? lat, double? lon]) async {
@@ -170,6 +208,10 @@ class _AodScreenState extends State<AodScreen> {
                   palette: palette,
                   isDark: widget.isDark,
                   onDarkChanged: widget.onDarkChanged,
+                  island: widget.shell.island,
+                  onExit: widget.shell.showHome,
+                  onMinimize: () => widget.shell.enterIsland(),
+                  onQuit: () => widget.shell.quit(),
                 ),
               ),
             ),
