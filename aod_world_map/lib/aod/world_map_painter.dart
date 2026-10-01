@@ -58,8 +58,8 @@ class WorldMapPainter extends CustomPainter {
   static const double _daySin = 0.06;
   static const double _invRange = 1 / (_daySin - _nightSin);
 
-  static const double _maxStretch = 1.25;
-  static const double _mapScale = 0.96;
+  static const double _maxStretch = 1;
+  static const double _mapScale = 0.8;
 
   /// Cursor repel: radius in grid pitches, and how far the centre dots are
   /// shoved (fraction of the radius). Keep pushFactor <= 0.5.
