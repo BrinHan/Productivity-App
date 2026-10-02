@@ -21,12 +21,17 @@ WINRT_EXPORT namespace winrt::Windows::Foundation::Collections
 }
 WINRT_EXPORT namespace winrt::Windows::Media::Capture
 {
+    enum class MediaCaptureDeviceExclusiveControlReleaseMode : int32_t;
     enum class MediaStreamType : int32_t;
     enum class PowerlineFrequency : int32_t;
 }
 WINRT_EXPORT namespace winrt::Windows::Media::Devices::Core
 {
     struct VariablePhotoSequenceController;
+}
+WINRT_EXPORT namespace winrt::Windows::Media::Effects
+{
+    struct AudioCaptureEffectsManager;
 }
 WINRT_EXPORT namespace winrt::Windows::Media::MediaProperties
 {
@@ -233,6 +238,7 @@ WINRT_EXPORT namespace winrt::Windows::Media::Devices
     struct IAdvancedPhotoControl;
     struct IAdvancedVideoCaptureDeviceController;
     struct IAdvancedVideoCaptureDeviceController10;
+    struct IAdvancedVideoCaptureDeviceController11;
     struct IAdvancedVideoCaptureDeviceController2;
     struct IAdvancedVideoCaptureDeviceController3;
     struct IAdvancedVideoCaptureDeviceController4;
@@ -242,6 +248,7 @@ WINRT_EXPORT namespace winrt::Windows::Media::Devices
     struct IAdvancedVideoCaptureDeviceController8;
     struct IAdvancedVideoCaptureDeviceController9;
     struct IAudioDeviceController;
+    struct IAudioDeviceController2;
     struct IAudioDeviceModule;
     struct IAudioDeviceModuleNotificationEventArgs;
     struct IAudioDeviceModulesManager;
@@ -336,6 +343,7 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedPhotoControl>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController10>{ using type = interface_category; };
+    template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController11>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController2>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController3>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController4>{ using type = interface_category; };
@@ -345,6 +353,7 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController8>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController9>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAudioDeviceController>{ using type = interface_category; };
+    template <> struct category<winrt::Windows::Media::Devices::IAudioDeviceController2>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAudioDeviceModule>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAudioDeviceModuleNotificationEventArgs>{ using type = interface_category; };
     template <> struct category<winrt::Windows::Media::Devices::IAudioDeviceModulesManager>{ using type = interface_category; };
@@ -528,6 +537,7 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedPhotoControl> = L"Windows.Media.Devices.IAdvancedPhotoControl";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController10> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController10";
+    template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController11> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController11";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController2> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController2";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController3> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController3";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController4> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController4";
@@ -537,6 +547,7 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController8> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController8";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController9> = L"Windows.Media.Devices.IAdvancedVideoCaptureDeviceController9";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAudioDeviceController> = L"Windows.Media.Devices.IAudioDeviceController";
+    template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAudioDeviceController2> = L"Windows.Media.Devices.IAudioDeviceController2";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAudioDeviceModule> = L"Windows.Media.Devices.IAudioDeviceModule";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAudioDeviceModuleNotificationEventArgs> = L"Windows.Media.Devices.IAudioDeviceModuleNotificationEventArgs";
     template <> inline constexpr auto& name_v<winrt::Windows::Media::Devices::IAudioDeviceModulesManager> = L"Windows.Media.Devices.IAudioDeviceModulesManager";
@@ -586,6 +597,7 @@ namespace winrt::impl
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedPhotoControl>{ 0xC5B15486,0x9001,0x4682,{ 0x93,0x09,0x68,0xEA,0xE0,0x08,0x0E,0xEC } }; // C5B15486-9001-4682-9309-68EAE0080EEC
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController>{ 0xDE6FF4D3,0x2B96,0x4583,{ 0x80,0xAB,0xB5,0xB0,0x1D,0xC6,0xA8,0xD7 } }; // DE6FF4D3-2B96-4583-80AB-B5B01DC6A8D7
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController10>{ 0xC621B82D,0xD6F0,0x5C1B,{ 0xA3,0x88,0xA6,0xE9,0x38,0x40,0x71,0x46 } }; // C621B82D-D6F0-5C1B-A388-A6E938407146
+    template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController11>{ 0xD5B65AE2,0x3772,0x580C,{ 0xA6,0x30,0xE7,0x5D,0xE9,0x10,0x69,0x04 } }; // D5B65AE2-3772-580C-A630-E75DE9106904
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController2>{ 0x8BB94F8F,0xF11A,0x43DB,{ 0xB4,0x02,0x11,0x93,0x0B,0x80,0xAE,0x56 } }; // 8BB94F8F-F11A-43DB-B402-11930B80AE56
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController3>{ 0xA98B8F34,0xEE0D,0x470C,{ 0xB9,0xF0,0x42,0x29,0xC4,0xBB,0xD0,0x89 } }; // A98B8F34-EE0D-470C-B9F0-4229C4BBD089
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController4>{ 0xEA9FBFAF,0xD371,0x41C3,{ 0x9A,0x17,0x82,0x4A,0x87,0xEB,0xDF,0xD2 } }; // EA9FBFAF-D371-41C3-9A17-824A87EBDFD2
@@ -595,6 +607,7 @@ namespace winrt::impl
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController8>{ 0xD843F010,0xE7FB,0x595B,{ 0x9A,0x78,0x0E,0x54,0xC4,0x53,0x2B,0x43 } }; // D843F010-E7FB-595B-9A78-0E54C4532B43
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController9>{ 0x8BDCA95D,0x0255,0x51BC,{ 0xA1,0x0D,0x5A,0x16,0x9E,0xC1,0x62,0x5A } }; // 8BDCA95D-0255-51BC-A10D-5A169EC1625A
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAudioDeviceController>{ 0xEDD4A388,0x79C7,0x4F7C,{ 0x90,0xE8,0xEF,0x93,0x4B,0x21,0x58,0x0A } }; // EDD4A388-79C7-4F7C-90E8-EF934B21580A
+    template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAudioDeviceController2>{ 0x85326599,0x4C24,0x48B0,{ 0x81,0xDD,0x0C,0x5C,0xC7,0x9D,0xDF,0x05 } }; // 85326599-4C24-48B0-81DD-0C5CC79DDF05
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAudioDeviceModule>{ 0x86CFAC36,0x47C1,0x4B33,{ 0x98,0x52,0x87,0x73,0xEC,0x4B,0xE1,0x23 } }; // 86CFAC36-47C1-4B33-9852-8773EC4BE123
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAudioDeviceModuleNotificationEventArgs>{ 0xE3E3CCAF,0x224C,0x48BE,{ 0x95,0x6B,0x9A,0x13,0x13,0x4E,0x96,0xE8 } }; // E3E3CCAF-224C-48BE-956B-9A13134E96E8
     template <> inline constexpr guid guid_v<winrt::Windows::Media::Devices::IAudioDeviceModulesManager>{ 0x6AA40C4D,0x960A,0x4D1C,{ 0xB3,0x18,0x00,0x22,0x60,0x45,0x47,0xED } }; // 6AA40C4D-960A-4D1C-B318-0022604547ED
@@ -714,6 +727,13 @@ namespace winrt::impl
             virtual int32_t __stdcall get_CameraOcclusionInfo(void**) noexcept = 0;
         };
     };
+    template <> struct abi<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController11>
+    {
+        struct __declspec(novtable) type : inspectable_abi
+        {
+            virtual int32_t __stdcall TryAcquireExclusiveControl(void*, int32_t, bool*) noexcept = 0;
+        };
+    };
     template <> struct abi<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController2>
     {
         struct __declspec(novtable) type : inspectable_abi
@@ -801,6 +821,13 @@ namespace winrt::impl
             virtual int32_t __stdcall get_Muted(bool*) noexcept = 0;
             virtual int32_t __stdcall put_VolumePercent(float) noexcept = 0;
             virtual int32_t __stdcall get_VolumePercent(float*) noexcept = 0;
+        };
+    };
+    template <> struct abi<winrt::Windows::Media::Devices::IAudioDeviceController2>
+    {
+        struct __declspec(novtable) type : inspectable_abi
+        {
+            virtual int32_t __stdcall get_AudioCaptureEffectsManager(void**) noexcept = 0;
         };
     };
     template <> struct abi<winrt::Windows::Media::Devices::IAudioDeviceModule>
@@ -1377,6 +1404,15 @@ namespace winrt::impl
         template <typename D> using type = consume_Windows_Media_Devices_IAdvancedVideoCaptureDeviceController10<D>;
     };
     template <typename D>
+    struct consume_Windows_Media_Devices_IAdvancedVideoCaptureDeviceController11
+    {
+        auto TryAcquireExclusiveControl(param::hstring const& deviceId, winrt::Windows::Media::Capture::MediaCaptureDeviceExclusiveControlReleaseMode const& mode) const;
+    };
+    template <> struct consume<winrt::Windows::Media::Devices::IAdvancedVideoCaptureDeviceController11>
+    {
+        template <typename D> using type = consume_Windows_Media_Devices_IAdvancedVideoCaptureDeviceController11<D>;
+    };
+    template <typename D>
     struct consume_Windows_Media_Devices_IAdvancedVideoCaptureDeviceController2
     {
         [[nodiscard]] auto LowLagPhotoSequence() const;
@@ -1482,6 +1518,15 @@ namespace winrt::impl
     template <> struct consume<winrt::Windows::Media::Devices::IAudioDeviceController>
     {
         template <typename D> using type = consume_Windows_Media_Devices_IAudioDeviceController<D>;
+    };
+    template <typename D>
+    struct consume_Windows_Media_Devices_IAudioDeviceController2
+    {
+        [[nodiscard]] auto AudioCaptureEffectsManager() const;
+    };
+    template <> struct consume<winrt::Windows::Media::Devices::IAudioDeviceController2>
+    {
+        template <typename D> using type = consume_Windows_Media_Devices_IAudioDeviceController2<D>;
     };
     template <typename D>
     struct consume_Windows_Media_Devices_IAudioDeviceModule

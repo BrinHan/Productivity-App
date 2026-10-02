@@ -2,10 +2,10 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\x64\Debug\ZERO_CHECK</FullPath>
+      <FullPath>C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\x64\Debug\ZERO_CHECK</FullPath>
     </ProjectOutput>
     <ProjectOutput>
-      <FullPath>C:\Projects\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\x64\Debug\nuget-populate</FullPath>
+      <FullPath>C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\_deps\nuget-subbuild\x64\Debug\nuget-populate</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

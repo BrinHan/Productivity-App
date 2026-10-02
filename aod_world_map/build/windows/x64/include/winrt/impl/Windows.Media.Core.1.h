@@ -90,6 +90,13 @@ WINRT_EXPORT namespace winrt::Windows::Media::Core
         ICodecSubtypesStatics(std::nullptr_t = nullptr) noexcept {}
         ICodecSubtypesStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) ICodecSubtypesStatics2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ICodecSubtypesStatics2>
+    {
+        ICodecSubtypesStatics2(std::nullptr_t = nullptr) noexcept {}
+        ICodecSubtypesStatics2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IDataCue :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IDataCue>,

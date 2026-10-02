@@ -3,6 +3,7 @@
 #pragma once
 #ifndef WINRT_Windows_Media_ClosedCaptioning_2_H
 #define WINRT_Windows_Media_ClosedCaptioning_2_H
+#include "winrt/impl/Windows.Foundation.1.h"
 #include "winrt/impl/Windows.Media.ClosedCaptioning.1.h"
 WINRT_EXPORT namespace winrt::Windows::Media::ClosedCaptioning
 {
@@ -21,6 +22,26 @@ WINRT_EXPORT namespace winrt::Windows::Media::ClosedCaptioning
         [[nodiscard]] static auto RegionColor();
         [[nodiscard]] static auto ComputedRegionColor();
         [[nodiscard]] static auto RegionOpacity();
+        static auto PropertiesChanged(winrt::Windows::Foundation::EventHandler<winrt::Windows::Foundation::IInspectable> const& handler);
+        using PropertiesChanged_revoker = impl::factory_event_revoker<winrt::Windows::Media::ClosedCaptioning::IClosedCaptionPropertiesStatics2, &impl::abi_t<winrt::Windows::Media::ClosedCaptioning::IClosedCaptionPropertiesStatics2>::remove_PropertiesChanged>;
+        [[nodiscard]] static PropertiesChanged_revoker PropertiesChanged(auto_revoke_t, winrt::Windows::Foundation::EventHandler<winrt::Windows::Foundation::IInspectable> const& handler);
+        static auto PropertiesChanged(winrt::event_token const& token);
+    };
+    struct __declspec(empty_bases) ClosedCaptionTheme : winrt::Windows::Media::ClosedCaptioning::IClosedCaptionTheme
+    {
+        ClosedCaptionTheme(std::nullptr_t) noexcept {}
+        ClosedCaptionTheme(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Media::ClosedCaptioning::IClosedCaptionTheme(ptr, take_ownership_from_abi) {}
+        static auto GetAvailableThemes();
+        static auto GetSelectedTheme();
+        static auto TrySetSelectedTheme(winrt::Windows::Media::ClosedCaptioning::ClosedCaptionTheme const& value);
+        static auto ThemesChanged(winrt::Windows::Foundation::EventHandler<winrt::Windows::Foundation::IInspectable> const& handler);
+        using ThemesChanged_revoker = impl::factory_event_revoker<winrt::Windows::Media::ClosedCaptioning::IClosedCaptionThemeStatics, &impl::abi_t<winrt::Windows::Media::ClosedCaptioning::IClosedCaptionThemeStatics>::remove_ThemesChanged>;
+        [[nodiscard]] static ThemesChanged_revoker ThemesChanged(auto_revoke_t, winrt::Windows::Foundation::EventHandler<winrt::Windows::Foundation::IInspectable> const& handler);
+        static auto ThemesChanged(winrt::event_token const& token);
+        static auto SelectedThemeChanged(winrt::Windows::Foundation::EventHandler<winrt::Windows::Foundation::IInspectable> const& handler);
+        using SelectedThemeChanged_revoker = impl::factory_event_revoker<winrt::Windows::Media::ClosedCaptioning::IClosedCaptionThemeStatics, &impl::abi_t<winrt::Windows::Media::ClosedCaptioning::IClosedCaptionThemeStatics>::remove_SelectedThemeChanged>;
+        [[nodiscard]] static SelectedThemeChanged_revoker SelectedThemeChanged(auto_revoke_t, winrt::Windows::Foundation::EventHandler<winrt::Windows::Foundation::IInspectable> const& handler);
+        static auto SelectedThemeChanged(winrt::event_token const& token);
     };
 }
 #endif

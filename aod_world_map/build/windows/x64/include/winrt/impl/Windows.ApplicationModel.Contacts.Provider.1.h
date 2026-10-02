@@ -20,6 +20,13 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel::Contacts::Provider
         IContactPickerUI2(std::nullptr_t = nullptr) noexcept {}
         IContactPickerUI2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IContactProvider :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IContactProvider>
+    {
+        IContactProvider(std::nullptr_t = nullptr) noexcept {}
+        IContactProvider(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IContactRemovedEventArgs :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IContactRemovedEventArgs>

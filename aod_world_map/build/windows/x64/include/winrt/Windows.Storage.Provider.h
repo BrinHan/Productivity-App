@@ -10,7 +10,9 @@ static_assert(winrt::check_version(CPPWINRT_VERSION, "2.0.220418.1"), "Mismatche
 #include "winrt/impl/Windows.Foundation.2.h"
 #include "winrt/impl/Windows.Foundation.Collections.2.h"
 #include "winrt/impl/Windows.Storage.2.h"
+#include "winrt/impl/Windows.Storage.Search.2.h"
 #include "winrt/impl/Windows.Storage.Streams.2.h"
+#include "winrt/impl/Windows.UI.2.h"
 #include "winrt/impl/Windows.Storage.Provider.2.h"
 namespace winrt::impl
 {
@@ -132,88 +134,6 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IFileUpdateRequestedEventArgs)->get_Request(&value));
         return winrt::Windows::Storage::Provider::FileUpdateRequest{ value, take_ownership_from_abi };
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::Id() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_Id(&value));
-        return hstring{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::Title() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_Title(&value));
-        return hstring{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::Message() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_Message(&value));
-        return hstring{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::FilePath() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_FilePath(&value));
-        return hstring{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::FilePath(param::hstring const& value) const
-    {
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->put_FilePath(*(void**)(&value)));
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::PrimaryAction() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_PrimaryAction(&value));
-        return winrt::Windows::Storage::Provider::StorageProviderErrorCommand{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::PrimaryAction(winrt::Windows::Storage::Provider::StorageProviderErrorCommand const& value) const
-    {
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->put_PrimaryAction(*(void**)(&value)));
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::SecondaryAction() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_SecondaryAction(&value));
-        return winrt::Windows::Storage::Provider::StorageProviderErrorCommand{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::SecondaryAction(winrt::Windows::Storage::Provider::StorageProviderErrorCommand const& value) const
-    {
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->put_SecondaryAction(*(void**)(&value)));
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::InformationalLink() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->get_InformationalLink(&value));
-        return winrt::Windows::Storage::Provider::StorageProviderErrorCommand{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderError<D>::InformationalLink(winrt::Windows::Storage::Provider::StorageProviderErrorCommand const& value) const
-    {
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderError)->put_InformationalLink(*(void**)(&value)));
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderErrorCommand<D>::Label() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderErrorCommand)->get_Label(&value));
-        return hstring{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderErrorCommand<D>::ActionUri() const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderErrorCommand)->get_ActionUri(&value));
-        return winrt::Windows::Foundation::Uri{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderErrorCommandFactory<D>::CreateInstance(param::hstring const& label, winrt::Windows::Foundation::Uri const& actionUri) const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderErrorCommandFactory)->CreateInstance(*(void**)(&label), *(void**)(&actionUri), &value));
-        return winrt::Windows::Storage::Provider::StorageProviderErrorCommand{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderErrorFactory<D>::CreateInstance(param::hstring const& id, param::hstring const& title, param::hstring const& message) const
-    {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderErrorFactory)->CreateInstance(*(void**)(&id), *(void**)(&title), *(void**)(&message), &value));
-        return winrt::Windows::Storage::Provider::StorageProviderError{ value, take_ownership_from_abi };
-    }
     template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderFileTypeInfo<D>::FileExtension() const
     {
         void* value{};
@@ -282,12 +202,6 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderGetPathForContentUriResult)->put_Path(*(void**)(&value)));
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderHandlerFactory<D>::GetStatusSource(param::hstring const& syncRootId) const
-    {
-        void* result{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderHandlerFactory)->GetStatusSource(*(void**)(&syncRootId), &result));
-        return winrt::Windows::Storage::Provider::IStorageProviderStatusSource{ result, take_ownership_from_abi };
-    }
     template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderItemPropertiesStatics<D>::SetAsync(winrt::Windows::Storage::IStorageItem const& item, param::async_iterable<winrt::Windows::Storage::Provider::StorageProviderItemProperty> const& itemProperties) const
     {
         void* operation{};
@@ -350,61 +264,512 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderItemPropertySource)->GetItemProperties(*(void**)(&itemPath), &result));
         return winrt::Windows::Foundation::Collections::IIterable<winrt::Windows::Storage::Provider::StorageProviderItemProperty>{ result, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderEntry<D>::KnownFolderId() const
+    {
+        winrt::guid value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry)->get_KnownFolderId(put_abi(value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderEntry<D>::KnownFolderId(winrt::guid const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry)->put_KnownFolderId(impl::bind_in(value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderEntry<D>::Status() const
+    {
+        winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncStatus value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry)->get_Status(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderEntry<D>::Status(winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncStatus const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry)->put_Status(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfo<D>::ProviderDisplayName() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo)->get_ProviderDisplayName(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfo<D>::ProviderDisplayName(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo)->put_ProviderDisplayName(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfo<D>::KnownFolderEntries() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo)->get_KnownFolderEntries(&value));
+        return winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Storage::Provider::StorageProviderKnownFolderEntry>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfo<D>::SyncRequested() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo)->get_SyncRequested(&value));
+        return winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfo<D>::SyncRequested(winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo)->put_SyncRequested(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfoSource<D>::GetKnownFolderSyncInfo() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource)->GetKnownFolderSyncInfo(&result));
+        return winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncInfo{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfoSource<D>::KnownFolderSyncInfoChanged(winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource, winrt::Windows::Foundation::IInspectable> const& handler) const
+    {
+        winrt::event_token token{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource)->add_KnownFolderSyncInfoChanged(*(void**)(&handler), put_abi(token)));
+        return token;
+    }
+    template <typename D> typename consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfoSource<D>::KnownFolderSyncInfoChanged_revoker consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfoSource<D>::KnownFolderSyncInfoChanged(auto_revoke_t, winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource, winrt::Windows::Foundation::IInspectable> const& handler) const
+    {
+        return impl::make_event_revoker<D, KnownFolderSyncInfoChanged_revoker>(this, KnownFolderSyncInfoChanged(handler));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfoSource<D>::KnownFolderSyncInfoChanged(winrt::event_token const& token) const noexcept
+    {
+        WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource)->remove_KnownFolderSyncInfoChanged(impl::bind_in(token));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncInfoSourceFactory<D>::GetKnownFolderSyncInfoSource() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSourceFactory)->GetKnownFolderSyncInfoSource(&result));
+        return winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncRequestArgs<D>::KnownFolders() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncRequestArgs)->get_KnownFolders(&value));
+        return winrt::Windows::Foundation::Collections::IVectorView<winrt::guid>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderKnownFolderSyncRequestArgs<D>::Source() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncRequestArgs)->get_Source(&value));
+        return winrt::Windows::Storage::StorageFolder{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderMoreInfoUI<D>::Message() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI)->get_Message(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderMoreInfoUI<D>::Message(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI)->put_Message(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderMoreInfoUI<D>::Command() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI)->get_Command(&value));
+        return winrt::Windows::Storage::Provider::IStorageProviderUICommand{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderMoreInfoUI<D>::Command(winrt::Windows::Storage::Provider::IStorageProviderUICommand const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI)->put_Command(*(void**)(&value)));
+    }
     template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderPropertyCapabilities<D>::IsPropertySupported(param::hstring const& propertyCanonicalName) const
     {
         bool isSupported{};
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderPropertyCapabilities)->IsPropertySupported(*(void**)(&propertyCanonicalName), &isSupported));
         return isSupported;
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatus<D>::Message() const
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::Kind() const
     {
-        void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatus)->get_Message(&value));
-        return hstring{ value, take_ownership_from_abi };
-    }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatus<D>::State() const
-    {
-        winrt::Windows::Storage::Provider::StorageProviderState value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatus)->get_State(reinterpret_cast<int32_t*>(&value)));
+        winrt::Windows::Storage::Provider::StorageProviderResultKind value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->get_Kind(reinterpret_cast<int32_t*>(&value)));
         return value;
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatus<D>::ErrorMessages() const
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::Kind(winrt::Windows::Storage::Provider::StorageProviderResultKind const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->put_Kind(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::ResultId() const
     {
         void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatus)->get_ErrorMessages(&value));
-        return winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::Provider::StorageProviderError>{ value, take_ownership_from_abi };
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->get_ResultId(&value));
+        return hstring{ value, take_ownership_from_abi };
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusFactory<D>::CreateInstance(winrt::Windows::Storage::Provider::StorageProviderState const& state, param::hstring const& message) const
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::ResultId(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->put_ResultId(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::RemoteFileId() const
     {
         void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusFactory)->CreateInstance(static_cast<int32_t>(state), *(void**)(&message), &value));
-        return winrt::Windows::Storage::Provider::StorageProviderStatus{ value, take_ownership_from_abi };
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->get_RemoteFileId(&value));
+        return hstring{ value, take_ownership_from_abi };
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusFactory<D>::CreateInstance2(winrt::Windows::Storage::Provider::StorageProviderState const& state, param::hstring const& message, param::iterable<winrt::Windows::Storage::Provider::StorageProviderError> const& errorMessages) const
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::RemoteFileId(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->put_RemoteFileId(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::FilePath() const
     {
         void* value{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusFactory)->CreateInstance2(static_cast<int32_t>(state), *(void**)(&message), *(void**)(&errorMessages), &value));
-        return winrt::Windows::Storage::Provider::StorageProviderStatus{ value, take_ownership_from_abi };
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->get_FilePath(&value));
+        return hstring{ value, take_ownership_from_abi };
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusSource<D>::GetStatus() const
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::FilePath(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->put_FilePath(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResult<D>::RequestedProperties() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResult)->get_RequestedProperties(&value));
+        return winrt::Windows::Foundation::Collections::PropertySet{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResultSet<D>::GetResults() const
+    {
+        uint32_t result_impl_size{};
+        void** result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet)->GetResults(&result_impl_size, &result));
+        return com_array<winrt::Windows::Storage::Provider::IStorageProviderQueryResult>{ result, result_impl_size, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResultSet<D>::QueryResultId() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet)->get_QueryResultId(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResultSet<D>::QueryResultId(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet)->put_QueryResultId(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResultSet<D>::Status() const
+    {
+        winrt::Windows::Storage::Provider::StorageProviderSearchQueryStatus value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet)->get_Status(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResultSet<D>::Status(winrt::Windows::Storage::Provider::StorageProviderSearchQueryStatus const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet)->put_Status(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQueryResultSetFactory<D>::CreateInstance(array_view<winrt::Windows::Storage::Provider::IStorageProviderQueryResult const> results) const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQueryResultSetFactory)->CreateInstance(results.size(), get_abi(results), &value));
+        return winrt::Windows::Storage::Provider::StorageProviderQueryResultSet{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaTotalInBytes() const
+    {
+        uint64_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->get_QuotaTotalInBytes(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaTotalInBytes(uint64_t value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->put_QuotaTotalInBytes(value));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaUsedInBytes() const
+    {
+        uint64_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->get_QuotaUsedInBytes(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaUsedInBytes(uint64_t value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->put_QuotaUsedInBytes(value));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaUsedLabel() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->get_QuotaUsedLabel(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaUsedLabel(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->put_QuotaUsedLabel(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaUsedColor() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->get_QuotaUsedColor(&value));
+        return winrt::Windows::Foundation::IReference<winrt::Windows::UI::Color>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderQuotaUI<D>::QuotaUsedColor(winrt::Windows::Foundation::IReference<winrt::Windows::UI::Color> const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderQuotaUI)->put_QuotaUsedColor(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchHandler<D>::Find(winrt::Windows::Storage::Provider::StorageProviderSearchQueryOptions const& options) const
     {
         void* result{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusSource)->GetStatus(&result));
-        return winrt::Windows::Storage::Provider::StorageProviderStatus{ result, take_ownership_from_abi };
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchHandler)->Find(*(void**)(&options), &result));
+        return winrt::Windows::Storage::Provider::StorageProviderQueryResultSet{ result, take_ownership_from_abi };
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusSource<D>::Changed(winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderStatusSource, winrt::Windows::Foundation::IInspectable> const& handler) const
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchHandler<D>::ReportUsage(winrt::Windows::Storage::Provider::StorageProviderResultUsageKind const& resultUsageKind, param::hstring const& remoteFileId, param::hstring const& resultId, winrt::Windows::Foundation::TimeSpan const& latency) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchHandler)->ReportUsage(static_cast<int32_t>(resultUsageKind), *(void**)(&remoteFileId), *(void**)(&resultId), impl::bind_in(latency)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchHandlerFactory<D>::CreateSearchHandler(param::hstring const& cloudProviderId) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchHandlerFactory)->CreateSearchHandler(*(void**)(&cloudProviderId), &result));
+        return winrt::Windows::Storage::Provider::IStorageProviderSearchHandler{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::UserQuery() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_UserQuery(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::Language() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_Language(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::SortOrder() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_SortOrder(&value));
+        return winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::Search::SortEntry>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::ProgrammaticQuery() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_ProgrammaticQuery(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::MaxResults() const
+    {
+        uint32_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_MaxResults(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::FolderScope() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_FolderScope(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::QueryId() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_QueryId(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchQueryOptions<D>::PropertiesToFetch() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions)->get_PropertiesToFetch(&value));
+        return winrt::Windows::Foundation::Collections::IVectorView<hstring>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchResult<D>::MatchScore() const
+    {
+        double value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchResult)->get_MatchScore(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchResult<D>::MatchScore(double value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchResult)->put_MatchScore(value));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchResult<D>::MatchKind() const
+    {
+        winrt::Windows::Storage::Provider::StorageProviderSearchMatchKind value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchResult)->get_MatchKind(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchResult<D>::MatchKind(winrt::Windows::Storage::Provider::StorageProviderSearchMatchKind const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchResult)->put_MatchKind(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchResult<D>::MatchedPropertyName() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchResult)->get_MatchedPropertyName(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSearchResult<D>::MatchedPropertyName(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSearchResult)->put_MatchedPropertyName(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderShareLinkSource<D>::CreateLinkAsync(param::async_vector_view<winrt::Windows::Storage::IStorageItem> const& storageItemList) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderShareLinkSource)->CreateLinkAsync(*(void**)(&storageItemList), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Foundation::Uri>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderShareLinkSource<D>::GetDefaultAccessControlStringAsync(param::async_vector_view<winrt::Windows::Storage::IStorageItem> const& storageItemList) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderShareLinkSource)->GetDefaultAccessControlStringAsync(*(void**)(&storageItemList), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<hstring>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderShareLinkSource<D>::GetState(param::async_vector_view<winrt::Windows::Storage::IStorageItem> const& storageItemList) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderShareLinkSource)->GetState(*(void**)(&storageItemList), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Storage::Provider::StorageProviderShareLinkState>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderState() const
+    {
+        winrt::Windows::Storage::Provider::StorageProviderState value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_ProviderState(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderState(winrt::Windows::Storage::Provider::StorageProviderState const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_ProviderState(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderStateLabel() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_ProviderStateLabel(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderStateLabel(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_ProviderStateLabel(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderStateIcon() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_ProviderStateIcon(&value));
+        return winrt::Windows::Foundation::Uri{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderStateIcon(winrt::Windows::Foundation::Uri const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_ProviderStateIcon(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::SyncStatusCommand() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_SyncStatusCommand(&value));
+        return winrt::Windows::Storage::Provider::IStorageProviderUICommand{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::SyncStatusCommand(winrt::Windows::Storage::Provider::IStorageProviderUICommand const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_SyncStatusCommand(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::QuotaUI() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_QuotaUI(&value));
+        return winrt::Windows::Storage::Provider::StorageProviderQuotaUI{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::QuotaUI(winrt::Windows::Storage::Provider::StorageProviderQuotaUI const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_QuotaUI(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::MoreInfoUI() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_MoreInfoUI(&value));
+        return winrt::Windows::Storage::Provider::StorageProviderMoreInfoUI{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::MoreInfoUI(winrt::Windows::Storage::Provider::StorageProviderMoreInfoUI const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_MoreInfoUI(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderPrimaryCommand() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_ProviderPrimaryCommand(&value));
+        return winrt::Windows::Storage::Provider::IStorageProviderUICommand{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderPrimaryCommand(winrt::Windows::Storage::Provider::IStorageProviderUICommand const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_ProviderPrimaryCommand(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderSecondaryCommands() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->get_ProviderSecondaryCommands(&value));
+        return winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Storage::Provider::IStorageProviderUICommand>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUI<D>::ProviderSecondaryCommands(param::vector<winrt::Windows::Storage::Provider::IStorageProviderUICommand> const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUI)->put_ProviderSecondaryCommands(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUISource<D>::GetStatusUI() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUISource)->GetStatusUI(&result));
+        return winrt::Windows::Storage::Provider::StorageProviderStatusUI{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUISource<D>::StatusUIChanged(winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderStatusUISource, winrt::Windows::Foundation::IInspectable> const& handler) const
     {
         winrt::event_token token{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusSource)->add_Changed(*(void**)(&handler), put_abi(token)));
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUISource)->add_StatusUIChanged(*(void**)(&handler), put_abi(token)));
         return token;
     }
-    template <typename D> typename consume_Windows_Storage_Provider_IStorageProviderStatusSource<D>::Changed_revoker consume_Windows_Storage_Provider_IStorageProviderStatusSource<D>::Changed(auto_revoke_t, winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderStatusSource, winrt::Windows::Foundation::IInspectable> const& handler) const
+    template <typename D> typename consume_Windows_Storage_Provider_IStorageProviderStatusUISource<D>::StatusUIChanged_revoker consume_Windows_Storage_Provider_IStorageProviderStatusUISource<D>::StatusUIChanged(auto_revoke_t, winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderStatusUISource, winrt::Windows::Foundation::IInspectable> const& handler) const
     {
-        return impl::make_event_revoker<D, Changed_revoker>(this, Changed(handler));
+        return impl::make_event_revoker<D, StatusUIChanged_revoker>(this, StatusUIChanged(handler));
     }
-    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusSource<D>::Changed(winrt::event_token const& token) const noexcept
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUISource<D>::StatusUIChanged(winrt::event_token const& token) const noexcept
     {
-        WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusSource)->remove_Changed(impl::bind_in(token));
+        WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUISource)->remove_StatusUIChanged(impl::bind_in(token));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderStatusUISourceFactory<D>::GetStatusUISource(param::hstring const& syncRootId) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderStatusUISourceFactory)->GetStatusUISource(*(void**)(&syncRootId), &result));
+        return winrt::Windows::Storage::Provider::IStorageProviderStatusUISource{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsHandler<D>::GetSuggestions(winrt::Windows::Storage::Provider::StorageProviderSuggestionsQueryOptions const& options) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler)->GetSuggestions(*(void**)(&options), &result));
+        return winrt::Windows::Storage::Provider::StorageProviderQueryResultSet{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsHandler<D>::Add(winrt::Windows::Storage::Provider::StorageProviderResultKind const& kind, param::hstring const& remoteFileId) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler)->Add(static_cast<int32_t>(kind), *(void**)(&remoteFileId)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsHandler<D>::Remove(winrt::Windows::Storage::Provider::StorageProviderResultKind const& kind, param::hstring const& remoteFileId) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler)->Remove(static_cast<int32_t>(kind), *(void**)(&remoteFileId)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsHandler<D>::GetDetails(param::hstring const& remoteFileId, array_view<hstring const> propertiesToFetch, param::hstring const& queryId) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler)->GetDetails(*(void**)(&remoteFileId), propertiesToFetch.size(), get_abi(propertiesToFetch), *(void**)(&queryId), &result));
+        return winrt::Windows::Storage::Provider::StorageProviderSuggestionResult{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsHandler<D>::ReportUsage(winrt::Windows::Storage::Provider::StorageProviderResultUsageKind const& resultUsageKind, param::hstring const& remoteFileId, param::hstring const& resultId, winrt::Windows::Foundation::TimeSpan const& latency) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler)->ReportUsage(static_cast<int32_t>(resultUsageKind), *(void**)(&remoteFileId), *(void**)(&resultId), impl::bind_in(latency)));
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsHandlerFactory<D>::CreateSuggestionsHandler(param::hstring const& cloudProviderId) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandlerFactory)->CreateSuggestionsHandler(*(void**)(&cloudProviderId), &result));
+        return winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsQueryOptions<D>::SuggestionsKind() const
+    {
+        winrt::Windows::Storage::Provider::StorageProviderResultKind value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions)->get_SuggestionsKind(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsQueryOptions<D>::RemoteFileId() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions)->get_RemoteFileId(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsQueryOptions<D>::MaxResults() const
+    {
+        uint32_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions)->get_MaxResults(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsQueryOptions<D>::QueryId() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions)->get_QueryId(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSuggestionsQueryOptions<D>::PropertiesToFetch() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions)->get_PropertiesToFetch(&value));
+        return winrt::Windows::Foundation::Collections::IVectorView<hstring>{ value, take_ownership_from_abi };
     }
     template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderSyncRootInfo<D>::Id() const
     {
@@ -610,6 +975,34 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderSyncRootManagerStatics2)->IsSupported(&result));
         return result;
     }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderUICommand<D>::Label() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUICommand)->get_Label(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderUICommand<D>::Description() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUICommand)->get_Description(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderUICommand<D>::Icon() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUICommand)->get_Icon(&value));
+        return winrt::Windows::Foundation::Uri{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderUICommand<D>::State() const
+    {
+        winrt::Windows::Storage::Provider::StorageProviderUICommandState value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUICommand)->get_State(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderUICommand<D>::Invoke() const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUICommand)->Invoke());
+    }
     template <typename D> auto consume_Windows_Storage_Provider_IStorageProviderUriSource<D>::GetPathForContentUri(param::hstring const& contentUri, winrt::Windows::Storage::Provider::StorageProviderGetPathForContentUriResult const& result) const
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUriSource)->GetPathForContentUri(*(void**)(&contentUri), *(void**)(&result)));
@@ -618,6 +1011,17 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Storage::Provider::IStorageProviderUriSource)->GetContentInfoForPath(*(void**)(&path), *(void**)(&result)));
     }
+    template <typename H> struct delegate<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler, H> final : implements_delegate<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler, H>
+    {
+        delegate(H&& handler) : implements_delegate<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler, H>(std::forward<H>(handler)) {}
+
+        int32_t __stdcall Invoke(void* args) noexcept final try
+        {
+            (*this)(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestArgs const*>(&args));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
     struct produce<D, winrt::Windows::Storage::Provider::ICachedFileUpdaterStatics> : produce_base<D, winrt::Windows::Storage::Provider::ICachedFileUpdaterStatics>
@@ -817,146 +1221,6 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderError> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderError>
-    {
-        int32_t __stdcall get_Id(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<hstring>(this->shim().Id());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_Title(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<hstring>(this->shim().Title());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_Message(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<hstring>(this->shim().Message());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_FilePath(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<hstring>(this->shim().FilePath());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall put_FilePath(void* value) noexcept final try
-        {
-            typename D::abi_guard guard(this->shim());
-            this->shim().FilePath(*reinterpret_cast<hstring const*>(&value));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_PrimaryAction(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderErrorCommand>(this->shim().PrimaryAction());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall put_PrimaryAction(void* value) noexcept final try
-        {
-            typename D::abi_guard guard(this->shim());
-            this->shim().PrimaryAction(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderErrorCommand const*>(&value));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_SecondaryAction(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderErrorCommand>(this->shim().SecondaryAction());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall put_SecondaryAction(void* value) noexcept final try
-        {
-            typename D::abi_guard guard(this->shim());
-            this->shim().SecondaryAction(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderErrorCommand const*>(&value));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_InformationalLink(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderErrorCommand>(this->shim().InformationalLink());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall put_InformationalLink(void* value) noexcept final try
-        {
-            typename D::abi_guard guard(this->shim());
-            this->shim().InformationalLink(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderErrorCommand const*>(&value));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    };
-#endif
-#ifndef WINRT_LEAN_AND_MEAN
-    template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderErrorCommand> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderErrorCommand>
-    {
-        int32_t __stdcall get_Label(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<hstring>(this->shim().Label());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall get_ActionUri(void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Foundation::Uri>(this->shim().ActionUri());
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    };
-#endif
-#ifndef WINRT_LEAN_AND_MEAN
-    template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderErrorCommandFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderErrorCommandFactory>
-    {
-        int32_t __stdcall CreateInstance(void* label, void* actionUri, void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderErrorCommand>(this->shim().CreateInstance(*reinterpret_cast<hstring const*>(&label), *reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&actionUri)));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    };
-#endif
-#ifndef WINRT_LEAN_AND_MEAN
-    template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderErrorFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderErrorFactory>
-    {
-        int32_t __stdcall CreateInstance(void* id, void* title, void* message, void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderError>(this->shim().CreateInstance(*reinterpret_cast<hstring const*>(&id), *reinterpret_cast<hstring const*>(&title), *reinterpret_cast<hstring const*>(&message)));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    };
-#endif
-#ifndef WINRT_LEAN_AND_MEAN
-    template <typename D>
     struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderFileTypeInfo> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderFileTypeInfo>
     {
         int32_t __stdcall get_FileExtension(void** value) noexcept final try
@@ -1076,18 +1340,6 @@ namespace winrt::impl
         catch (...) { return to_hresult(); }
     };
 #endif
-    template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderHandlerFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderHandlerFactory>
-    {
-        int32_t __stdcall GetStatusSource(void* syncRootId, void** result) noexcept final try
-        {
-            clear_abi(result);
-            typename D::abi_guard guard(this->shim());
-            *result = detach_from<winrt::Windows::Storage::Provider::IStorageProviderStatusSource>(this->shim().GetStatusSource(*reinterpret_cast<hstring const*>(&syncRootId)));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    };
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
     struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderItemPropertiesStatics> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderItemPropertiesStatics>
@@ -1199,6 +1451,180 @@ namespace winrt::impl
         }
         catch (...) { return to_hresult(); }
     };
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry>
+    {
+        int32_t __stdcall get_KnownFolderId(winrt::guid* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::guid>(this->shim().KnownFolderId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_KnownFolderId(winrt::guid value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().KnownFolderId(*reinterpret_cast<winrt::guid const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Status(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncStatus>(this->shim().Status());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Status(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Status(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncStatus const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo>
+    {
+        int32_t __stdcall get_ProviderDisplayName(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().ProviderDisplayName());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ProviderDisplayName(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ProviderDisplayName(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_KnownFolderEntries(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Storage::Provider::StorageProviderKnownFolderEntry>>(this->shim().KnownFolderEntries());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_SyncRequested(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler>(this->shim().SyncRequested());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_SyncRequested(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().SyncRequested(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestedHandler const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource>
+    {
+        int32_t __stdcall GetKnownFolderSyncInfo(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncInfo>(this->shim().GetKnownFolderSyncInfo());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall add_KnownFolderSyncInfoChanged(void* handler, winrt::event_token* token) noexcept final try
+        {
+            zero_abi<winrt::event_token>(token);
+            typename D::abi_guard guard(this->shim());
+            *token = detach_from<winrt::event_token>(this->shim().KnownFolderSyncInfoChanged(*reinterpret_cast<winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource, winrt::Windows::Foundation::IInspectable> const*>(&handler)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall remove_KnownFolderSyncInfoChanged(winrt::event_token token) noexcept final
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().KnownFolderSyncInfoChanged(*reinterpret_cast<winrt::event_token const*>(&token));
+            return 0;
+        }
+    };
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSourceFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSourceFactory>
+    {
+        int32_t __stdcall GetKnownFolderSyncInfoSource(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource>(this->shim().GetKnownFolderSyncInfoSource());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncRequestArgs> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncRequestArgs>
+    {
+        int32_t __stdcall get_KnownFolders(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVectorView<winrt::guid>>(this->shim().KnownFolders());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Source(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::StorageFolder>(this->shim().Source());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI>
+    {
+        int32_t __stdcall get_Message(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().Message());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Message(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Message(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Command(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::IStorageProviderUICommand>(this->shim().Command());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Command(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Command(*reinterpret_cast<winrt::Windows::Storage::Provider::IStorageProviderUICommand const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
     template <typename D>
     struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderPropertyCapabilities> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderPropertyCapabilities>
     {
@@ -1210,83 +1636,635 @@ namespace winrt::impl
         }
         catch (...) { return to_hresult(); }
     };
-#ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderStatus> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderStatus>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderQueryResult> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderQueryResult>
     {
-        int32_t __stdcall get_Message(void** value) noexcept final try
+        int32_t __stdcall get_Kind(int32_t* value) noexcept final try
         {
-            clear_abi(value);
             typename D::abi_guard guard(this->shim());
-            *value = detach_from<hstring>(this->shim().Message());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderResultKind>(this->shim().Kind());
             return 0;
         }
         catch (...) { return to_hresult(); }
-        int32_t __stdcall get_State(int32_t* value) noexcept final try
+        int32_t __stdcall put_Kind(int32_t value) noexcept final try
         {
             typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderState>(this->shim().State());
+            this->shim().Kind(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderResultKind const*>(&value));
             return 0;
         }
         catch (...) { return to_hresult(); }
-        int32_t __stdcall get_ErrorMessages(void** value) noexcept final try
+        int32_t __stdcall get_ResultId(void** value) noexcept final try
         {
             clear_abi(value);
             typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::Provider::StorageProviderError>>(this->shim().ErrorMessages());
+            *value = detach_from<hstring>(this->shim().ResultId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ResultId(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ResultId(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_RemoteFileId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().RemoteFileId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_RemoteFileId(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().RemoteFileId(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_FilePath(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().FilePath());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_FilePath(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().FilePath(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_RequestedProperties(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::PropertySet>(this->shim().RequestedProperties());
             return 0;
         }
         catch (...) { return to_hresult(); }
     };
-#endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderStatusFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderStatusFactory>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet>
     {
-        int32_t __stdcall CreateInstance(int32_t state, void* message, void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderStatus>(this->shim().CreateInstance(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderState const*>(&state), *reinterpret_cast<hstring const*>(&message)));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-        int32_t __stdcall CreateInstance2(int32_t state, void* message, void* errorMessages, void** value) noexcept final try
-        {
-            clear_abi(value);
-            typename D::abi_guard guard(this->shim());
-            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderStatus>(this->shim().CreateInstance2(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderState const*>(&state), *reinterpret_cast<hstring const*>(&message), *reinterpret_cast<winrt::Windows::Foundation::Collections::IIterable<winrt::Windows::Storage::Provider::StorageProviderError> const*>(&errorMessages)));
-            return 0;
-        }
-        catch (...) { return to_hresult(); }
-    };
-#endif
-    template <typename D>
-    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderStatusSource> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderStatusSource>
-    {
-        int32_t __stdcall GetStatus(void** result) noexcept final try
+        int32_t __stdcall GetResults(uint32_t* __resultSize, void*** result) noexcept final try
         {
             clear_abi(result);
             typename D::abi_guard guard(this->shim());
-            *result = detach_from<winrt::Windows::Storage::Provider::StorageProviderStatus>(this->shim().GetStatus());
+            std::tie(*__resultSize, *result) = detach_abi(this->shim().GetResults());
             return 0;
         }
         catch (...) { return to_hresult(); }
-        int32_t __stdcall add_Changed(void* handler, winrt::event_token* token) noexcept final try
+        int32_t __stdcall get_QueryResultId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().QueryResultId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_QueryResultId(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().QueryResultId(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Status(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderSearchQueryStatus>(this->shim().Status());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Status(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Status(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderSearchQueryStatus const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderQueryResultSetFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderQueryResultSetFactory>
+    {
+        int32_t __stdcall CreateInstance(uint32_t __resultsSize, void** results, void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderQueryResultSet>(this->shim().CreateInstance(array_view<winrt::Windows::Storage::Provider::IStorageProviderQueryResult const>(reinterpret_cast<winrt::Windows::Storage::Provider::IStorageProviderQueryResult const *>(results), reinterpret_cast<winrt::Windows::Storage::Provider::IStorageProviderQueryResult const *>(results) + __resultsSize)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderQuotaUI> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderQuotaUI>
+    {
+        int32_t __stdcall get_QuotaTotalInBytes(uint64_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<uint64_t>(this->shim().QuotaTotalInBytes());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_QuotaTotalInBytes(uint64_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().QuotaTotalInBytes(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_QuotaUsedInBytes(uint64_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<uint64_t>(this->shim().QuotaUsedInBytes());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_QuotaUsedInBytes(uint64_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().QuotaUsedInBytes(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_QuotaUsedLabel(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().QuotaUsedLabel());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_QuotaUsedLabel(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().QuotaUsedLabel(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_QuotaUsedColor(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::IReference<winrt::Windows::UI::Color>>(this->shim().QuotaUsedColor());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_QuotaUsedColor(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().QuotaUsedColor(*reinterpret_cast<winrt::Windows::Foundation::IReference<winrt::Windows::UI::Color> const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSearchHandler> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSearchHandler>
+    {
+        int32_t __stdcall Find(void* options, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::StorageProviderQueryResultSet>(this->shim().Find(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderSearchQueryOptions const*>(&options)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall ReportUsage(int32_t resultUsageKind, void* remoteFileId, void* resultId, int64_t latency) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ReportUsage(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderResultUsageKind const*>(&resultUsageKind), *reinterpret_cast<hstring const*>(&remoteFileId), *reinterpret_cast<hstring const*>(&resultId), *reinterpret_cast<winrt::Windows::Foundation::TimeSpan const*>(&latency));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSearchHandlerFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSearchHandlerFactory>
+    {
+        int32_t __stdcall CreateSearchHandler(void* cloudProviderId, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::IStorageProviderSearchHandler>(this->shim().CreateSearchHandler(*reinterpret_cast<hstring const*>(&cloudProviderId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions>
+    {
+        int32_t __stdcall get_UserQuery(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().UserQuery());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Language(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().Language());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_SortOrder(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::Search::SortEntry>>(this->shim().SortOrder());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ProgrammaticQuery(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().ProgrammaticQuery());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_MaxResults(uint32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<uint32_t>(this->shim().MaxResults());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_FolderScope(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().FolderScope());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_QueryId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().QueryId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PropertiesToFetch(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVectorView<hstring>>(this->shim().PropertiesToFetch());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSearchResult> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSearchResult>
+    {
+        int32_t __stdcall get_MatchScore(double* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<double>(this->shim().MatchScore());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_MatchScore(double value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().MatchScore(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_MatchKind(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderSearchMatchKind>(this->shim().MatchKind());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_MatchKind(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().MatchKind(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderSearchMatchKind const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_MatchedPropertyName(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().MatchedPropertyName());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_MatchedPropertyName(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().MatchedPropertyName(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderShareLinkSource> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderShareLinkSource>
+    {
+        int32_t __stdcall CreateLinkAsync(void* storageItemList, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Foundation::Uri>>(this->shim().CreateLinkAsync(*reinterpret_cast<winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::IStorageItem> const*>(&storageItemList)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetDefaultAccessControlStringAsync(void* storageItemList, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<hstring>>(this->shim().GetDefaultAccessControlStringAsync(*reinterpret_cast<winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::IStorageItem> const*>(&storageItemList)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetState(void* storageItemList, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Storage::Provider::StorageProviderShareLinkState>>(this->shim().GetState(*reinterpret_cast<winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::Storage::IStorageItem> const*>(&storageItemList)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderStatusUI> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderStatusUI>
+    {
+        int32_t __stdcall get_ProviderState(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderState>(this->shim().ProviderState());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ProviderState(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ProviderState(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderState const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ProviderStateLabel(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().ProviderStateLabel());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ProviderStateLabel(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ProviderStateLabel(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ProviderStateIcon(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Uri>(this->shim().ProviderStateIcon());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ProviderStateIcon(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ProviderStateIcon(*reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_SyncStatusCommand(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::IStorageProviderUICommand>(this->shim().SyncStatusCommand());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_SyncStatusCommand(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().SyncStatusCommand(*reinterpret_cast<winrt::Windows::Storage::Provider::IStorageProviderUICommand const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_QuotaUI(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderQuotaUI>(this->shim().QuotaUI());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_QuotaUI(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().QuotaUI(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderQuotaUI const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_MoreInfoUI(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderMoreInfoUI>(this->shim().MoreInfoUI());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_MoreInfoUI(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().MoreInfoUI(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderMoreInfoUI const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ProviderPrimaryCommand(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::IStorageProviderUICommand>(this->shim().ProviderPrimaryCommand());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ProviderPrimaryCommand(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ProviderPrimaryCommand(*reinterpret_cast<winrt::Windows::Storage::Provider::IStorageProviderUICommand const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ProviderSecondaryCommands(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Storage::Provider::IStorageProviderUICommand>>(this->shim().ProviderSecondaryCommands());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ProviderSecondaryCommands(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ProviderSecondaryCommands(*reinterpret_cast<winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Storage::Provider::IStorageProviderUICommand> const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderStatusUISource> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderStatusUISource>
+    {
+        int32_t __stdcall GetStatusUI(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::StorageProviderStatusUI>(this->shim().GetStatusUI());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall add_StatusUIChanged(void* handler, winrt::event_token* token) noexcept final try
         {
             zero_abi<winrt::event_token>(token);
             typename D::abi_guard guard(this->shim());
-            *token = detach_from<winrt::event_token>(this->shim().Changed(*reinterpret_cast<winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderStatusSource, winrt::Windows::Foundation::IInspectable> const*>(&handler)));
+            *token = detach_from<winrt::event_token>(this->shim().StatusUIChanged(*reinterpret_cast<winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Storage::Provider::IStorageProviderStatusUISource, winrt::Windows::Foundation::IInspectable> const*>(&handler)));
             return 0;
         }
         catch (...) { return to_hresult(); }
-        int32_t __stdcall remove_Changed(winrt::event_token token) noexcept final
+        int32_t __stdcall remove_StatusUIChanged(winrt::event_token token) noexcept final
         {
             typename D::abi_guard guard(this->shim());
-            this->shim().Changed(*reinterpret_cast<winrt::event_token const*>(&token));
+            this->shim().StatusUIChanged(*reinterpret_cast<winrt::event_token const*>(&token));
             return 0;
         }
     };
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderStatusUISourceFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderStatusUISourceFactory>
+    {
+        int32_t __stdcall GetStatusUISource(void* syncRootId, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::IStorageProviderStatusUISource>(this->shim().GetStatusUISource(*reinterpret_cast<hstring const*>(&syncRootId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler>
+    {
+        int32_t __stdcall GetSuggestions(void* options, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::StorageProviderQueryResultSet>(this->shim().GetSuggestions(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderSuggestionsQueryOptions const*>(&options)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall Add(int32_t kind, void* remoteFileId) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Add(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderResultKind const*>(&kind), *reinterpret_cast<hstring const*>(&remoteFileId));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall Remove(int32_t kind, void* remoteFileId) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Remove(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderResultKind const*>(&kind), *reinterpret_cast<hstring const*>(&remoteFileId));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetDetails(void* remoteFileId, uint32_t __propertiesToFetchSize, void** propertiesToFetch, void* queryId, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::StorageProviderSuggestionResult>(this->shim().GetDetails(*reinterpret_cast<hstring const*>(&remoteFileId), array_view<hstring const>(reinterpret_cast<hstring const *>(propertiesToFetch), reinterpret_cast<hstring const *>(propertiesToFetch) + __propertiesToFetchSize), *reinterpret_cast<hstring const*>(&queryId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall ReportUsage(int32_t resultUsageKind, void* remoteFileId, void* resultId, int64_t latency) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ReportUsage(*reinterpret_cast<winrt::Windows::Storage::Provider::StorageProviderResultUsageKind const*>(&resultUsageKind), *reinterpret_cast<hstring const*>(&remoteFileId), *reinterpret_cast<hstring const*>(&resultId), *reinterpret_cast<winrt::Windows::Foundation::TimeSpan const*>(&latency));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandlerFactory> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandlerFactory>
+    {
+        int32_t __stdcall CreateSuggestionsHandler(void* cloudProviderId, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler>(this->shim().CreateSuggestionsHandler(*reinterpret_cast<hstring const*>(&cloudProviderId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions>
+    {
+        int32_t __stdcall get_SuggestionsKind(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderResultKind>(this->shim().SuggestionsKind());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_RemoteFileId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().RemoteFileId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_MaxResults(uint32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<uint32_t>(this->shim().MaxResults());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_QueryId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().QueryId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PropertiesToFetch(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVectorView<hstring>>(this->shim().PropertiesToFetch());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
     struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderSyncRootInfo> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderSyncRootInfo>
@@ -1610,6 +2588,48 @@ namespace winrt::impl
     };
 #endif
     template <typename D>
+    struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderUICommand> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderUICommand>
+    {
+        int32_t __stdcall get_Label(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().Label());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Description(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().Description());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Icon(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Uri>(this->shim().Icon());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_State(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Provider::StorageProviderUICommandState>(this->shim().State());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall Invoke() noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Invoke();
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+    template <typename D>
     struct produce<D, winrt::Windows::Storage::Provider::IStorageProviderUriSource> : produce_base<D, winrt::Windows::Storage::Provider::IStorageProviderUriSource>
     {
         int32_t __stdcall GetPathForContentUri(void* contentUri, void* result) noexcept final try
@@ -1758,14 +2778,6 @@ WINRT_EXPORT namespace winrt::Windows::Storage::Provider
     {
         impl::call_factory<CachedFileUpdater, ICachedFileUpdaterStatics>([&](ICachedFileUpdaterStatics const& f) { return f.SetUpdateInformation(file, contentId, readMode, writeMode, options); });
     }
-    inline StorageProviderError::StorageProviderError(param::hstring const& id, param::hstring const& title, param::hstring const& message) :
-        StorageProviderError(impl::call_factory<StorageProviderError, IStorageProviderErrorFactory>([&](IStorageProviderErrorFactory const& f) { return f.CreateInstance(id, title, message); }))
-    {
-    }
-    inline StorageProviderErrorCommand::StorageProviderErrorCommand(param::hstring const& label, winrt::Windows::Foundation::Uri const& actionUri) :
-        StorageProviderErrorCommand(impl::call_factory<StorageProviderErrorCommand, IStorageProviderErrorCommandFactory>([&](IStorageProviderErrorCommandFactory const& f) { return f.CreateInstance(label, actionUri); }))
-    {
-    }
     inline StorageProviderFileTypeInfo::StorageProviderFileTypeInfo(param::hstring const& fileExtension, param::hstring const& iconResource) :
         StorageProviderFileTypeInfo(impl::call_factory<StorageProviderFileTypeInfo, IStorageProviderFileTypeInfoFactory>([&](IStorageProviderFileTypeInfoFactory const& f) { return f.CreateInstance(fileExtension, iconResource); }))
     {
@@ -1790,12 +2802,36 @@ WINRT_EXPORT namespace winrt::Windows::Storage::Provider
         StorageProviderItemPropertyDefinition(impl::call_factory_cast<StorageProviderItemPropertyDefinition(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderItemPropertyDefinition>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderItemPropertyDefinition>(); }))
     {
     }
-    inline StorageProviderStatus::StorageProviderStatus(winrt::Windows::Storage::Provider::StorageProviderState const& state, param::hstring const& message) :
-        StorageProviderStatus(impl::call_factory<StorageProviderStatus, IStorageProviderStatusFactory>([&](IStorageProviderStatusFactory const& f) { return f.CreateInstance(state, message); }))
+    inline StorageProviderKnownFolderEntry::StorageProviderKnownFolderEntry() :
+        StorageProviderKnownFolderEntry(impl::call_factory_cast<StorageProviderKnownFolderEntry(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderKnownFolderEntry>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderKnownFolderEntry>(); }))
     {
     }
-    inline StorageProviderStatus::StorageProviderStatus(winrt::Windows::Storage::Provider::StorageProviderState const& state, param::hstring const& message, param::iterable<winrt::Windows::Storage::Provider::StorageProviderError> const& errorMessages) :
-        StorageProviderStatus(impl::call_factory<StorageProviderStatus, IStorageProviderStatusFactory>([&](IStorageProviderStatusFactory const& f) { return f.CreateInstance2(state, message, errorMessages); }))
+    inline StorageProviderKnownFolderSyncInfo::StorageProviderKnownFolderSyncInfo() :
+        StorageProviderKnownFolderSyncInfo(impl::call_factory_cast<StorageProviderKnownFolderSyncInfo(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderKnownFolderSyncInfo>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderKnownFolderSyncInfo>(); }))
+    {
+    }
+    inline StorageProviderMoreInfoUI::StorageProviderMoreInfoUI() :
+        StorageProviderMoreInfoUI(impl::call_factory_cast<StorageProviderMoreInfoUI(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderMoreInfoUI>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderMoreInfoUI>(); }))
+    {
+    }
+    inline StorageProviderQueryResultSet::StorageProviderQueryResultSet(array_view<winrt::Windows::Storage::Provider::IStorageProviderQueryResult const> results) :
+        StorageProviderQueryResultSet(impl::call_factory<StorageProviderQueryResultSet, IStorageProviderQueryResultSetFactory>([&](IStorageProviderQueryResultSetFactory const& f) { return f.CreateInstance(results); }))
+    {
+    }
+    inline StorageProviderQuotaUI::StorageProviderQuotaUI() :
+        StorageProviderQuotaUI(impl::call_factory_cast<StorageProviderQuotaUI(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderQuotaUI>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderQuotaUI>(); }))
+    {
+    }
+    inline StorageProviderSearchResult::StorageProviderSearchResult() :
+        StorageProviderSearchResult(impl::call_factory_cast<StorageProviderSearchResult(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderSearchResult>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderSearchResult>(); }))
+    {
+    }
+    inline StorageProviderStatusUI::StorageProviderStatusUI() :
+        StorageProviderStatusUI(impl::call_factory_cast<StorageProviderStatusUI(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderStatusUI>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderStatusUI>(); }))
+    {
+    }
+    inline StorageProviderSuggestionResult::StorageProviderSuggestionResult() :
+        StorageProviderSuggestionResult(impl::call_factory_cast<StorageProviderSuggestionResult(*)(winrt::Windows::Foundation::IActivationFactory const&), StorageProviderSuggestionResult>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StorageProviderSuggestionResult>(); }))
     {
     }
     inline StorageProviderSyncRootInfo::StorageProviderSyncRootInfo() :
@@ -1826,6 +2862,30 @@ WINRT_EXPORT namespace winrt::Windows::Storage::Provider
     {
         return impl::call_factory_cast<bool(*)(IStorageProviderSyncRootManagerStatics2 const&), StorageProviderSyncRootManager, IStorageProviderSyncRootManagerStatics2>([](IStorageProviderSyncRootManagerStatics2 const& f) { return f.IsSupported(); });
     }
+    template <typename L> StorageProviderKnownFolderSyncRequestedHandler::StorageProviderKnownFolderSyncRequestedHandler(L handler) :
+        StorageProviderKnownFolderSyncRequestedHandler(impl::make_delegate<StorageProviderKnownFolderSyncRequestedHandler>(std::forward<L>(handler)))
+    {
+    }
+    template <typename F> StorageProviderKnownFolderSyncRequestedHandler::StorageProviderKnownFolderSyncRequestedHandler(F* handler) :
+        StorageProviderKnownFolderSyncRequestedHandler([=](auto&&... args) { return handler(args...); })
+    {
+    }
+    template <typename O, typename M> StorageProviderKnownFolderSyncRequestedHandler::StorageProviderKnownFolderSyncRequestedHandler(O* object, M method) :
+        StorageProviderKnownFolderSyncRequestedHandler([=](auto&&... args) { return ((*object).*(method))(args...); })
+    {
+    }
+    template <typename O, typename M> StorageProviderKnownFolderSyncRequestedHandler::StorageProviderKnownFolderSyncRequestedHandler(com_ptr<O>&& object, M method) :
+        StorageProviderKnownFolderSyncRequestedHandler([o = std::move(object), method](auto&&... args) { return ((*o).*(method))(args...); })
+    {
+    }
+    template <typename O, typename M> StorageProviderKnownFolderSyncRequestedHandler::StorageProviderKnownFolderSyncRequestedHandler(weak_ref<O>&& object, M method) :
+        StorageProviderKnownFolderSyncRequestedHandler([o = std::move(object), method](auto&&... args) { if (auto s = o.get()) { ((*s).*(method))(args...); } })
+    {
+    }
+    inline auto StorageProviderKnownFolderSyncRequestedHandler::operator()(winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestArgs const& args) const
+    {
+        check_hresult((*(impl::abi_t<StorageProviderKnownFolderSyncRequestedHandler>**)this)->Invoke(*(void**)(&args)));
+    }
 }
 namespace std
 {
@@ -1837,43 +2897,65 @@ namespace std
     template<> struct hash<winrt::Windows::Storage::Provider::IFileUpdateRequest2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IFileUpdateRequestDeferral> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IFileUpdateRequestedEventArgs> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderError> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderErrorCommand> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderErrorCommandFactory> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderErrorFactory> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderFileTypeInfo> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderFileTypeInfoFactory> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderGetContentInfoForPathResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderGetPathForContentUriResult> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderHandlerFactory> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderItemPropertiesStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderItemProperty> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderItemPropertyDefinition> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderItemPropertySource> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderEntry> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfo> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSource> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncInfoSourceFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderKnownFolderSyncRequestArgs> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderMoreInfoUI> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderPropertyCapabilities> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderStatus> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderStatusFactory> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderStatusSource> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderQueryResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderQueryResultSet> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderQueryResultSetFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderQuotaUI> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSearchHandler> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSearchHandlerFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSearchQueryOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSearchResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderShareLinkSource> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderStatusUI> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderStatusUISource> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderStatusUISourceFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandler> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSuggestionsHandlerFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSuggestionsQueryOptions> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSyncRootInfo> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSyncRootInfo2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSyncRootInfo3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSyncRootManagerStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderSyncRootManagerStatics2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderUICommand> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::IStorageProviderUriSource> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::CachedFileUpdater> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::CachedFileUpdaterUI> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::FileUpdateRequest> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::FileUpdateRequestDeferral> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::FileUpdateRequestedEventArgs> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderError> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderErrorCommand> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderFileTypeInfo> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderGetContentInfoForPathResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderGetPathForContentUriResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderItemProperties> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderItemProperty> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderItemPropertyDefinition> : winrt::impl::hash_base {};
-    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderStatus> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderKnownFolderEntry> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncInfo> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderKnownFolderSyncRequestArgs> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderMoreInfoUI> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderQueryResultSet> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderQuotaUI> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderSearchQueryOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderSearchResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderStatusUI> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderSuggestionResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderSuggestionsQueryOptions> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderSyncRootInfo> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Storage::Provider::StorageProviderSyncRootManager> : winrt::impl::hash_base {};
 #endif

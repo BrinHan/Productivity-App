@@ -6,6 +6,20 @@
 #include "winrt/impl/Windows.Devices.Haptics.0.h"
 WINRT_EXPORT namespace winrt::Windows::Devices::Haptics
 {
+    struct __declspec(empty_bases) IInputHapticsManager :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IInputHapticsManager>
+    {
+        IInputHapticsManager(std::nullptr_t = nullptr) noexcept {}
+        IInputHapticsManager(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IInputHapticsManagerStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IInputHapticsManagerStatics>
+    {
+        IInputHapticsManagerStatics(std::nullptr_t = nullptr) noexcept {}
+        IInputHapticsManagerStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IKnownSimpleHapticsControllerWaveformsStatics :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IKnownSimpleHapticsControllerWaveformsStatics>
@@ -19,6 +33,13 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Haptics
     {
         IKnownSimpleHapticsControllerWaveformsStatics2(std::nullptr_t = nullptr) noexcept {}
         IKnownSimpleHapticsControllerWaveformsStatics2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IKnownSimpleHapticsControllerWaveformsStatics3 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IKnownSimpleHapticsControllerWaveformsStatics3>
+    {
+        IKnownSimpleHapticsControllerWaveformsStatics3(std::nullptr_t = nullptr) noexcept {}
+        IKnownSimpleHapticsControllerWaveformsStatics3(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) ISimpleHapticsController :
         winrt::Windows::Foundation::IInspectable,

@@ -167,6 +167,32 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAddPackageOptions)->put_DeferRegistrationWhenPackagesAreInUse(value));
     }
+    template <typename D> auto consume_Windows_Management_Deployment_IAddPackageOptions2<D>::ExpectedDigests() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAddPackageOptions2)->get_ExpectedDigests(&value));
+        return winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Foundation::Uri, hstring>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IAddPackageOptions2<D>::LimitToExistingPackages() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAddPackageOptions2)->get_LimitToExistingPackages(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IAddPackageOptions2<D>::LimitToExistingPackages(bool value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAddPackageOptions2)->put_LimitToExistingPackages(value));
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IAddPackageOptions3<D>::PackageOperationPriority() const
+    {
+        winrt::Windows::Management::Deployment::PackageOperationPriority value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAddPackageOptions3)->get_PackageOperationPriority(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IAddPackageOptions3<D>::PackageOperationPriority(winrt::Windows::Management::Deployment::PackageOperationPriority const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAddPackageOptions3)->put_PackageOperationPriority(static_cast<int32_t>(value)));
+    }
     template <typename D> auto consume_Windows_Management_Deployment_IAppInstallerManager<D>::SetAutoUpdateSettings(param::hstring const& packageFamilyName, winrt::Windows::Management::Deployment::AutoUpdateSettingsOptions const& appInstallerInfo) const
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IAppInstallerManager)->SetAutoUpdateSettings(*(void**)(&packageFamilyName), *(void**)(&appInstallerInfo)));
@@ -347,6 +373,16 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions)->get_ProjectionOrderPackageFamilyNames(&value));
         return winrt::Windows::Foundation::Collections::IVector<hstring>{ value, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageAllUserProvisioningOptions2<D>::DeferAutomaticRegistration() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions2)->get_DeferAutomaticRegistration(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageAllUserProvisioningOptions2<D>::DeferAutomaticRegistration(bool value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions2)->put_DeferAutomaticRegistration(value));
+    }
     template <typename D> auto consume_Windows_Management_Deployment_IPackageManager<D>::AddPackageAsync(winrt::Windows::Foundation::Uri const& packageUri, param::async_iterable<winrt::Windows::Foundation::Uri> const& dependencyPackageUris, winrt::Windows::Management::Deployment::DeploymentOptions const& deploymentOptions) const
     {
         void* deploymentOperation{};
@@ -446,6 +482,36 @@ namespace winrt::impl
         void* operation{};
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageManager10)->ProvisionPackageForAllUsersWithOptionsAsync(*(void**)(&mainPackageFamilyName), *(void**)(&options), &operation));
         return winrt::Windows::Foundation::IAsyncOperationWithProgress<winrt::Windows::Management::Deployment::DeploymentResult, winrt::Windows::Management::Deployment::DeploymentProgress>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageManager11<D>::RemovePackageByUriAsync(winrt::Windows::Foundation::Uri const& packageUri, winrt::Windows::Management::Deployment::RemovePackageOptions const& options) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageManager11)->RemovePackageByUriAsync(*(void**)(&packageUri), *(void**)(&options), &operation));
+        return winrt::Windows::Foundation::IAsyncOperationWithProgress<winrt::Windows::Management::Deployment::DeploymentResult, winrt::Windows::Management::Deployment::DeploymentProgress>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageManager12<D>::IsPackageRemovalPending(param::hstring const& packageFullName) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageManager12)->IsPackageRemovalPending(*(void**)(&packageFullName), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageManager12<D>::IsPackageRemovalPendingForUser(param::hstring const& packageFullName, param::hstring const& userSecurityId) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageManager12)->IsPackageRemovalPendingForUser(*(void**)(&packageFullName), *(void**)(&userSecurityId), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageManager12<D>::IsPackageRemovalPendingByUri(winrt::Windows::Foundation::Uri const& packageUri) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageManager12)->IsPackageRemovalPendingByUri(*(void**)(&packageUri), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IPackageManager12<D>::IsPackageRemovalPendingByUriForUser(winrt::Windows::Foundation::Uri const& packageUri, param::hstring const& userSecurityId) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IPackageManager12)->IsPackageRemovalPendingByUriForUser(*(void**)(&packageUri), *(void**)(&userSecurityId), &result));
+        return result;
     }
     template <typename D> auto consume_Windows_Management_Deployment_IPackageManager2<D>::RemovePackageAsync(param::hstring const& packageFullName, winrt::Windows::Management::Deployment::RemovalOptions const& removalOptions) const
     {
@@ -983,6 +1049,52 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRegisterPackageOptions)->put_DeferRegistrationWhenPackagesAreInUse(value));
     }
+    template <typename D> auto consume_Windows_Management_Deployment_IRegisterPackageOptions2<D>::ExpectedDigests() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRegisterPackageOptions2)->get_ExpectedDigests(&value));
+        return winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Foundation::Uri, hstring>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions<D>::PreserveApplicationData() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions)->get_PreserveApplicationData(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions<D>::PreserveApplicationData(bool value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions)->put_PreserveApplicationData(value));
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions<D>::PreserveRoamableApplicationData() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions)->get_PreserveRoamableApplicationData(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions<D>::PreserveRoamableApplicationData(bool value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions)->put_PreserveRoamableApplicationData(value));
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions<D>::RemoveForAllUsers() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions)->get_RemoveForAllUsers(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions<D>::RemoveForAllUsers(bool value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions)->put_RemoveForAllUsers(value));
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions2<D>::DeferRemovalWhenPackagesAreInUse() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions2)->get_DeferRemovalWhenPackagesAreInUse(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IRemovePackageOptions2<D>::DeferRemovalWhenPackagesAreInUse(bool value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IRemovePackageOptions2)->put_DeferRemovalWhenPackagesAreInUse(value));
+    }
     template <typename D> auto consume_Windows_Management_Deployment_IStagePackageOptions<D>::DependencyPackageUris() const
     {
         void* value{};
@@ -1096,6 +1208,22 @@ namespace winrt::impl
     template <typename D> auto consume_Windows_Management_Deployment_IStagePackageOptions<D>::AllowUnsigned(bool value) const
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IStagePackageOptions)->put_AllowUnsigned(value));
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IStagePackageOptions2<D>::ExpectedDigests() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IStagePackageOptions2)->get_ExpectedDigests(&value));
+        return winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Foundation::Uri, hstring>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IStagePackageOptions3<D>::PackageOperationPriority() const
+    {
+        winrt::Windows::Management::Deployment::PackageOperationPriority value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IStagePackageOptions3)->get_PackageOperationPriority(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Management_Deployment_IStagePackageOptions3<D>::PackageOperationPriority(winrt::Windows::Management::Deployment::PackageOperationPriority const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Management::Deployment::IStagePackageOptions3)->put_PackageOperationPriority(static_cast<int32_t>(value)));
     }
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
@@ -1314,6 +1442,54 @@ namespace winrt::impl
         {
             typename D::abi_guard guard(this->shim());
             this->shim().DeferRegistrationWhenPackagesAreInUse(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IAddPackageOptions2> : produce_base<D, winrt::Windows::Management::Deployment::IAddPackageOptions2>
+    {
+        int32_t __stdcall get_ExpectedDigests(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Foundation::Uri, hstring>>(this->shim().ExpectedDigests());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_LimitToExistingPackages(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().LimitToExistingPackages());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_LimitToExistingPackages(bool value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().LimitToExistingPackages(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IAddPackageOptions3> : produce_base<D, winrt::Windows::Management::Deployment::IAddPackageOptions3>
+    {
+        int32_t __stdcall get_PackageOperationPriority(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Management::Deployment::PackageOperationPriority>(this->shim().PackageOperationPriority());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PackageOperationPriority(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PackageOperationPriority(*reinterpret_cast<winrt::Windows::Management::Deployment::PackageOperationPriority const*>(&value));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -1614,6 +1790,26 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions2> : produce_base<D, winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions2>
+    {
+        int32_t __stdcall get_DeferAutomaticRegistration(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().DeferAutomaticRegistration());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_DeferAutomaticRegistration(bool value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().DeferAutomaticRegistration(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Management::Deployment::IPackageManager> : produce_base<D, winrt::Windows::Management::Deployment::IPackageManager>
     {
         int32_t __stdcall AddPackageAsync(void* packageUri, void* dependencyPackageUris, uint32_t deploymentOptions, void** deploymentOperation) noexcept final try
@@ -1754,6 +1950,54 @@ namespace winrt::impl
             clear_abi(operation);
             typename D::abi_guard guard(this->shim());
             *operation = detach_from<winrt::Windows::Foundation::IAsyncOperationWithProgress<winrt::Windows::Management::Deployment::DeploymentResult, winrt::Windows::Management::Deployment::DeploymentProgress>>(this->shim().ProvisionPackageForAllUsersAsync(*reinterpret_cast<hstring const*>(&mainPackageFamilyName), *reinterpret_cast<winrt::Windows::Management::Deployment::PackageAllUserProvisioningOptions const*>(&options)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IPackageManager11> : produce_base<D, winrt::Windows::Management::Deployment::IPackageManager11>
+    {
+        int32_t __stdcall RemovePackageByUriAsync(void* packageUri, void* options, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperationWithProgress<winrt::Windows::Management::Deployment::DeploymentResult, winrt::Windows::Management::Deployment::DeploymentProgress>>(this->shim().RemovePackageByUriAsync(*reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&packageUri), *reinterpret_cast<winrt::Windows::Management::Deployment::RemovePackageOptions const*>(&options)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IPackageManager12> : produce_base<D, winrt::Windows::Management::Deployment::IPackageManager12>
+    {
+        int32_t __stdcall IsPackageRemovalPending(void* packageFullName, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsPackageRemovalPending(*reinterpret_cast<hstring const*>(&packageFullName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsPackageRemovalPendingForUser(void* packageFullName, void* userSecurityId, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsPackageRemovalPendingForUser(*reinterpret_cast<hstring const*>(&packageFullName), *reinterpret_cast<hstring const*>(&userSecurityId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsPackageRemovalPendingByUri(void* packageUri, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsPackageRemovalPendingByUri(*reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&packageUri)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsPackageRemovalPendingByUriForUser(void* packageUri, void* userSecurityId, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsPackageRemovalPendingByUriForUser(*reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&packageUri), *reinterpret_cast<hstring const*>(&userSecurityId)));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -2562,6 +2806,88 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IRegisterPackageOptions2> : produce_base<D, winrt::Windows::Management::Deployment::IRegisterPackageOptions2>
+    {
+        int32_t __stdcall get_ExpectedDigests(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Foundation::Uri, hstring>>(this->shim().ExpectedDigests());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IRemovePackageOptions> : produce_base<D, winrt::Windows::Management::Deployment::IRemovePackageOptions>
+    {
+        int32_t __stdcall get_PreserveApplicationData(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().PreserveApplicationData());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PreserveApplicationData(bool value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PreserveApplicationData(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PreserveRoamableApplicationData(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().PreserveRoamableApplicationData());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PreserveRoamableApplicationData(bool value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PreserveRoamableApplicationData(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_RemoveForAllUsers(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().RemoveForAllUsers());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_RemoveForAllUsers(bool value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().RemoveForAllUsers(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IRemovePackageOptions2> : produce_base<D, winrt::Windows::Management::Deployment::IRemovePackageOptions2>
+    {
+        int32_t __stdcall get_DeferRemovalWhenPackagesAreInUse(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().DeferRemovalWhenPackagesAreInUse());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_DeferRemovalWhenPackagesAreInUse(bool value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().DeferRemovalWhenPackagesAreInUse(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Management::Deployment::IStagePackageOptions> : produce_base<D, winrt::Windows::Management::Deployment::IStagePackageOptions>
     {
         int32_t __stdcall get_DependencyPackageUris(void** value) noexcept final try
@@ -2721,6 +3047,40 @@ namespace winrt::impl
         {
             typename D::abi_guard guard(this->shim());
             this->shim().AllowUnsigned(value);
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IStagePackageOptions2> : produce_base<D, winrt::Windows::Management::Deployment::IStagePackageOptions2>
+    {
+        int32_t __stdcall get_ExpectedDigests(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Foundation::Uri, hstring>>(this->shim().ExpectedDigests());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Management::Deployment::IStagePackageOptions3> : produce_base<D, winrt::Windows::Management::Deployment::IStagePackageOptions3>
+    {
+        int32_t __stdcall get_PackageOperationPriority(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Management::Deployment::PackageOperationPriority>(this->shim().PackageOperationPriority());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PackageOperationPriority(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PackageOperationPriority(*reinterpret_cast<winrt::Windows::Management::Deployment::PackageOperationPriority const*>(&value));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -2916,6 +3276,10 @@ WINRT_EXPORT namespace winrt::Windows::Management::Deployment
         RegisterPackageOptions(impl::call_factory_cast<RegisterPackageOptions(*)(winrt::Windows::Foundation::IActivationFactory const&), RegisterPackageOptions>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<RegisterPackageOptions>(); }))
     {
     }
+    inline RemovePackageOptions::RemovePackageOptions() :
+        RemovePackageOptions(impl::call_factory_cast<RemovePackageOptions(*)(winrt::Windows::Foundation::IActivationFactory const&), RemovePackageOptions>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<RemovePackageOptions>(); }))
+    {
+    }
     inline StagePackageOptions::StagePackageOptions() :
         StagePackageOptions(impl::call_factory_cast<StagePackageOptions(*)(winrt::Windows::Foundation::IActivationFactory const&), StagePackageOptions>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<StagePackageOptions>(); }))
     {
@@ -2925,6 +3289,8 @@ namespace std
 {
 #ifndef WINRT_LEAN_AND_MEAN
     template<> struct hash<winrt::Windows::Management::Deployment::IAddPackageOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IAddPackageOptions2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IAddPackageOptions3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IAppInstallerManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IAppInstallerManagerStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IAutoUpdateSettingsOptions> : winrt::impl::hash_base {};
@@ -2932,8 +3298,11 @@ namespace std
     template<> struct hash<winrt::Windows::Management::Deployment::IDeploymentResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IDeploymentResult2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IPackageAllUserProvisioningOptions2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager10> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager11> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager12> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageManager4> : winrt::impl::hash_base {};
@@ -2947,7 +3316,12 @@ namespace std
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageVolume> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IPackageVolume2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IRegisterPackageOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IRegisterPackageOptions2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IRemovePackageOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IRemovePackageOptions2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::IStagePackageOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IStagePackageOptions2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::IStagePackageOptions3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::AddPackageOptions> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::AppInstallerManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::AutoUpdateSettingsOptions> : winrt::impl::hash_base {};
@@ -2958,6 +3332,7 @@ namespace std
     template<> struct hash<winrt::Windows::Management::Deployment::PackageUserInformation> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::PackageVolume> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::RegisterPackageOptions> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Management::Deployment::RemovePackageOptions> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Management::Deployment::StagePackageOptions> : winrt::impl::hash_base {};
 #endif
 #ifdef __cpp_lib_format

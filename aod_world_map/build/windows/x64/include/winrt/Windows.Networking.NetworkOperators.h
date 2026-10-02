@@ -115,6 +115,12 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IESim2)->DiscoverWithServerAddressAndMatchingIdAsync(*(void**)(&serverAddress), *(void**)(&matchingId), &operation));
         return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::ESimDiscoverResult>{ operation, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IESim3<D>::SlotIndex() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IESim3)->get_SlotIndex(&value));
+        return winrt::Windows::Foundation::IReference<int32_t>{ value, take_ownership_from_abi };
+    }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IESimAddedEventArgs<D>::ESim() const
     {
         void* value{};
@@ -1354,6 +1360,30 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceService)->OpenCommandSession(&value));
         return winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandSession{ value, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandEventArgs<D>::DeviceId() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs)->get_DeviceId(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandEventArgs<D>::DeviceServiceId() const
+    {
+        winrt::guid value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs)->get_DeviceServiceId(put_abi(value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandEventArgs<D>::EventId() const
+    {
+        uint32_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs)->get_EventId(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandEventArgs<D>::ReceivedData() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs)->get_ReceivedData(&value));
+        return winrt::Windows::Storage::Streams::IBuffer{ value, take_ownership_from_abi };
+    }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandResult<D>::StatusCode() const
     {
         uint32_t value{};
@@ -1381,6 +1411,20 @@ namespace winrt::impl
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandSession<D>::CloseSession() const
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession)->CloseSession());
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandSession2<D>::CommandReceived(winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandSession, winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandEventArgs> const& handler) const
+    {
+        winrt::event_token token{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession2)->add_CommandReceived(*(void**)(&handler), put_abi(token)));
+        return token;
+    }
+    template <typename D> typename consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandSession2<D>::CommandReceived_revoker consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandSession2<D>::CommandReceived(auto_revoke_t, winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandSession, winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandEventArgs> const& handler) const
+    {
+        return impl::make_event_revoker<D, CommandReceived_revoker>(this, CommandReceived(handler));
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceCommandSession2<D>::CommandReceived(winrt::event_token const& token) const noexcept
+    {
+        WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession2)->remove_CommandReceived(impl::bind_in(token));
     }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceDataReceivedEventArgs<D>::ReceivedData() const
     {
@@ -1447,6 +1491,12 @@ namespace winrt::impl
         void* value{};
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceTriggerDetails)->get_ReceivedData(&value));
         return winrt::Windows::Storage::Streams::IBuffer{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandDeviceServiceTriggerDetails2<D>::EventId() const
+    {
+        uint32_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceTriggerDetails2)->get_EventId(&value));
+        return value;
     }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModem<D>::CurrentAccount() const
     {
@@ -1545,6 +1595,30 @@ namespace winrt::impl
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModem3<D>::IsInEmergencyCallModeChanged(winrt::event_token const& token) const noexcept
     {
         WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem3)->remove_IsInEmergencyCallModeChanged(impl::bind_in(token));
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModem4<D>::SetIsPassthroughEnabledAsync(bool value, int32_t slotindex) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4)->SetIsPassthroughEnabledWithSlotIndexAsync(value, slotindex, &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::MobileBroadbandModemStatus>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModem4<D>::GetIsPassthroughEnabledAsync(int32_t slotindex) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4)->GetIsPassthroughEnabledWithSlotIndexAsync(slotindex, &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<bool>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModem4<D>::SetIsPassthroughEnabled(bool value, int32_t slotindex) const
+    {
+        winrt::Windows::Networking::NetworkOperators::MobileBroadbandModemStatus result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4)->SetIsPassthroughEnabledWithSlotIndex(value, slotindex, reinterpret_cast<int32_t*>(&result)));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModem4<D>::GetIsPassthroughEnabled(int32_t slotindex) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4)->GetIsPassthroughEnabledWithSlotIndex(slotindex, &result));
+        return result;
     }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandModemConfiguration<D>::Uicc() const
     {
@@ -1970,6 +2044,12 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfo)->get_State(reinterpret_cast<int32_t*>(&value)));
         return value;
     }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandSlotInfo2<D>::IccId() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfo2)->get_IccId(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IMobileBroadbandSlotInfoChangedEventArgs<D>::SlotInfo() const
     {
         void* value{};
@@ -2178,6 +2258,28 @@ namespace winrt::impl
     {
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration2)->put_Band(static_cast<int32_t>(value)));
     }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringAccessPointConfiguration3<D>::IsAuthenticationKindSupported(winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const& authenticationKind) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3)->IsAuthenticationKindSupported(static_cast<int32_t>(authenticationKind), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringAccessPointConfiguration3<D>::IsAuthenticationKindSupportedAsync(winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const& authenticationKind) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3)->IsAuthenticationKindSupportedAsync(static_cast<int32_t>(authenticationKind), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<bool>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringAccessPointConfiguration3<D>::AuthenticationKind() const
+    {
+        winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3)->get_AuthenticationKind(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringAccessPointConfiguration3<D>::AuthenticationKind(winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3)->put_AuthenticationKind(static_cast<int32_t>(value)));
+    }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringClient<D>::MacAddress() const
     {
         void* value{};
@@ -2236,6 +2338,12 @@ namespace winrt::impl
     {
         void* asyncInfo{};
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManager)->StopTetheringAsync(&asyncInfo));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringOperationResult>{ asyncInfo, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringManager2<D>::StartTetheringAsync(winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringSessionAccessPointConfiguration const& configuration) const
+    {
+        void* asyncInfo{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManager2)->StartTetheringAsync(*(void**)(&configuration), &asyncInfo));
         return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringOperationResult>{ asyncInfo, take_ownership_from_abi };
     }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringManagerStatics<D>::GetTetheringCapability(param::hstring const& networkAccountId) const
@@ -2305,6 +2413,80 @@ namespace winrt::impl
         void* value{};
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringOperationResult)->get_AdditionalErrorMessage(&value));
         return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::Ssid() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->get_Ssid(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::Ssid(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->put_Ssid(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::Passphrase() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->get_Passphrase(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::Passphrase(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->put_Passphrase(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::IsBandSupported(winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand const& band) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->IsBandSupported(static_cast<int32_t>(band), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::IsBandSupportedAsync(winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand const& band) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->IsBandSupportedAsync(static_cast<int32_t>(band), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<bool>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::Band() const
+    {
+        winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->get_Band(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::Band(winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->put_Band(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::IsAuthenticationKindSupported(winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const& authenticationKind) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->IsAuthenticationKindSupported(static_cast<int32_t>(authenticationKind), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::IsAuthenticationKindSupportedAsync(winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const& authenticationKind) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->IsAuthenticationKindSupportedAsync(static_cast<int32_t>(authenticationKind), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<bool>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::AuthenticationKind() const
+    {
+        winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->get_AuthenticationKind(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::AuthenticationKind(winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->put_AuthenticationKind(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::PerformancePriority() const
+    {
+        winrt::Windows::Networking::NetworkOperators::TetheringWiFiPerformancePriority value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->get_PerformancePriority(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Networking_NetworkOperators_INetworkOperatorTetheringSessionAccessPointConfiguration<D>::PerformancePriority(winrt::Windows::Networking::NetworkOperators::TetheringWiFiPerformancePriority const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration)->put_PerformancePriority(static_cast<int32_t>(value)));
     }
     template <typename D> auto consume_Windows_Networking_NetworkOperators_IProvisionFromXmlDocumentResults<D>::AllElementsProvisioned() const
     {
@@ -2561,6 +2743,20 @@ namespace winrt::impl
             clear_abi(operation);
             typename D::abi_guard guard(this->shim());
             *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::ESimDiscoverResult>>(this->shim().DiscoverAsync(*reinterpret_cast<hstring const*>(&serverAddress), *reinterpret_cast<hstring const*>(&matchingId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::IESim3> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IESim3>
+    {
+        int32_t __stdcall get_SlotIndex(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::IReference<int32_t>>(this->shim().SlotIndex());
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -4424,6 +4620,42 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs>
+    {
+        int32_t __stdcall get_DeviceId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().DeviceId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_DeviceServiceId(winrt::guid* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::guid>(this->shim().DeviceServiceId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_EventId(uint32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<uint32_t>(this->shim().EventId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ReceivedData(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Storage::Streams::IBuffer>(this->shim().ReceivedData());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandResult> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandResult>
     {
         int32_t __stdcall get_StatusCode(uint32_t* value) noexcept final try
@@ -4470,6 +4702,26 @@ namespace winrt::impl
             return 0;
         }
         catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession2> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession2>
+    {
+        int32_t __stdcall add_CommandReceived(void* handler, winrt::event_token* token) noexcept final try
+        {
+            zero_abi<winrt::event_token>(token);
+            typename D::abi_guard guard(this->shim());
+            *token = detach_from<winrt::event_token>(this->shim().CommandReceived(*reinterpret_cast<winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandSession, winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandEventArgs> const*>(&handler)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall remove_CommandReceived(winrt::event_token token) noexcept final
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().CommandReceived(*reinterpret_cast<winrt::event_token const*>(&token));
+            return 0;
+        }
     };
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
@@ -4572,6 +4824,19 @@ namespace winrt::impl
             clear_abi(value);
             typename D::abi_guard guard(this->shim());
             *value = detach_from<winrt::Windows::Storage::Streams::IBuffer>(this->shim().ReceivedData());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceTriggerDetails2> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceTriggerDetails2>
+    {
+        int32_t __stdcall get_EventId(uint32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<uint32_t>(this->shim().EventId());
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -4715,6 +4980,42 @@ namespace winrt::impl
             this->shim().IsInEmergencyCallModeChanged(*reinterpret_cast<winrt::event_token const*>(&token));
             return 0;
         }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4>
+    {
+        int32_t __stdcall SetIsPassthroughEnabledWithSlotIndexAsync(bool value, int32_t slotindex, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::MobileBroadbandModemStatus>>(this->shim().SetIsPassthroughEnabledAsync(value, slotindex));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetIsPassthroughEnabledWithSlotIndexAsync(int32_t slotindex, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<bool>>(this->shim().GetIsPassthroughEnabledAsync(slotindex));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall SetIsPassthroughEnabledWithSlotIndex(bool value, int32_t slotindex, int32_t* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Networking::NetworkOperators::MobileBroadbandModemStatus>(this->shim().SetIsPassthroughEnabled(value, slotindex));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetIsPassthroughEnabledWithSlotIndex(int32_t slotindex, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().GetIsPassthroughEnabled(slotindex));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
     };
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
@@ -5391,6 +5692,20 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfo2> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfo2>
+    {
+        int32_t __stdcall get_IccId(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().IccId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfoChangedEventArgs> : produce_base<D, winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfoChangedEventArgs>
     {
         int32_t __stdcall get_SlotInfo(void** value) noexcept final try
@@ -5715,6 +6030,41 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3> : produce_base<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3>
+    {
+        int32_t __stdcall IsAuthenticationKindSupported(int32_t authenticationKind, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsAuthenticationKindSupported(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const*>(&authenticationKind)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsAuthenticationKindSupportedAsync(int32_t authenticationKind, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<bool>>(this->shim().IsAuthenticationKindSupportedAsync(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const*>(&authenticationKind)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_AuthenticationKind(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind>(this->shim().AuthenticationKind());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_AuthenticationKind(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().AuthenticationKind(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringClient> : produce_base<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringClient>
     {
         int32_t __stdcall get_MacAddress(void** value) noexcept final try
@@ -5803,6 +6153,20 @@ namespace winrt::impl
             clear_abi(asyncInfo);
             typename D::abi_guard guard(this->shim());
             *asyncInfo = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringOperationResult>>(this->shim().StopTetheringAsync());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManager2> : produce_base<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManager2>
+    {
+        int32_t __stdcall StartTetheringAsync(void* configuration, void** asyncInfo) noexcept final try
+        {
+            clear_abi(asyncInfo);
+            typename D::abi_guard guard(this->shim());
+            *asyncInfo = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringOperationResult>>(this->shim().StartTetheringAsync(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringSessionAccessPointConfiguration const*>(&configuration)));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -5923,6 +6287,114 @@ namespace winrt::impl
             clear_abi(value);
             typename D::abi_guard guard(this->shim());
             *value = detach_from<hstring>(this->shim().AdditionalErrorMessage());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration> : produce_base<D, winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration>
+    {
+        int32_t __stdcall get_Ssid(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().Ssid());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Ssid(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Ssid(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Passphrase(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().Passphrase());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Passphrase(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Passphrase(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsBandSupported(int32_t band, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsBandSupported(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand const*>(&band)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsBandSupportedAsync(int32_t band, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<bool>>(this->shim().IsBandSupportedAsync(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand const*>(&band)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_Band(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand>(this->shim().Band());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_Band(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Band(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiBand const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsAuthenticationKindSupported(int32_t authenticationKind, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsAuthenticationKindSupported(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const*>(&authenticationKind)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsAuthenticationKindSupportedAsync(int32_t authenticationKind, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<bool>>(this->shim().IsAuthenticationKindSupportedAsync(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const*>(&authenticationKind)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_AuthenticationKind(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind>(this->shim().AuthenticationKind());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_AuthenticationKind(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().AuthenticationKind(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiAuthenticationKind const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PerformancePriority(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Networking::NetworkOperators::TetheringWiFiPerformancePriority>(this->shim().PerformancePriority());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PerformancePriority(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PerformancePriority(*reinterpret_cast<winrt::Windows::Networking::NetworkOperators::TetheringWiFiPerformancePriority const*>(&value));
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -6356,6 +6828,10 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
     {
         return impl::call_factory_cast<winrt::Windows::Foundation::IAsyncAction(*)(INetworkOperatorTetheringManagerStatics4 const&), NetworkOperatorTetheringManager, INetworkOperatorTetheringManagerStatics4>([](INetworkOperatorTetheringManagerStatics4 const& f) { return f.DisableNoConnectionsTimeoutAsync(); });
     }
+    inline NetworkOperatorTetheringSessionAccessPointConfiguration::NetworkOperatorTetheringSessionAccessPointConfiguration() :
+        NetworkOperatorTetheringSessionAccessPointConfiguration(impl::call_factory_cast<NetworkOperatorTetheringSessionAccessPointConfiguration(*)(winrt::Windows::Foundation::IActivationFactory const&), NetworkOperatorTetheringSessionAccessPointConfiguration>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<NetworkOperatorTetheringSessionAccessPointConfiguration>(); }))
+    {
+    }
     inline ProvisioningAgent::ProvisioningAgent() :
         ProvisioningAgent(impl::call_factory_cast<ProvisioningAgent(*)(winrt::Windows::Foundation::IActivationFactory const&), ProvisioningAgent>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<ProvisioningAgent>(); }))
     {
@@ -6382,6 +6858,7 @@ namespace std
 #ifndef WINRT_LEAN_AND_MEAN
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IESim> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IESim2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::IESim3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IESimAddedEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IESimDiscoverEvent> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IESimDiscoverResult> : winrt::impl::hash_base {};
@@ -6428,15 +6905,19 @@ namespace std
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceInformation3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceInformation4> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceService> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceCommandSession2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceDataReceivedEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceDataSession> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceInformation> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceTriggerDetails> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandDeviceServiceTriggerDetails2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem3> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModem4> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModemConfiguration> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModemConfiguration2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandModemIsolation> : winrt::impl::hash_base {};
@@ -6458,6 +6939,7 @@ namespace std
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandRadioStateChangeTriggerDetails> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSarManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfo> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfo2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotInfoChangedEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandSlotManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IMobileBroadbandTransmissionStateChangedEventArgs> : winrt::impl::hash_base {};
@@ -6469,14 +6951,17 @@ namespace std
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorDataUsageTriggerDetails> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringAccessPointConfiguration3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringClient> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringClientManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManager> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManager2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManagerStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManagerStatics2> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManagerStatics3> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringManagerStatics4> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringOperationResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::INetworkOperatorTetheringSessionAccessPointConfiguration> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IProvisionFromXmlDocumentResults> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IProvisionedProfile> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::IProvisioningAgent> : winrt::impl::hash_base {};
@@ -6524,6 +7009,7 @@ namespace std
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandCurrentSlotIndexChangedEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceInformation> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceService> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceCommandSession> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::MobileBroadbandDeviceServiceDataReceivedEventArgs> : winrt::impl::hash_base {};
@@ -6560,6 +7046,7 @@ namespace std
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringClient> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringOperationResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Networking::NetworkOperators::NetworkOperatorTetheringSessionAccessPointConfiguration> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::ProvisionFromXmlDocumentResults> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::ProvisionedProfile> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Networking::NetworkOperators::ProvisioningAgent> : winrt::impl::hash_base {};

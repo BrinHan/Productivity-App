@@ -905,11 +905,31 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::UI::ViewManagement::IUIViewSettings)->get_UserInteractionMode(reinterpret_cast<int32_t*>(&value)));
         return value;
     }
+    template <typename D> auto consume_Windows_UI_ViewManagement_IUIViewSettingsPreferredInteractionMode<D>::GetPreferredInteractionMode(array_view<winrt::Windows::UI::ViewManagement::UserInteractionMode const> supportedModes) const
+    {
+        winrt::Windows::UI::ViewManagement::UserInteractionMode result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::UI::ViewManagement::IUIViewSettingsPreferredInteractionMode)->GetPreferredInteractionMode(supportedModes.size(), get_abi(supportedModes), reinterpret_cast<int32_t*>(&result)));
+        return result;
+    }
+    template <typename D> auto consume_Windows_UI_ViewManagement_IUIViewSettingsPreferredInteractionMode<D>::PreferredInteractionModeChanged(winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::UI::ViewManagement::UIViewSettings, winrt::Windows::Foundation::IInspectable> const& handler) const
+    {
+        winrt::event_token token{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::UI::ViewManagement::IUIViewSettingsPreferredInteractionMode)->add_PreferredInteractionModeChanged(*(void**)(&handler), put_abi(token)));
+        return token;
+    }
+    template <typename D> typename consume_Windows_UI_ViewManagement_IUIViewSettingsPreferredInteractionMode<D>::PreferredInteractionModeChanged_revoker consume_Windows_UI_ViewManagement_IUIViewSettingsPreferredInteractionMode<D>::PreferredInteractionModeChanged(auto_revoke_t, winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::UI::ViewManagement::UIViewSettings, winrt::Windows::Foundation::IInspectable> const& handler) const
+    {
+        return impl::make_event_revoker<D, PreferredInteractionModeChanged_revoker>(this, PreferredInteractionModeChanged(handler));
+    }
+    template <typename D> auto consume_Windows_UI_ViewManagement_IUIViewSettingsPreferredInteractionMode<D>::PreferredInteractionModeChanged(winrt::event_token const& token) const noexcept
+    {
+        WINRT_IMPL_SHIM(winrt::Windows::UI::ViewManagement::IUIViewSettingsPreferredInteractionMode)->remove_PreferredInteractionModeChanged(impl::bind_in(token));
+    }
     template <typename D> auto consume_Windows_UI_ViewManagement_IUIViewSettingsStatics<D>::GetForCurrentView() const
     {
-        void* current{};
-        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::UI::ViewManagement::IUIViewSettingsStatics)->GetForCurrentView(&current));
-        return winrt::Windows::UI::ViewManagement::UIViewSettings{ current, take_ownership_from_abi };
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::UI::ViewManagement::IUIViewSettingsStatics)->GetForCurrentView(&result));
+        return winrt::Windows::UI::ViewManagement::UIViewSettings{ result, take_ownership_from_abi };
     }
     template <typename D> auto consume_Windows_UI_ViewManagement_IViewModePreferences<D>::ViewSizePreference() const
     {
@@ -2329,13 +2349,40 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::UI::ViewManagement::IUIViewSettingsPreferredInteractionMode> : produce_base<D, winrt::Windows::UI::ViewManagement::IUIViewSettingsPreferredInteractionMode>
+    {
+        int32_t __stdcall GetPreferredInteractionMode(uint32_t __supportedModesSize, int32_t* supportedModes, int32_t* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::UI::ViewManagement::UserInteractionMode>(this->shim().GetPreferredInteractionMode(array_view<winrt::Windows::UI::ViewManagement::UserInteractionMode const>(reinterpret_cast<winrt::Windows::UI::ViewManagement::UserInteractionMode const *>(supportedModes), reinterpret_cast<winrt::Windows::UI::ViewManagement::UserInteractionMode const *>(supportedModes) + __supportedModesSize)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall add_PreferredInteractionModeChanged(void* handler, winrt::event_token* token) noexcept final try
+        {
+            zero_abi<winrt::event_token>(token);
+            typename D::abi_guard guard(this->shim());
+            *token = detach_from<winrt::event_token>(this->shim().PreferredInteractionModeChanged(*reinterpret_cast<winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::UI::ViewManagement::UIViewSettings, winrt::Windows::Foundation::IInspectable> const*>(&handler)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall remove_PreferredInteractionModeChanged(winrt::event_token token) noexcept final
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PreferredInteractionModeChanged(*reinterpret_cast<winrt::event_token const*>(&token));
+            return 0;
+        }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::UI::ViewManagement::IUIViewSettingsStatics> : produce_base<D, winrt::Windows::UI::ViewManagement::IUIViewSettingsStatics>
     {
-        int32_t __stdcall GetForCurrentView(void** current) noexcept final try
+        int32_t __stdcall GetForCurrentView(void** result) noexcept final try
         {
-            clear_abi(current);
+            clear_abi(result);
             typename D::abi_guard guard(this->shim());
-            *current = detach_from<winrt::Windows::UI::ViewManagement::UIViewSettings>(this->shim().GetForCurrentView());
+            *result = detach_from<winrt::Windows::UI::ViewManagement::UIViewSettings>(this->shim().GetForCurrentView());
             return 0;
         }
         catch (...) { return to_hresult(); }
@@ -2652,6 +2699,7 @@ namespace std
     template<> struct hash<winrt::Windows::UI::ViewManagement::IUISettingsAutoHideScrollBarsChangedEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::UI::ViewManagement::IUISettingsMessageDurationChangedEventArgs> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::UI::ViewManagement::IUIViewSettings> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::UI::ViewManagement::IUIViewSettingsPreferredInteractionMode> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::UI::ViewManagement::IUIViewSettingsStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::UI::ViewManagement::IViewModePreferences> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::UI::ViewManagement::IViewModePreferencesStatics> : winrt::impl::hash_base {};

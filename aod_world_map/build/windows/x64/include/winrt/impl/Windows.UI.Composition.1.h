@@ -496,6 +496,13 @@ WINRT_EXPORT namespace winrt::Windows::UI::Composition
         ICompositionObject4(std::nullptr_t = nullptr) noexcept {}
         ICompositionObject4(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) ICompositionObject5 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ICompositionObject5>
+    {
+        ICompositionObject5(std::nullptr_t = nullptr) noexcept {}
+        ICompositionObject5(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) ICompositionObjectFactory :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<ICompositionObjectFactory>
@@ -706,6 +713,20 @@ WINRT_EXPORT namespace winrt::Windows::UI::Composition
         ICompositionTargetFactory(std::nullptr_t = nullptr) noexcept {}
         ICompositionTargetFactory(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) ICompositionTexture :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ICompositionTexture>
+    {
+        ICompositionTexture(std::nullptr_t = nullptr) noexcept {}
+        ICompositionTexture(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ICompositionTextureFactory :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ICompositionTextureFactory>
+    {
+        ICompositionTextureFactory(std::nullptr_t = nullptr) noexcept {}
+        ICompositionTextureFactory(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) ICompositionTransform :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<ICompositionTransform>
@@ -796,6 +817,13 @@ WINRT_EXPORT namespace winrt::Windows::UI::Composition
     {
         ICompositor7(std::nullptr_t = nullptr) noexcept {}
         ICompositor7(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ICompositor8 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ICompositor8>
+    {
+        ICompositor8(std::nullptr_t = nullptr) noexcept {}
+        ICompositor8(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) ICompositorStatics :
         winrt::Windows::Foundation::IInspectable,

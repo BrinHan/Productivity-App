@@ -344,5 +344,61 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel::DataTransfer
         ITargetApplicationChosenEventArgs(std::nullptr_t = nullptr) noexcept {}
         ITargetApplicationChosenEventArgs(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) ITransferTarget :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTarget>
+    {
+        ITransferTarget(std::nullptr_t = nullptr) noexcept {}
+        ITransferTarget(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetChangedEventArgs :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetChangedEventArgs>
+    {
+        ITransferTargetChangedEventArgs(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetChangedEventArgs(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetDiscoveryOptions :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetDiscoveryOptions>
+    {
+        ITransferTargetDiscoveryOptions(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetDiscoveryOptions(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetDiscoveryOptionsFactory :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetDiscoveryOptionsFactory>
+    {
+        ITransferTargetDiscoveryOptionsFactory(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetDiscoveryOptionsFactory(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetInvokeResult :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetInvokeResult>
+    {
+        ITransferTargetInvokeResult(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetInvokeResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetStatics>
+    {
+        ITransferTargetStatics(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetWatcher :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetWatcher>
+    {
+        ITransferTargetWatcher(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetWatcher(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITransferTargetWatcherStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITransferTargetWatcherStatics>
+    {
+        ITransferTargetWatcherStatics(std::nullptr_t = nullptr) noexcept {}
+        ITransferTargetWatcherStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
 }
 #endif

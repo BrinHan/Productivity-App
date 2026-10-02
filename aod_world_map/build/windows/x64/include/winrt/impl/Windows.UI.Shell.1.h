@@ -20,6 +20,27 @@ WINRT_EXPORT namespace winrt::Windows::UI::Shell
         IAdaptiveCardBuilderStatics(std::nullptr_t = nullptr) noexcept {}
         IAdaptiveCardBuilderStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IFocusSession :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IFocusSession>
+    {
+        IFocusSession(std::nullptr_t = nullptr) noexcept {}
+        IFocusSession(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IFocusSessionManager :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IFocusSessionManager>
+    {
+        IFocusSessionManager(std::nullptr_t = nullptr) noexcept {}
+        IFocusSessionManager(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IFocusSessionManagerStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IFocusSessionManagerStatics>
+    {
+        IFocusSessionManagerStatics(std::nullptr_t = nullptr) noexcept {}
+        IFocusSessionManagerStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IShareWindowCommandEventArgs :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IShareWindowCommandEventArgs>
@@ -55,6 +76,13 @@ WINRT_EXPORT namespace winrt::Windows::UI::Shell
     {
         ITaskbarManager2(std::nullptr_t = nullptr) noexcept {}
         ITaskbarManager2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ITaskbarManagerDesktopAppSupportStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<ITaskbarManagerDesktopAppSupportStatics>
+    {
+        ITaskbarManagerDesktopAppSupportStatics(std::nullptr_t = nullptr) noexcept {}
+        ITaskbarManagerDesktopAppSupportStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) ITaskbarManagerStatics :
         winrt::Windows::Foundation::IInspectable,

@@ -48,6 +48,13 @@ WINRT_EXPORT namespace winrt::Windows::Storage::Search
         IQueryOptions(std::nullptr_t = nullptr) noexcept {}
         IQueryOptions(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IQueryOptionsAdditionalSearchSources :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IQueryOptionsAdditionalSearchSources>
+    {
+        IQueryOptionsAdditionalSearchSources(std::nullptr_t = nullptr) noexcept {}
+        IQueryOptionsAdditionalSearchSources(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IQueryOptionsFactory :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IQueryOptionsFactory>

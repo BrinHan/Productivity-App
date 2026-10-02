@@ -6,6 +6,13 @@
 #include "winrt/impl/Windows.Devices.Printers.0.h"
 WINRT_EXPORT namespace winrt::Windows::Devices::Printers
 {
+    struct __declspec(empty_bases) IIppAttributeConverterStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppAttributeConverterStatics>
+    {
+        IIppAttributeConverterStatics(std::nullptr_t = nullptr) noexcept {}
+        IIppAttributeConverterStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IIppAttributeError :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IIppAttributeError>
@@ -48,6 +55,55 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
         IIppPrintDevice(std::nullptr_t = nullptr) noexcept {}
         IIppPrintDevice(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IIppPrintDevice2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDevice2>
+    {
+        IIppPrintDevice2(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDevice2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IIppPrintDevice3 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDevice3>
+    {
+        IIppPrintDevice3(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDevice3(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IIppPrintDevice4 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDevice4>
+    {
+        IIppPrintDevice4(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDevice4(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IIppPrintDevice5 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDevice5>
+    {
+        IIppPrintDevice5(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDevice5(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IIppPrintDeviceInstallationResult :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDeviceInstallationResult>
+    {
+        IIppPrintDeviceInstallationResult(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDeviceInstallationResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IIppPrintDeviceManagerStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDeviceManagerStatics>
+    {
+        IIppPrintDeviceManagerStatics(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDeviceManagerStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IIppPrintDeviceStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IIppPrintDeviceStatics>
+    {
+        IIppPrintDeviceStatics(std::nullptr_t = nullptr) noexcept {}
+        IIppPrintDeviceStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IIppResolution :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IIppResolution>
@@ -83,6 +139,34 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
         IIppTextWithLanguageFactory(std::nullptr_t = nullptr) noexcept {}
         IIppTextWithLanguageFactory(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IPageConfigurationSettings :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IPageConfigurationSettings>
+    {
+        IPageConfigurationSettings(std::nullptr_t = nullptr) noexcept {}
+        IPageConfigurationSettings(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IPdlPassthroughProvider :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IPdlPassthroughProvider>
+    {
+        IPdlPassthroughProvider(std::nullptr_t = nullptr) noexcept {}
+        IPdlPassthroughProvider(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IPdlPassthroughProvider2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IPdlPassthroughProvider2>
+    {
+        IPdlPassthroughProvider2(std::nullptr_t = nullptr) noexcept {}
+        IPdlPassthroughProvider2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IPdlPassthroughTarget :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IPdlPassthroughTarget>
+    {
+        IPdlPassthroughTarget(std::nullptr_t = nullptr) noexcept {}
+        IPdlPassthroughTarget(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IPrint3DDevice :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IPrint3DDevice>
@@ -103,6 +187,48 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
     {
         IPrintSchema(std::nullptr_t = nullptr) noexcept {}
         IPrintSchema(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IReplaceDevicePropertiesResult :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IReplaceDevicePropertiesResult>
+    {
+        IReplaceDevicePropertiesResult(std::nullptr_t = nullptr) noexcept {}
+        IReplaceDevicePropertiesResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IVirtualPrinterInstallationParameters :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IVirtualPrinterInstallationParameters>
+    {
+        IVirtualPrinterInstallationParameters(std::nullptr_t = nullptr) noexcept {}
+        IVirtualPrinterInstallationParameters(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IVirtualPrinterInstallationResult :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IVirtualPrinterInstallationResult>
+    {
+        IVirtualPrinterInstallationResult(std::nullptr_t = nullptr) noexcept {}
+        IVirtualPrinterInstallationResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IVirtualPrinterManagerStatics :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IVirtualPrinterManagerStatics>
+    {
+        IVirtualPrinterManagerStatics(std::nullptr_t = nullptr) noexcept {}
+        IVirtualPrinterManagerStatics(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IVirtualPrinterSupportedFormat :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IVirtualPrinterSupportedFormat>
+    {
+        IVirtualPrinterSupportedFormat(std::nullptr_t = nullptr) noexcept {}
+        IVirtualPrinterSupportedFormat(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IVirtualPrinterSupportedFormatFactory :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IVirtualPrinterSupportedFormatFactory>
+    {
+        IVirtualPrinterSupportedFormatFactory(std::nullptr_t = nullptr) noexcept {}
+        IVirtualPrinterSupportedFormatFactory(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
 }
 #endif

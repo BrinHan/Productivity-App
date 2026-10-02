@@ -1,4 +1,4 @@
-# Install script for directory: C:/Projects/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/geolocator_windows/windows
+# Install script for directory: C:/Users/brian/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/geolocator_windows/windows
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -32,3 +32,9 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+if(CMAKE_INSTALL_LOCAL_ONLY)
+  file(WRITE "C:/Users/brian/Productivity-App/aod_world_map/build/windows/x64/plugins/geolocator_windows/install_local_manifest.txt"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
+endif()

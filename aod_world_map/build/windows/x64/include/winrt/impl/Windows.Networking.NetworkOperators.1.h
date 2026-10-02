@@ -20,6 +20,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
         IESim2(std::nullptr_t = nullptr) noexcept {}
         IESim2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IESim3 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IESim3>
+    {
+        IESim3(std::nullptr_t = nullptr) noexcept {}
+        IESim3(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IESimAddedEventArgs :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IESimAddedEventArgs>
@@ -342,6 +349,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
         IMobileBroadbandDeviceService(std::nullptr_t = nullptr) noexcept {}
         IMobileBroadbandDeviceService(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IMobileBroadbandDeviceServiceCommandEventArgs :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IMobileBroadbandDeviceServiceCommandEventArgs>
+    {
+        IMobileBroadbandDeviceServiceCommandEventArgs(std::nullptr_t = nullptr) noexcept {}
+        IMobileBroadbandDeviceServiceCommandEventArgs(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IMobileBroadbandDeviceServiceCommandResult :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IMobileBroadbandDeviceServiceCommandResult>
@@ -355,6 +369,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
     {
         IMobileBroadbandDeviceServiceCommandSession(std::nullptr_t = nullptr) noexcept {}
         IMobileBroadbandDeviceServiceCommandSession(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IMobileBroadbandDeviceServiceCommandSession2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IMobileBroadbandDeviceServiceCommandSession2>
+    {
+        IMobileBroadbandDeviceServiceCommandSession2(std::nullptr_t = nullptr) noexcept {}
+        IMobileBroadbandDeviceServiceCommandSession2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) IMobileBroadbandDeviceServiceDataReceivedEventArgs :
         winrt::Windows::Foundation::IInspectable,
@@ -384,6 +405,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
         IMobileBroadbandDeviceServiceTriggerDetails(std::nullptr_t = nullptr) noexcept {}
         IMobileBroadbandDeviceServiceTriggerDetails(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IMobileBroadbandDeviceServiceTriggerDetails2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IMobileBroadbandDeviceServiceTriggerDetails2>
+    {
+        IMobileBroadbandDeviceServiceTriggerDetails2(std::nullptr_t = nullptr) noexcept {}
+        IMobileBroadbandDeviceServiceTriggerDetails2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IMobileBroadbandModem :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IMobileBroadbandModem>
@@ -404,6 +432,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
     {
         IMobileBroadbandModem3(std::nullptr_t = nullptr) noexcept {}
         IMobileBroadbandModem3(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) IMobileBroadbandModem4 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IMobileBroadbandModem4>
+    {
+        IMobileBroadbandModem4(std::nullptr_t = nullptr) noexcept {}
+        IMobileBroadbandModem4(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) IMobileBroadbandModemConfiguration :
         winrt::Windows::Foundation::IInspectable,
@@ -552,6 +587,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
         IMobileBroadbandSlotInfo(std::nullptr_t = nullptr) noexcept {}
         IMobileBroadbandSlotInfo(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) IMobileBroadbandSlotInfo2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<IMobileBroadbandSlotInfo2>
+    {
+        IMobileBroadbandSlotInfo2(std::nullptr_t = nullptr) noexcept {}
+        IMobileBroadbandSlotInfo2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) IMobileBroadbandSlotInfoChangedEventArgs :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<IMobileBroadbandSlotInfoChangedEventArgs>
@@ -629,6 +671,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
         INetworkOperatorTetheringAccessPointConfiguration2(std::nullptr_t = nullptr) noexcept {}
         INetworkOperatorTetheringAccessPointConfiguration2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) INetworkOperatorTetheringAccessPointConfiguration3 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<INetworkOperatorTetheringAccessPointConfiguration3>
+    {
+        INetworkOperatorTetheringAccessPointConfiguration3(std::nullptr_t = nullptr) noexcept {}
+        INetworkOperatorTetheringAccessPointConfiguration3(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) INetworkOperatorTetheringClient :
         winrt::Windows::Foundation::IInspectable,
         impl::consume_t<INetworkOperatorTetheringClient>
@@ -649,6 +698,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
     {
         INetworkOperatorTetheringManager(std::nullptr_t = nullptr) noexcept {}
         INetworkOperatorTetheringManager(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) INetworkOperatorTetheringManager2 :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<INetworkOperatorTetheringManager2>
+    {
+        INetworkOperatorTetheringManager2(std::nullptr_t = nullptr) noexcept {}
+        INetworkOperatorTetheringManager2(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) INetworkOperatorTetheringManagerStatics :
         winrt::Windows::Foundation::IInspectable,
@@ -684,6 +740,13 @@ WINRT_EXPORT namespace winrt::Windows::Networking::NetworkOperators
     {
         INetworkOperatorTetheringOperationResult(std::nullptr_t = nullptr) noexcept {}
         INetworkOperatorTetheringOperationResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) INetworkOperatorTetheringSessionAccessPointConfiguration :
+        winrt::Windows::Foundation::IInspectable,
+        impl::consume_t<INetworkOperatorTetheringSessionAccessPointConfiguration>
+    {
+        INetworkOperatorTetheringSessionAccessPointConfiguration(std::nullptr_t = nullptr) noexcept {}
+        INetworkOperatorTetheringSessionAccessPointConfiguration(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Foundation::IInspectable(ptr, take_ownership_from_abi) {}
     };
     struct __declspec(empty_bases) IProvisionFromXmlDocumentResults :
         winrt::Windows::Foundation::IInspectable,

@@ -10,6 +10,7 @@ static_assert(winrt::check_version(CPPWINRT_VERSION, "2.0.220418.1"), "Mismatche
 #include "winrt/impl/Windows.Data.Xml.Dom.2.h"
 #include "winrt/impl/Windows.Foundation.2.h"
 #include "winrt/impl/Windows.Foundation.Collections.2.h"
+#include "winrt/impl/Windows.Storage.Streams.2.h"
 #include "winrt/impl/Windows.Graphics.Printing.PrintTicket.2.h"
 namespace winrt::impl
 {
@@ -476,6 +477,12 @@ namespace winrt::impl
         void* result{};
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicket)->MergeAndValidateTicket(*(void**)(&deltaShemaTicket), &result));
         return winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Graphics_Printing_PrintTicket_IWorkflowPrintTicketFactory<D>::CreateInstance(param::hstring const& printerName, winrt::Windows::Storage::Streams::IInputStream const& printTicketStream) const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketFactory)->CreateInstance(*(void**)(&printerName), *(void**)(&printTicketStream), &value));
+        return winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket{ value, take_ownership_from_abi };
     }
     template <typename D> auto consume_Windows_Graphics_Printing_PrintTicket_IWorkflowPrintTicketValidationResult<D>::Validated() const
     {
@@ -1149,6 +1156,20 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketFactory> : produce_base<D, winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketFactory>
+    {
+        int32_t __stdcall CreateInstance(void* printerName, void* printTicketStream, void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket>(this->shim().CreateInstance(*reinterpret_cast<hstring const*>(&printerName), *reinterpret_cast<winrt::Windows::Storage::Streams::IInputStream const*>(&printTicketStream)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketValidationResult> : produce_base<D, winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketValidationResult>
     {
         int32_t __stdcall get_Validated(bool* value) noexcept final try
@@ -1171,6 +1192,10 @@ namespace winrt::impl
 }
 WINRT_EXPORT namespace winrt::Windows::Graphics::Printing::PrintTicket
 {
+    inline WorkflowPrintTicket::WorkflowPrintTicket(param::hstring const& printerName, winrt::Windows::Storage::Streams::IInputStream const& printTicketStream) :
+        WorkflowPrintTicket(impl::call_factory<WorkflowPrintTicket, IWorkflowPrintTicketFactory>([&](IWorkflowPrintTicketFactory const& f) { return f.CreateInstance(printerName, printTicketStream); }))
+    {
+    }
 }
 namespace std
 {
@@ -1182,6 +1207,7 @@ namespace std
     template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::IPrintTicketParameterInitializer> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::IPrintTicketValue> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicket> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketFactory> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::IWorkflowPrintTicketValidationResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::PrintTicketCapabilities> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Graphics::Printing::PrintTicket::PrintTicketFeature> : winrt::impl::hash_base {};

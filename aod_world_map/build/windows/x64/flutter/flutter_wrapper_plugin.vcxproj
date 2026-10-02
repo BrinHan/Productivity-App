@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
@@ -18,9 +18,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{28A55623-9093-3A96-8FCE-7348F13E7897}</ProjectGuid>
+    <ProjectGuid>{F56BF2DD-78A0-3B0E-B352-1C855EF11FD2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
     <Platform>x64</Platform>
     <ProjectName>flutter_wrapper_plugin</ProjectName>
     <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
@@ -29,17 +29,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -50,45 +50,54 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flutter_wrapper_plugin.dir\Debug\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flutter_wrapper_plugin</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\Profile\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\Profile\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">flutter_wrapper_plugin.dir\Profile\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">flutter_wrapper_plugin</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">.lib</TargetExt>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\Release\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flutter_wrapper_plugin.dir\Release\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flutter_wrapper_plugin</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>"4100"</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;_HAS_EXCEPTIONS=0;_DEBUG;UNICODE;_UNICODE;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_HAS_EXCEPTIONS=0;UNICODE;_UNICODE;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -101,16 +110,25 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
       <DisableSpecificWarnings>"4100"</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
@@ -118,13 +136,14 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_HAS_EXCEPTIONS=0;UNICODE;_UNICODE;CMAKE_INTDIR=\"Profile\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -137,16 +156,25 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
       <DisableSpecificWarnings>"4100"</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
@@ -154,13 +182,14 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_HAS_EXCEPTIONS=0;UNICODE;_UNICODE;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\include;C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -172,11 +201,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\CMakeLists.txt">
+    <CustomBuild Include="C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\CMakeLists.txt">
       <UseUtf8Encoding>Always</UseUtf8Encoding>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Projects/Productivity-App/aod_world_map/windows/flutter/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/brian/Productivity-App/aod_world_map/windows/flutter/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Projects/Productivity-App/aod_world_map/windows -BC:/Projects/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Projects/Productivity-App/aod_world_map/build/windows/x64/flutter/CMakeFiles/generate.stamp
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/brian/Productivity-App/aod_world_map/windows -BC:/Users/brian/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Users/brian/Productivity-App/aod_world_map/build/windows/x64/flutter/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -184,12 +213,12 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\generated_config.cmake;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\generate.stamp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\generated_config.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Building Custom Rule C:/Projects/Productivity-App/aod_world_map/windows/flutter/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Building Custom Rule C:/Users/brian/Productivity-App/aod_world_map/windows/flutter/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">setlocal
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Projects/Productivity-App/aod_world_map/windows -BC:/Projects/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Projects/Productivity-App/aod_world_map/build/windows/x64/flutter/CMakeFiles/generate.stamp
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/brian/Productivity-App/aod_world_map/windows -BC:/Users/brian/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Users/brian/Productivity-App/aod_world_map/build/windows/x64/flutter/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -197,12 +226,12 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\generated_config.cmake;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\generate.stamp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\generated_config.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Projects/Productivity-App/aod_world_map/windows/flutter/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/brian/Productivity-App/aod_world_map/windows/flutter/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Projects/Productivity-App/aod_world_map/windows -BC:/Projects/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Projects/Productivity-App/aod_world_map/build/windows/x64/flutter/CMakeFiles/generate.stamp
+"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/brian/Productivity-App/aod_world_map/windows -BC:/Users/brian/Productivity-App/aod_world_map/build/windows/x64 --check-stamp-file C:/Users/brian/Productivity-App/aod_world_map/build/windows/x64/flutter/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,25 +239,26 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\generated_config.cmake;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\generate.stamp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\generated_config.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc" />
-    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc" />
-    <ClCompile Include="C:\Projects\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc" />
+    <ClCompile Include="C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc" />
+    <ClCompile Include="C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc" />
+    <ClCompile Include="C:\Users\brian\Productivity-App\aod_world_map\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\ZERO_CHECK.vcxproj">
-      <Project>{DA411779-329A-3A85-9952-64AE561ECB84}</Project>
+    <ProjectReference Include="C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\ZERO_CHECK.vcxproj">
+      <Project>{A4D5F7C0-3062-3E46-9AC0-E24FE764905C}</Project>
       <Name>ZERO_CHECK</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Projects\Productivity-App\aod_world_map\build\windows\x64\flutter\flutter_assemble.vcxproj">
-      <Project>{807D835A-FF18-37CE-979C-70B46A2C1F92}</Project>
+    <ProjectReference Include="C:\Users\brian\Productivity-App\aod_world_map\build\windows\x64\flutter\flutter_assemble.vcxproj">
+      <Project>{46C89225-3408-38EF-8608-9FE307738AC9}</Project>
       <Name>flutter_assemble</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

@@ -9,10 +9,30 @@ static_assert(winrt::check_version(CPPWINRT_VERSION, "2.0.220418.1"), "Mismatche
 #include "winrt/Windows.Devices.h"
 #include "winrt/impl/Windows.Foundation.2.h"
 #include "winrt/impl/Windows.Foundation.Collections.2.h"
+#include "winrt/impl/Windows.Graphics.Printing.2.h"
+#include "winrt/impl/Windows.Graphics.Printing.PrintTicket.2.h"
 #include "winrt/impl/Windows.Storage.Streams.2.h"
 #include "winrt/impl/Windows.Devices.Printers.2.h"
 namespace winrt::impl
 {
+    template <typename D> auto consume_Windows_Devices_Printers_IIppAttributeConverterStatics<D>::ConvertPrintTicketToIppAttributesForPrinter(param::hstring const& printerName, winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket const& printTicket, param::hstring const& targetPdlFormat) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppAttributeConverterStatics)->ConvertPrintTicketToIppAttributesForPrinter(*(void**)(&printerName), *(void**)(&printTicket), *(void**)(&targetPdlFormat), &result));
+        return winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Devices::Printers::IppAttributeGroupKind, winrt::Windows::Foundation::Collections::IMap<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>>{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppAttributeConverterStatics<D>::ConvertBufferToIppAttributes(winrt::Windows::Storage::Streams::IBuffer const& attributesBuffer) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppAttributeConverterStatics)->ConvertBufferToIppAttributes(*(void**)(&attributesBuffer), &result));
+        return winrt::Windows::Foundation::Collections::IMap<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppAttributeConverterStatics<D>::ConvertIppAttributesToBuffer(param::iterable<winrt::Windows::Foundation::Collections::IKeyValuePair<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>> const& attributes, winrt::Windows::Devices::Printers::IppAttributeGroupKind const& attributeGroupKind) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppAttributeConverterStatics)->ConvertIppAttributesToBuffer(*(void**)(&attributes), static_cast<int32_t>(attributeGroupKind), &result));
+        return winrt::Windows::Storage::Streams::IBuffer{ result, take_ownership_from_abi };
+    }
     template <typename D> auto consume_Windows_Devices_Printers_IIppAttributeError<D>::Reason() const
     {
         winrt::Windows::Devices::Printers::IppAttributeErrorReason value{};
@@ -433,6 +453,134 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice)->SetPrinterAttributes(*(void**)(&printerAttributes), &result));
         return winrt::Windows::Devices::Printers::IppSetAttributesResult{ result, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice2<D>::GetMaxSupportedPdfSize() const
+    {
+        uint64_t result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice2)->GetMaxSupportedPdfSize(&result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice2<D>::GetMaxSupportedPdfVersion() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice2)->GetMaxSupportedPdfVersion(&result));
+        return hstring{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice2<D>::IsPdlPassthroughSupported(param::hstring const& pdlContentType) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice2)->IsPdlPassthroughSupported(*(void**)(&pdlContentType), &result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice2<D>::GetPdlPassthroughProvider() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice2)->GetPdlPassthroughProvider(&result));
+        return winrt::Windows::Devices::Printers::PdlPassthroughProvider{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice3<D>::IsIppFaxOutPrinter() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice3)->get_IsIppFaxOutPrinter(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice4<D>::DeviceKind() const
+    {
+        winrt::Windows::Devices::Printers::IppPrintDeviceKind value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice4)->get_DeviceKind(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice4<D>::CanModifyUserDefaultPrintTicket() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice4)->get_CanModifyUserDefaultPrintTicket(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice4<D>::UserDefaultPrintTicket() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice4)->get_UserDefaultPrintTicket(&value));
+        return winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice4<D>::UserDefaultPrintTicket(winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice4)->put_UserDefaultPrintTicket(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice4<D>::RefreshPrintDeviceCapabilities() const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice4)->RefreshPrintDeviceCapabilities());
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice4<D>::GetMaxSupportedPdlVersion(param::hstring const& pdlContentType) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice4)->GetMaxSupportedPdlVersion(*(void**)(&pdlContentType), &result));
+        return hstring{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice5<D>::GetDeviceProperties() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice5)->GetDeviceProperties(&result));
+        return winrt::Windows::Foundation::Collections::ValueSet{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDevice5<D>::ReplaceDeviceProperties(param::iterable<winrt::Windows::Foundation::Collections::IKeyValuePair<hstring, winrt::Windows::Foundation::IInspectable>> const& deviceProperties) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDevice5)->ReplaceDeviceProperties(*(void**)(&deviceProperties), &result));
+        return winrt::Windows::Devices::Printers::ReplaceDevicePropertiesResult{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceInstallationResult<D>::Status() const
+    {
+        winrt::Windows::Devices::Printers::IppPrintDeviceInstallationStatus value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult)->get_Status(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceInstallationResult<D>::InstalledPrinterName() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult)->get_InstalledPrinterName(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceInstallationResult<D>::ExtendedError() const
+    {
+        winrt::hresult value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult)->get_ExtendedError(put_abi(value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceManagerStatics<D>::CanInstallIppPrintDevice() const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceManagerStatics)->CanInstallIppPrintDevice(&result));
+        return result;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceManagerStatics<D>::InstallIppPrintDeviceAsync(winrt::Windows::Foundation::Uri const& printerUri, param::hstring const& printerName) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceManagerStatics)->InstallIppPrintDeviceAsync(*(void**)(&printerUri), *(void**)(&printerName), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::IppPrintDeviceInstallationResult>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceStatics<D>::GetDeviceSelector() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceStatics)->GetDeviceSelector(&result));
+        return hstring{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceStatics<D>::FromId(param::hstring const& deviceId) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceStatics)->FromId(*(void**)(&deviceId), &result));
+        return winrt::Windows::Devices::Printers::IppPrintDevice{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceStatics<D>::FromPrinterName(param::hstring const& printerName) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceStatics)->FromPrinterName(*(void**)(&printerName), &result));
+        return winrt::Windows::Devices::Printers::IppPrintDevice{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IIppPrintDeviceStatics<D>::IsIppPrinter(param::hstring const& printerName) const
+    {
+        bool result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppPrintDeviceStatics)->IsIppPrinter(*(void**)(&printerName), &result));
+        return result;
+    }
     template <typename D> auto consume_Windows_Devices_Printers_IIppResolution<D>::Width() const
     {
         int32_t value{};
@@ -487,6 +635,72 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IIppTextWithLanguageFactory)->CreateInstance(*(void**)(&language), *(void**)(&text), &value));
         return winrt::Windows::Devices::Printers::IppTextWithLanguage{ value, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Devices_Printers_IPageConfigurationSettings<D>::OrientationSource() const
+    {
+        winrt::Windows::Devices::Printers::PageConfigurationSource value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPageConfigurationSettings)->get_OrientationSource(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPageConfigurationSettings<D>::OrientationSource(winrt::Windows::Devices::Printers::PageConfigurationSource const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPageConfigurationSettings)->put_OrientationSource(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPageConfigurationSettings<D>::SizeSource() const
+    {
+        winrt::Windows::Devices::Printers::PageConfigurationSource value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPageConfigurationSettings)->get_SizeSource(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPageConfigurationSettings<D>::SizeSource(winrt::Windows::Devices::Printers::PageConfigurationSource const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPageConfigurationSettings)->put_SizeSource(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughProvider<D>::SupportedPdlContentTypes() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughProvider)->get_SupportedPdlContentTypes(&value));
+        return winrt::Windows::Foundation::Collections::IVectorView<hstring>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughProvider<D>::StartPrintJobWithTaskOptions(param::hstring const& jobName, param::hstring const& pdlContentType, winrt::Windows::Graphics::Printing::PrintTaskOptions const& taskOptions, winrt::Windows::Devices::Printers::PageConfigurationSettings const& pageConfigurationSettings) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughProvider)->StartPrintJobWithTaskOptions(*(void**)(&jobName), *(void**)(&pdlContentType), *(void**)(&taskOptions), *(void**)(&pageConfigurationSettings), &result));
+        return winrt::Windows::Devices::Printers::PdlPassthroughTarget{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughProvider<D>::StartPrintJobWithPrintTicket(param::hstring const& jobName, param::hstring const& pdlContentType, winrt::Windows::Storage::Streams::IInputStream const& printTicket, winrt::Windows::Devices::Printers::PageConfigurationSettings const& pageConfigurationSettings) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughProvider)->StartPrintJobWithPrintTicket(*(void**)(&jobName), *(void**)(&pdlContentType), *(void**)(&printTicket), *(void**)(&pageConfigurationSettings), &result));
+        return winrt::Windows::Devices::Printers::PdlPassthroughTarget{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughProvider2<D>::IsPassthroughWithJobAttributesSupported() const
+    {
+        bool value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughProvider2)->get_IsPassthroughWithJobAttributesSupported(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughProvider2<D>::StartPrintJobWithIppJobAttributes(param::hstring const& jobName, param::hstring const& pdlContentType, winrt::Windows::Storage::Streams::IBuffer const& jobAttributes, winrt::Windows::Storage::Streams::IBuffer const& operationAttributes) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughProvider2)->StartPrintJobWithIppJobAttributes(*(void**)(&jobName), *(void**)(&pdlContentType), *(void**)(&jobAttributes), *(void**)(&operationAttributes), &result));
+        return winrt::Windows::Devices::Printers::PdlPassthroughTarget{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughTarget<D>::PrintJobId() const
+    {
+        int32_t value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughTarget)->get_PrintJobId(&value));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughTarget<D>::GetOutputStream() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughTarget)->GetOutputStream(&result));
+        return winrt::Windows::Storage::Streams::IOutputStream{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IPdlPassthroughTarget<D>::Submit() const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPdlPassthroughTarget)->Submit());
+    }
     template <typename D> auto consume_Windows_Devices_Printers_IPrint3DDevice<D>::PrintSchema() const
     {
         void* value{};
@@ -523,6 +737,206 @@ namespace winrt::impl
         check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IPrintSchema)->MergeAndValidateWithDefaultPrintTicketAsync(*(void**)(&deltaTicket), &operation));
         return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Storage::Streams::IRandomAccessStreamWithContentType>{ operation, take_ownership_from_abi };
     }
+    template <typename D> auto consume_Windows_Devices_Printers_IReplaceDevicePropertiesResult<D>::Status() const
+    {
+        winrt::Windows::Devices::Printers::ReplaceDevicePropertiesStatus value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult)->get_Status(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IReplaceDevicePropertiesResult<D>::ExtendedError() const
+    {
+        winrt::hresult value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult)->get_ExtendedError(put_abi(value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrinterName() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_PrinterName(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrinterName(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->put_PrinterName(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::OutputFileExtensions() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_OutputFileExtensions(&value));
+        return winrt::Windows::Foundation::Collections::IVector<hstring>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::SupportedInputFormats() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_SupportedInputFormats(&value));
+        return winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Devices::Printers::VirtualPrinterSupportedFormat>{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrintDeviceCapabilitiesPackageRelativeFilePath() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_PrintDeviceCapabilitiesPackageRelativeFilePath(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrintDeviceCapabilitiesPackageRelativeFilePath(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->put_PrintDeviceCapabilitiesPackageRelativeFilePath(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrintDeviceResourcesPackageRelativeFilePath() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_PrintDeviceResourcesPackageRelativeFilePath(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrintDeviceResourcesPackageRelativeFilePath(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->put_PrintDeviceResourcesPackageRelativeFilePath(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PreferredInputFormat() const
+    {
+        winrt::Windows::Devices::Printers::VirtualPrinterPreferredInputFormat value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_PreferredInputFormat(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PreferredInputFormat(winrt::Windows::Devices::Printers::VirtualPrinterPreferredInputFormat const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->put_PreferredInputFormat(static_cast<int32_t>(value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrinterUri() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_PrinterUri(&value));
+        return winrt::Windows::Foundation::Uri{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::PrinterUri(winrt::Windows::Foundation::Uri const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->put_PrinterUri(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::EntryPoint() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->get_EntryPoint(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationParameters<D>::EntryPoint(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters)->put_EntryPoint(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationResult<D>::Status() const
+    {
+        winrt::Windows::Devices::Printers::VirtualPrinterInstallationStatus value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult)->get_Status(reinterpret_cast<int32_t*>(&value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterInstallationResult<D>::ExtendedError() const
+    {
+        winrt::hresult value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult)->get_ExtendedError(put_abi(value)));
+        return value;
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::InstallVirtualPrinterAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->InstallVirtualPrinterAsync(*(void**)(&parameters), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::InstallVirtualPrinterAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters, param::hstring const& appPackageFamilyName) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->InstallVirtualPrinterAsync2(*(void**)(&parameters), *(void**)(&appPackageFamilyName), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::InstallVirtualPrinterForAllUsersAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->InstallVirtualPrinterForAllUsersAsync(*(void**)(&parameters), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::InstallVirtualPrinterForAllUsersAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters, param::hstring const& appPackageFamilyName) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->InstallVirtualPrinterForAllUsersAsync2(*(void**)(&parameters), *(void**)(&appPackageFamilyName), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::FindAllVirtualPrinters() const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->FindAllVirtualPrinters(&result));
+        return winrt::Windows::Foundation::Collections::IVectorView<hstring>{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::FindAllVirtualPrinters(param::hstring const& appPackageFamilyName) const
+    {
+        void* result{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->FindAllVirtualPrinters2(*(void**)(&appPackageFamilyName), &result));
+        return winrt::Windows::Foundation::Collections::IVectorView<hstring>{ result, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::RemoveVirtualPrinterAsync(param::hstring const& printerName) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->RemoveVirtualPrinterAsync(*(void**)(&printerName), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<bool>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterManagerStatics<D>::RemoveVirtualPrinterForAllUsersAsync(param::hstring const& printerName) const
+    {
+        void* operation{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics)->RemoveVirtualPrinterForAllUsersAsync(*(void**)(&printerName), &operation));
+        return winrt::Windows::Foundation::IAsyncOperation<bool>{ operation, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterSupportedFormat<D>::ContentType() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat)->get_ContentType(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterSupportedFormat<D>::ContentType(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat)->put_ContentType(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterSupportedFormat<D>::MaxSupportedVersion() const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat)->get_MaxSupportedVersion(&value));
+        return hstring{ value, take_ownership_from_abi };
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterSupportedFormat<D>::MaxSupportedVersion(param::hstring const& value) const
+    {
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat)->put_MaxSupportedVersion(*(void**)(&value)));
+    }
+    template <typename D> auto consume_Windows_Devices_Printers_IVirtualPrinterSupportedFormatFactory<D>::CreateInstance(param::hstring const& contentType, param::hstring const& maxSupportedVersion) const
+    {
+        void* value{};
+        check_hresult(WINRT_IMPL_SHIM(winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormatFactory)->CreateInstance(*(void**)(&contentType), *(void**)(&maxSupportedVersion), &value));
+        return winrt::Windows::Devices::Printers::VirtualPrinterSupportedFormat{ value, take_ownership_from_abi };
+    }
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppAttributeConverterStatics> : produce_base<D, winrt::Windows::Devices::Printers::IIppAttributeConverterStatics>
+    {
+        int32_t __stdcall ConvertPrintTicketToIppAttributesForPrinter(void* printerName, void* printTicket, void* targetPdlFormat, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Foundation::Collections::IMap<winrt::Windows::Devices::Printers::IppAttributeGroupKind, winrt::Windows::Foundation::Collections::IMap<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>>>(this->shim().ConvertPrintTicketToIppAttributesForPrinter(*reinterpret_cast<hstring const*>(&printerName), *reinterpret_cast<winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket const*>(&printTicket), *reinterpret_cast<hstring const*>(&targetPdlFormat)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall ConvertBufferToIppAttributes(void* attributesBuffer, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Foundation::Collections::IMap<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>>(this->shim().ConvertBufferToIppAttributes(*reinterpret_cast<winrt::Windows::Storage::Streams::IBuffer const*>(&attributesBuffer)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall ConvertIppAttributesToBuffer(void* attributes, int32_t attributeGroupKind, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Streams::IBuffer>(this->shim().ConvertIppAttributesToBuffer(*reinterpret_cast<winrt::Windows::Foundation::Collections::IIterable<winrt::Windows::Foundation::Collections::IKeyValuePair<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>> const*>(&attributes), *reinterpret_cast<winrt::Windows::Devices::Printers::IppAttributeGroupKind const*>(&attributeGroupKind)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
     struct produce<D, winrt::Windows::Devices::Printers::IIppAttributeError> : produce_base<D, winrt::Windows::Devices::Printers::IIppAttributeError>
@@ -1117,6 +1531,214 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDevice2> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDevice2>
+    {
+        int32_t __stdcall GetMaxSupportedPdfSize(uint64_t* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<uint64_t>(this->shim().GetMaxSupportedPdfSize());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetMaxSupportedPdfVersion(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<hstring>(this->shim().GetMaxSupportedPdfVersion());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsPdlPassthroughSupported(void* pdlContentType, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsPdlPassthroughSupported(*reinterpret_cast<hstring const*>(&pdlContentType)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetPdlPassthroughProvider(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::PdlPassthroughProvider>(this->shim().GetPdlPassthroughProvider());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDevice3> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDevice3>
+    {
+        int32_t __stdcall get_IsIppFaxOutPrinter(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().IsIppFaxOutPrinter());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDevice4> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDevice4>
+    {
+        int32_t __stdcall get_DeviceKind(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::IppPrintDeviceKind>(this->shim().DeviceKind());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_CanModifyUserDefaultPrintTicket(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().CanModifyUserDefaultPrintTicket());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_UserDefaultPrintTicket(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket>(this->shim().UserDefaultPrintTicket());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_UserDefaultPrintTicket(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().UserDefaultPrintTicket(*reinterpret_cast<winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall RefreshPrintDeviceCapabilities() noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().RefreshPrintDeviceCapabilities();
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetMaxSupportedPdlVersion(void* pdlContentType, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<hstring>(this->shim().GetMaxSupportedPdlVersion(*reinterpret_cast<hstring const*>(&pdlContentType)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDevice5> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDevice5>
+    {
+        int32_t __stdcall GetDeviceProperties(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Foundation::Collections::ValueSet>(this->shim().GetDeviceProperties());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall ReplaceDeviceProperties(void* deviceProperties, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::ReplaceDevicePropertiesResult>(this->shim().ReplaceDeviceProperties(*reinterpret_cast<winrt::Windows::Foundation::Collections::IIterable<winrt::Windows::Foundation::Collections::IKeyValuePair<hstring, winrt::Windows::Foundation::IInspectable>> const*>(&deviceProperties)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult>
+    {
+        int32_t __stdcall get_Status(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::IppPrintDeviceInstallationStatus>(this->shim().Status());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_InstalledPrinterName(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().InstalledPrinterName());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ExtendedError(winrt::hresult* value) noexcept final try
+        {
+            zero_abi<winrt::hresult>(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::hresult>(this->shim().ExtendedError());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDeviceManagerStatics> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDeviceManagerStatics>
+    {
+        int32_t __stdcall CanInstallIppPrintDevice(bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().CanInstallIppPrintDevice());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall InstallIppPrintDeviceAsync(void* printerUri, void* printerName, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::IppPrintDeviceInstallationResult>>(this->shim().InstallIppPrintDeviceAsync(*reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&printerUri), *reinterpret_cast<hstring const*>(&printerName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IIppPrintDeviceStatics> : produce_base<D, winrt::Windows::Devices::Printers::IIppPrintDeviceStatics>
+    {
+        int32_t __stdcall GetDeviceSelector(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<hstring>(this->shim().GetDeviceSelector());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall FromId(void* deviceId, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::IppPrintDevice>(this->shim().FromId(*reinterpret_cast<hstring const*>(&deviceId)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall FromPrinterName(void* printerName, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::IppPrintDevice>(this->shim().FromPrinterName(*reinterpret_cast<hstring const*>(&printerName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall IsIppPrinter(void* printerName, bool* result) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<bool>(this->shim().IsIppPrinter(*reinterpret_cast<hstring const*>(&printerName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Devices::Printers::IIppResolution> : produce_base<D, winrt::Windows::Devices::Printers::IIppResolution>
     {
         int32_t __stdcall get_Width(int32_t* value) noexcept final try
@@ -1215,6 +1837,119 @@ namespace winrt::impl
 #endif
 #ifndef WINRT_LEAN_AND_MEAN
     template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IPageConfigurationSettings> : produce_base<D, winrt::Windows::Devices::Printers::IPageConfigurationSettings>
+    {
+        int32_t __stdcall get_OrientationSource(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::PageConfigurationSource>(this->shim().OrientationSource());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_OrientationSource(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().OrientationSource(*reinterpret_cast<winrt::Windows::Devices::Printers::PageConfigurationSource const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_SizeSource(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::PageConfigurationSource>(this->shim().SizeSource());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_SizeSource(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().SizeSource(*reinterpret_cast<winrt::Windows::Devices::Printers::PageConfigurationSource const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IPdlPassthroughProvider> : produce_base<D, winrt::Windows::Devices::Printers::IPdlPassthroughProvider>
+    {
+        int32_t __stdcall get_SupportedPdlContentTypes(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVectorView<hstring>>(this->shim().SupportedPdlContentTypes());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall StartPrintJobWithTaskOptions(void* jobName, void* pdlContentType, void* taskOptions, void* pageConfigurationSettings, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::PdlPassthroughTarget>(this->shim().StartPrintJobWithTaskOptions(*reinterpret_cast<hstring const*>(&jobName), *reinterpret_cast<hstring const*>(&pdlContentType), *reinterpret_cast<winrt::Windows::Graphics::Printing::PrintTaskOptions const*>(&taskOptions), *reinterpret_cast<winrt::Windows::Devices::Printers::PageConfigurationSettings const*>(&pageConfigurationSettings)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall StartPrintJobWithPrintTicket(void* jobName, void* pdlContentType, void* printTicket, void* pageConfigurationSettings, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::PdlPassthroughTarget>(this->shim().StartPrintJobWithPrintTicket(*reinterpret_cast<hstring const*>(&jobName), *reinterpret_cast<hstring const*>(&pdlContentType), *reinterpret_cast<winrt::Windows::Storage::Streams::IInputStream const*>(&printTicket), *reinterpret_cast<winrt::Windows::Devices::Printers::PageConfigurationSettings const*>(&pageConfigurationSettings)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IPdlPassthroughProvider2> : produce_base<D, winrt::Windows::Devices::Printers::IPdlPassthroughProvider2>
+    {
+        int32_t __stdcall get_IsPassthroughWithJobAttributesSupported(bool* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<bool>(this->shim().IsPassthroughWithJobAttributesSupported());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall StartPrintJobWithIppJobAttributes(void* jobName, void* pdlContentType, void* jobAttributes, void* operationAttributes, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Devices::Printers::PdlPassthroughTarget>(this->shim().StartPrintJobWithIppJobAttributes(*reinterpret_cast<hstring const*>(&jobName), *reinterpret_cast<hstring const*>(&pdlContentType), *reinterpret_cast<winrt::Windows::Storage::Streams::IBuffer const*>(&jobAttributes), *reinterpret_cast<winrt::Windows::Storage::Streams::IBuffer const*>(&operationAttributes)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IPdlPassthroughTarget> : produce_base<D, winrt::Windows::Devices::Printers::IPdlPassthroughTarget>
+    {
+        int32_t __stdcall get_PrintJobId(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<int32_t>(this->shim().PrintJobId());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall GetOutputStream(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Storage::Streams::IOutputStream>(this->shim().GetOutputStream());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall Submit() noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().Submit();
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
     struct produce<D, winrt::Windows::Devices::Printers::IPrint3DDevice> : produce_base<D, winrt::Windows::Devices::Printers::IPrint3DDevice>
     {
         int32_t __stdcall get_PrintSchema(void** value) noexcept final try
@@ -1279,9 +2014,294 @@ namespace winrt::impl
         catch (...) { return to_hresult(); }
     };
 #endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult> : produce_base<D, winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult>
+    {
+        int32_t __stdcall get_Status(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::ReplaceDevicePropertiesStatus>(this->shim().Status());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ExtendedError(winrt::hresult* value) noexcept final try
+        {
+            zero_abi<winrt::hresult>(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::hresult>(this->shim().ExtendedError());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters> : produce_base<D, winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters>
+    {
+        int32_t __stdcall get_PrinterName(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().PrinterName());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PrinterName(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PrinterName(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_OutputFileExtensions(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVector<hstring>>(this->shim().OutputFileExtensions());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_SupportedInputFormats(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Collections::IVector<winrt::Windows::Devices::Printers::VirtualPrinterSupportedFormat>>(this->shim().SupportedInputFormats());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PrintDeviceCapabilitiesPackageRelativeFilePath(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().PrintDeviceCapabilitiesPackageRelativeFilePath());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PrintDeviceCapabilitiesPackageRelativeFilePath(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PrintDeviceCapabilitiesPackageRelativeFilePath(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PrintDeviceResourcesPackageRelativeFilePath(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().PrintDeviceResourcesPackageRelativeFilePath());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PrintDeviceResourcesPackageRelativeFilePath(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PrintDeviceResourcesPackageRelativeFilePath(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PreferredInputFormat(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::VirtualPrinterPreferredInputFormat>(this->shim().PreferredInputFormat());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PreferredInputFormat(int32_t value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PreferredInputFormat(*reinterpret_cast<winrt::Windows::Devices::Printers::VirtualPrinterPreferredInputFormat const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_PrinterUri(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Foundation::Uri>(this->shim().PrinterUri());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_PrinterUri(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().PrinterUri(*reinterpret_cast<winrt::Windows::Foundation::Uri const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_EntryPoint(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().EntryPoint());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_EntryPoint(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().EntryPoint(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult> : produce_base<D, winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult>
+    {
+        int32_t __stdcall get_Status(int32_t* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::VirtualPrinterInstallationStatus>(this->shim().Status());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_ExtendedError(winrt::hresult* value) noexcept final try
+        {
+            zero_abi<winrt::hresult>(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::hresult>(this->shim().ExtendedError());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics> : produce_base<D, winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics>
+    {
+        int32_t __stdcall InstallVirtualPrinterAsync(void* parameters, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>>(this->shim().InstallVirtualPrinterAsync(*reinterpret_cast<winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const*>(&parameters)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall InstallVirtualPrinterAsync2(void* parameters, void* appPackageFamilyName, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>>(this->shim().InstallVirtualPrinterAsync(*reinterpret_cast<winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const*>(&parameters), *reinterpret_cast<hstring const*>(&appPackageFamilyName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall InstallVirtualPrinterForAllUsersAsync(void* parameters, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>>(this->shim().InstallVirtualPrinterForAllUsersAsync(*reinterpret_cast<winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const*>(&parameters)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall InstallVirtualPrinterForAllUsersAsync2(void* parameters, void* appPackageFamilyName, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult>>(this->shim().InstallVirtualPrinterForAllUsersAsync(*reinterpret_cast<winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const*>(&parameters), *reinterpret_cast<hstring const*>(&appPackageFamilyName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall FindAllVirtualPrinters(void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Foundation::Collections::IVectorView<hstring>>(this->shim().FindAllVirtualPrinters());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall FindAllVirtualPrinters2(void* appPackageFamilyName, void** result) noexcept final try
+        {
+            clear_abi(result);
+            typename D::abi_guard guard(this->shim());
+            *result = detach_from<winrt::Windows::Foundation::Collections::IVectorView<hstring>>(this->shim().FindAllVirtualPrinters(*reinterpret_cast<hstring const*>(&appPackageFamilyName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall RemoveVirtualPrinterAsync(void* printerName, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<bool>>(this->shim().RemoveVirtualPrinterAsync(*reinterpret_cast<hstring const*>(&printerName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall RemoveVirtualPrinterForAllUsersAsync(void* printerName, void** operation) noexcept final try
+        {
+            clear_abi(operation);
+            typename D::abi_guard guard(this->shim());
+            *operation = detach_from<winrt::Windows::Foundation::IAsyncOperation<bool>>(this->shim().RemoveVirtualPrinterForAllUsersAsync(*reinterpret_cast<hstring const*>(&printerName)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat> : produce_base<D, winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat>
+    {
+        int32_t __stdcall get_ContentType(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().ContentType());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_ContentType(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().ContentType(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall get_MaxSupportedVersion(void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<hstring>(this->shim().MaxSupportedVersion());
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+        int32_t __stdcall put_MaxSupportedVersion(void* value) noexcept final try
+        {
+            typename D::abi_guard guard(this->shim());
+            this->shim().MaxSupportedVersion(*reinterpret_cast<hstring const*>(&value));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
+#ifndef WINRT_LEAN_AND_MEAN
+    template <typename D>
+    struct produce<D, winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormatFactory> : produce_base<D, winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormatFactory>
+    {
+        int32_t __stdcall CreateInstance(void* contentType, void* maxSupportedVersion, void** value) noexcept final try
+        {
+            clear_abi(value);
+            typename D::abi_guard guard(this->shim());
+            *value = detach_from<winrt::Windows::Devices::Printers::VirtualPrinterSupportedFormat>(this->shim().CreateInstance(*reinterpret_cast<hstring const*>(&contentType), *reinterpret_cast<hstring const*>(&maxSupportedVersion)));
+            return 0;
+        }
+        catch (...) { return to_hresult(); }
+    };
+#endif
 }
 WINRT_EXPORT namespace winrt::Windows::Devices::Printers
 {
+    inline auto IppAttributeConverter::ConvertPrintTicketToIppAttributesForPrinter(param::hstring const& printerName, winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket const& printTicket, param::hstring const& targetPdlFormat)
+    {
+        return impl::call_factory<IppAttributeConverter, IIppAttributeConverterStatics>([&](IIppAttributeConverterStatics const& f) { return f.ConvertPrintTicketToIppAttributesForPrinter(printerName, printTicket, targetPdlFormat); });
+    }
+    inline auto IppAttributeConverter::ConvertBufferToIppAttributes(winrt::Windows::Storage::Streams::IBuffer const& attributesBuffer)
+    {
+        return impl::call_factory<IppAttributeConverter, IIppAttributeConverterStatics>([&](IIppAttributeConverterStatics const& f) { return f.ConvertBufferToIppAttributes(attributesBuffer); });
+    }
+    inline auto IppAttributeConverter::ConvertIppAttributesToBuffer(param::iterable<winrt::Windows::Foundation::Collections::IKeyValuePair<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>> const& attributes, winrt::Windows::Devices::Printers::IppAttributeGroupKind const& attributeGroupKind)
+    {
+        return impl::call_factory<IppAttributeConverter, IIppAttributeConverterStatics>([&](IIppAttributeConverterStatics const& f) { return f.ConvertIppAttributesToBuffer(attributes, attributeGroupKind); });
+    }
     inline auto IppAttributeValue::CreateUnsupported()
     {
         return impl::call_factory_cast<winrt::Windows::Devices::Printers::IppAttributeValue(*)(IIppAttributeValueStatics const&), IppAttributeValue, IIppAttributeValueStatics>([](IIppAttributeValueStatics const& f) { return f.CreateUnsupported(); });
@@ -1442,12 +2462,40 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
         IppIntegerRange(impl::call_factory<IppIntegerRange, IIppIntegerRangeFactory>([&](IIppIntegerRangeFactory const& f) { return f.CreateInstance(start, end); }))
     {
     }
+    inline auto IppPrintDevice::GetDeviceSelector()
+    {
+        return impl::call_factory_cast<hstring(*)(IIppPrintDeviceStatics const&), IppPrintDevice, IIppPrintDeviceStatics>([](IIppPrintDeviceStatics const& f) { return f.GetDeviceSelector(); });
+    }
+    inline auto IppPrintDevice::FromId(param::hstring const& deviceId)
+    {
+        return impl::call_factory<IppPrintDevice, IIppPrintDeviceStatics>([&](IIppPrintDeviceStatics const& f) { return f.FromId(deviceId); });
+    }
+    inline auto IppPrintDevice::FromPrinterName(param::hstring const& printerName)
+    {
+        return impl::call_factory<IppPrintDevice, IIppPrintDeviceStatics>([&](IIppPrintDeviceStatics const& f) { return f.FromPrinterName(printerName); });
+    }
+    inline auto IppPrintDevice::IsIppPrinter(param::hstring const& printerName)
+    {
+        return impl::call_factory<IppPrintDevice, IIppPrintDeviceStatics>([&](IIppPrintDeviceStatics const& f) { return f.IsIppPrinter(printerName); });
+    }
+    inline auto IppPrintDeviceManager::CanInstallIppPrintDevice()
+    {
+        return impl::call_factory_cast<bool(*)(IIppPrintDeviceManagerStatics const&), IppPrintDeviceManager, IIppPrintDeviceManagerStatics>([](IIppPrintDeviceManagerStatics const& f) { return f.CanInstallIppPrintDevice(); });
+    }
+    inline auto IppPrintDeviceManager::InstallIppPrintDeviceAsync(winrt::Windows::Foundation::Uri const& printerUri, param::hstring const& printerName)
+    {
+        return impl::call_factory<IppPrintDeviceManager, IIppPrintDeviceManagerStatics>([&](IIppPrintDeviceManagerStatics const& f) { return f.InstallIppPrintDeviceAsync(printerUri, printerName); });
+    }
     inline IppResolution::IppResolution(int32_t width, int32_t height, winrt::Windows::Devices::Printers::IppResolutionUnit const& unit) :
         IppResolution(impl::call_factory<IppResolution, IIppResolutionFactory>([&](IIppResolutionFactory const& f) { return f.CreateInstance(width, height, unit); }))
     {
     }
     inline IppTextWithLanguage::IppTextWithLanguage(param::hstring const& language, param::hstring const& text) :
         IppTextWithLanguage(impl::call_factory<IppTextWithLanguage, IIppTextWithLanguageFactory>([&](IIppTextWithLanguageFactory const& f) { return f.CreateInstance(language, text); }))
+    {
+    }
+    inline PageConfigurationSettings::PageConfigurationSettings() :
+        PageConfigurationSettings(impl::call_factory_cast<PageConfigurationSettings(*)(winrt::Windows::Foundation::IActivationFactory const&), PageConfigurationSettings>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<PageConfigurationSettings>(); }))
     {
     }
     inline auto Print3DDevice::FromIdAsync(param::hstring const& deviceId)
@@ -1458,33 +2506,102 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
     {
         return impl::call_factory_cast<hstring(*)(IPrint3DDeviceStatics const&), Print3DDevice, IPrint3DDeviceStatics>([](IPrint3DDeviceStatics const& f) { return f.GetDeviceSelector(); });
     }
+    inline VirtualPrinterInstallationParameters::VirtualPrinterInstallationParameters() :
+        VirtualPrinterInstallationParameters(impl::call_factory_cast<VirtualPrinterInstallationParameters(*)(winrt::Windows::Foundation::IActivationFactory const&), VirtualPrinterInstallationParameters>([](winrt::Windows::Foundation::IActivationFactory const& f) { return f.template ActivateInstance<VirtualPrinterInstallationParameters>(); }))
+    {
+    }
+    inline auto VirtualPrinterManager::InstallVirtualPrinterAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.InstallVirtualPrinterAsync(parameters); });
+    }
+    inline auto VirtualPrinterManager::InstallVirtualPrinterAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters, param::hstring const& appPackageFamilyName)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.InstallVirtualPrinterAsync(parameters, appPackageFamilyName); });
+    }
+    inline auto VirtualPrinterManager::InstallVirtualPrinterForAllUsersAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.InstallVirtualPrinterForAllUsersAsync(parameters); });
+    }
+    inline auto VirtualPrinterManager::InstallVirtualPrinterForAllUsersAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters, param::hstring const& appPackageFamilyName)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.InstallVirtualPrinterForAllUsersAsync(parameters, appPackageFamilyName); });
+    }
+    inline auto VirtualPrinterManager::FindAllVirtualPrinters()
+    {
+        return impl::call_factory_cast<winrt::Windows::Foundation::Collections::IVectorView<hstring>(*)(IVirtualPrinterManagerStatics const&), VirtualPrinterManager, IVirtualPrinterManagerStatics>([](IVirtualPrinterManagerStatics const& f) { return f.FindAllVirtualPrinters(); });
+    }
+    inline auto VirtualPrinterManager::FindAllVirtualPrinters(param::hstring const& appPackageFamilyName)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.FindAllVirtualPrinters(appPackageFamilyName); });
+    }
+    inline auto VirtualPrinterManager::RemoveVirtualPrinterAsync(param::hstring const& printerName)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.RemoveVirtualPrinterAsync(printerName); });
+    }
+    inline auto VirtualPrinterManager::RemoveVirtualPrinterForAllUsersAsync(param::hstring const& printerName)
+    {
+        return impl::call_factory<VirtualPrinterManager, IVirtualPrinterManagerStatics>([&](IVirtualPrinterManagerStatics const& f) { return f.RemoveVirtualPrinterForAllUsersAsync(printerName); });
+    }
+    inline VirtualPrinterSupportedFormat::VirtualPrinterSupportedFormat(param::hstring const& contentType, param::hstring const& maxSupportedVersion) :
+        VirtualPrinterSupportedFormat(impl::call_factory<VirtualPrinterSupportedFormat, IVirtualPrinterSupportedFormatFactory>([&](IVirtualPrinterSupportedFormatFactory const& f) { return f.CreateInstance(contentType, maxSupportedVersion); }))
+    {
+    }
 }
 namespace std
 {
 #ifndef WINRT_LEAN_AND_MEAN
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppAttributeConverterStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppAttributeError> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppAttributeValue> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppAttributeValueStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppIntegerRange> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppIntegerRangeFactory> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDevice> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDevice2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDevice3> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDevice4> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDevice5> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDeviceManagerStatics> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IIppPrintDeviceStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppResolution> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppResolutionFactory> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppSetAttributesResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppTextWithLanguage> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IIppTextWithLanguageFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IPageConfigurationSettings> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IPdlPassthroughProvider> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IPdlPassthroughProvider2> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IPdlPassthroughTarget> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IPrint3DDevice> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IPrint3DDeviceStatics> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IPrintSchema> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IVirtualPrinterManagerStatics> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormatFactory> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IppAttributeConverter> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppAttributeError> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppAttributeValue> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppIntegerRange> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppPrintDevice> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IppPrintDeviceInstallationResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::IppPrintDeviceManager> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppResolution> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppSetAttributesResult> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::IppTextWithLanguage> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::PageConfigurationSettings> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::PdlPassthroughProvider> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::PdlPassthroughTarget> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::Print3DDevice> : winrt::impl::hash_base {};
     template<> struct hash<winrt::Windows::Devices::Printers::PrintSchema> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::ReplaceDevicePropertiesResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::VirtualPrinterInstallationResult> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::VirtualPrinterManager> : winrt::impl::hash_base {};
+    template<> struct hash<winrt::Windows::Devices::Printers::VirtualPrinterSupportedFormat> : winrt::impl::hash_base {};
 #endif
 #ifdef __cpp_lib_format
 #endif

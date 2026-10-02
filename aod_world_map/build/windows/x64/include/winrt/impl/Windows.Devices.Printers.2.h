@@ -5,10 +5,18 @@
 #define WINRT_Windows_Devices_Printers_2_H
 #include "winrt/impl/Windows.Foundation.1.h"
 #include "winrt/impl/Windows.Foundation.Collections.1.h"
+#include "winrt/impl/Windows.Graphics.Printing.PrintTicket.1.h"
 #include "winrt/impl/Windows.Storage.Streams.1.h"
 #include "winrt/impl/Windows.Devices.Printers.1.h"
 WINRT_EXPORT namespace winrt::Windows::Devices::Printers
 {
+    struct IppAttributeConverter
+    {
+        IppAttributeConverter() = delete;
+        static auto ConvertPrintTicketToIppAttributesForPrinter(param::hstring const& printerName, winrt::Windows::Graphics::Printing::PrintTicket::WorkflowPrintTicket const& printTicket, param::hstring const& targetPdlFormat);
+        static auto ConvertBufferToIppAttributes(winrt::Windows::Storage::Streams::IBuffer const& attributesBuffer);
+        static auto ConvertIppAttributesToBuffer(param::iterable<winrt::Windows::Foundation::Collections::IKeyValuePair<hstring, winrt::Windows::Devices::Printers::IppAttributeValue>> const& attributes, winrt::Windows::Devices::Printers::IppAttributeGroupKind const& attributeGroupKind);
+    };
     struct __declspec(empty_bases) IppAttributeError : winrt::Windows::Devices::Printers::IIppAttributeError
     {
         IppAttributeError(std::nullptr_t) noexcept {}
@@ -64,10 +72,26 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
         IppIntegerRange(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IIppIntegerRange(ptr, take_ownership_from_abi) {}
         IppIntegerRange(int32_t start, int32_t end);
     };
-    struct __declspec(empty_bases) IppPrintDevice : winrt::Windows::Devices::Printers::IIppPrintDevice
+    struct __declspec(empty_bases) IppPrintDevice : winrt::Windows::Devices::Printers::IIppPrintDevice,
+        impl::require<IppPrintDevice, winrt::Windows::Devices::Printers::IIppPrintDevice2, winrt::Windows::Devices::Printers::IIppPrintDevice3, winrt::Windows::Devices::Printers::IIppPrintDevice4, winrt::Windows::Devices::Printers::IIppPrintDevice5>
     {
         IppPrintDevice(std::nullptr_t) noexcept {}
         IppPrintDevice(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IIppPrintDevice(ptr, take_ownership_from_abi) {}
+        static auto GetDeviceSelector();
+        static auto FromId(param::hstring const& deviceId);
+        static auto FromPrinterName(param::hstring const& printerName);
+        static auto IsIppPrinter(param::hstring const& printerName);
+    };
+    struct __declspec(empty_bases) IppPrintDeviceInstallationResult : winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult
+    {
+        IppPrintDeviceInstallationResult(std::nullptr_t) noexcept {}
+        IppPrintDeviceInstallationResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IIppPrintDeviceInstallationResult(ptr, take_ownership_from_abi) {}
+    };
+    struct IppPrintDeviceManager
+    {
+        IppPrintDeviceManager() = delete;
+        static auto CanInstallIppPrintDevice();
+        static auto InstallIppPrintDeviceAsync(winrt::Windows::Foundation::Uri const& printerUri, param::hstring const& printerName);
     };
     struct __declspec(empty_bases) IppResolution : winrt::Windows::Devices::Printers::IIppResolution
     {
@@ -86,6 +110,24 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
         IppTextWithLanguage(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IIppTextWithLanguage(ptr, take_ownership_from_abi) {}
         IppTextWithLanguage(param::hstring const& language, param::hstring const& text);
     };
+    struct __declspec(empty_bases) PageConfigurationSettings : winrt::Windows::Devices::Printers::IPageConfigurationSettings
+    {
+        PageConfigurationSettings(std::nullptr_t) noexcept {}
+        PageConfigurationSettings(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IPageConfigurationSettings(ptr, take_ownership_from_abi) {}
+        PageConfigurationSettings();
+    };
+    struct __declspec(empty_bases) PdlPassthroughProvider : winrt::Windows::Devices::Printers::IPdlPassthroughProvider,
+        impl::require<PdlPassthroughProvider, winrt::Windows::Devices::Printers::IPdlPassthroughProvider2>
+    {
+        PdlPassthroughProvider(std::nullptr_t) noexcept {}
+        PdlPassthroughProvider(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IPdlPassthroughProvider(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) PdlPassthroughTarget : winrt::Windows::Devices::Printers::IPdlPassthroughTarget,
+        impl::require<PdlPassthroughTarget, winrt::Windows::Foundation::IClosable>
+    {
+        PdlPassthroughTarget(std::nullptr_t) noexcept {}
+        PdlPassthroughTarget(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IPdlPassthroughTarget(ptr, take_ownership_from_abi) {}
+    };
     struct __declspec(empty_bases) Print3DDevice : winrt::Windows::Devices::Printers::IPrint3DDevice
     {
         Print3DDevice(std::nullptr_t) noexcept {}
@@ -97,6 +139,40 @@ WINRT_EXPORT namespace winrt::Windows::Devices::Printers
     {
         PrintSchema(std::nullptr_t) noexcept {}
         PrintSchema(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IPrintSchema(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) ReplaceDevicePropertiesResult : winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult
+    {
+        ReplaceDevicePropertiesResult(std::nullptr_t) noexcept {}
+        ReplaceDevicePropertiesResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IReplaceDevicePropertiesResult(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) VirtualPrinterInstallationParameters : winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters
+    {
+        VirtualPrinterInstallationParameters(std::nullptr_t) noexcept {}
+        VirtualPrinterInstallationParameters(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IVirtualPrinterInstallationParameters(ptr, take_ownership_from_abi) {}
+        VirtualPrinterInstallationParameters();
+    };
+    struct __declspec(empty_bases) VirtualPrinterInstallationResult : winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult
+    {
+        VirtualPrinterInstallationResult(std::nullptr_t) noexcept {}
+        VirtualPrinterInstallationResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IVirtualPrinterInstallationResult(ptr, take_ownership_from_abi) {}
+    };
+    struct VirtualPrinterManager
+    {
+        VirtualPrinterManager() = delete;
+        static auto InstallVirtualPrinterAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters);
+        static auto InstallVirtualPrinterAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters, param::hstring const& appPackageFamilyName);
+        static auto InstallVirtualPrinterForAllUsersAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters);
+        static auto InstallVirtualPrinterForAllUsersAsync(winrt::Windows::Devices::Printers::VirtualPrinterInstallationParameters const& parameters, param::hstring const& appPackageFamilyName);
+        static auto FindAllVirtualPrinters();
+        static auto FindAllVirtualPrinters(param::hstring const& appPackageFamilyName);
+        static auto RemoveVirtualPrinterAsync(param::hstring const& printerName);
+        static auto RemoveVirtualPrinterForAllUsersAsync(param::hstring const& printerName);
+    };
+    struct __declspec(empty_bases) VirtualPrinterSupportedFormat : winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat
+    {
+        VirtualPrinterSupportedFormat(std::nullptr_t) noexcept {}
+        VirtualPrinterSupportedFormat(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::Devices::Printers::IVirtualPrinterSupportedFormat(ptr, take_ownership_from_abi) {}
+        VirtualPrinterSupportedFormat(param::hstring const& contentType, param::hstring const& maxSupportedVersion);
     };
 }
 #endif

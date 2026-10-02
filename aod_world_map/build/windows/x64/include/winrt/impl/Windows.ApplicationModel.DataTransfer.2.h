@@ -214,5 +214,33 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel::DataTransfer
         TargetApplicationChosenEventArgs(std::nullptr_t) noexcept {}
         TargetApplicationChosenEventArgs(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::ApplicationModel::DataTransfer::ITargetApplicationChosenEventArgs(ptr, take_ownership_from_abi) {}
     };
+    struct __declspec(empty_bases) TransferTarget : winrt::Windows::ApplicationModel::DataTransfer::ITransferTarget
+    {
+        TransferTarget(std::nullptr_t) noexcept {}
+        TransferTarget(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::ApplicationModel::DataTransfer::ITransferTarget(ptr, take_ownership_from_abi) {}
+        static auto CreateWatcher(winrt::Windows::ApplicationModel::DataTransfer::TransferTargetDiscoveryOptions const& options);
+    };
+    struct __declspec(empty_bases) TransferTargetChangedEventArgs : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetChangedEventArgs
+    {
+        TransferTargetChangedEventArgs(std::nullptr_t) noexcept {}
+        TransferTargetChangedEventArgs(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetChangedEventArgs(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) TransferTargetDiscoveryOptions : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetDiscoveryOptions
+    {
+        TransferTargetDiscoveryOptions(std::nullptr_t) noexcept {}
+        TransferTargetDiscoveryOptions(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetDiscoveryOptions(ptr, take_ownership_from_abi) {}
+        explicit TransferTargetDiscoveryOptions(winrt::Windows::ApplicationModel::DataTransfer::DataPackageView const& dataPackage);
+    };
+    struct __declspec(empty_bases) TransferTargetInvokeResult : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetInvokeResult
+    {
+        TransferTargetInvokeResult(std::nullptr_t) noexcept {}
+        TransferTargetInvokeResult(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetInvokeResult(ptr, take_ownership_from_abi) {}
+    };
+    struct __declspec(empty_bases) TransferTargetWatcher : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetWatcher
+    {
+        TransferTargetWatcher(std::nullptr_t) noexcept {}
+        TransferTargetWatcher(void* ptr, take_ownership_from_abi_t) noexcept : winrt::Windows::ApplicationModel::DataTransfer::ITransferTargetWatcher(ptr, take_ownership_from_abi) {}
+        static auto IsSupported(winrt::Windows::ApplicationModel::DataTransfer::DataPackageView const& dataPackage);
+    };
 }
 #endif

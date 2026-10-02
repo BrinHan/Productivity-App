@@ -1,4 +1,4 @@
-# Install script for directory: C:/Projects/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/cnativeapi/src
+# Install script for directory: C:/Users/brian/Productivity-App/aod_world_map/windows/flutter/ephemeral/.plugin_symlinks/cnativeapi/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,13 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Projects/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/nativeapi/cmake_install.cmake")
+  include("C:/Users/brian/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/nativeapi/cmake_install.cmake")
 
 endif()
 
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+if(CMAKE_INSTALL_LOCAL_ONLY)
+  file(WRITE "C:/Users/brian/Productivity-App/aod_world_map/build/windows/x64/plugins/cnativeapi/shared/install_local_manifest.txt"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
+endif()

@@ -66,6 +66,12 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel
         Staging = 2,
         Staged = 3,
     };
+    enum class PackageRelationship : int32_t
+    {
+        Dependencies = 0,
+        Dependents = 1,
+        All = 2,
+    };
     enum class PackageSignatureKind : int32_t
     {
         None = 0,
@@ -103,6 +109,8 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel
     struct IDesignModeStatics;
     struct IDesignModeStatics2;
     struct IEnteredBackgroundEventArgs;
+    struct IFindRelatedPackagesOptions;
+    struct IFindRelatedPackagesOptionsFactory;
     struct ILeavingBackgroundEventArgs;
     struct ILimitedAccessFeatureRequestResult;
     struct ILimitedAccessFeaturesStatics;
@@ -114,6 +122,7 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel
     struct IPackage6;
     struct IPackage7;
     struct IPackage8;
+    struct IPackage9;
     struct IPackageCatalog;
     struct IPackageCatalog2;
     struct IPackageCatalog3;
@@ -123,6 +132,7 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel
     struct IPackageCatalogRemoveOptionalPackagesResult;
     struct IPackageCatalogRemoveResourcePackagesResult;
     struct IPackageCatalogStatics;
+    struct IPackageCatalogStatics2;
     struct IPackageContentGroup;
     struct IPackageContentGroupStagingEventArgs;
     struct IPackageContentGroupStatics;
@@ -149,6 +159,7 @@ WINRT_EXPORT namespace winrt::Windows::ApplicationModel
     struct AppInstance;
     struct DesignMode;
     struct EnteredBackgroundEventArgs;
+    struct FindRelatedPackagesOptions;
     struct LeavingBackgroundEventArgs;
     struct LimitedAccessFeatureRequestResult;
     struct LimitedAccessFeatures;
@@ -190,6 +201,8 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::ApplicationModel::IDesignModeStatics>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IDesignModeStatics2>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IEnteredBackgroundEventArgs>{ using type = interface_category; };
+    template <> struct category<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptions>{ using type = interface_category; };
+    template <> struct category<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptionsFactory>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::ILeavingBackgroundEventArgs>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::ILimitedAccessFeatureRequestResult>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::ILimitedAccessFeaturesStatics>{ using type = interface_category; };
@@ -201,6 +214,7 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::ApplicationModel::IPackage6>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackage7>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackage8>{ using type = interface_category; };
+    template <> struct category<winrt::Windows::ApplicationModel::IPackage9>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalog>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalog2>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalog3>{ using type = interface_category; };
@@ -210,6 +224,7 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalogRemoveOptionalPackagesResult>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalogRemoveResourcePackagesResult>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalogStatics>{ using type = interface_category; };
+    template <> struct category<winrt::Windows::ApplicationModel::IPackageCatalogStatics2>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageContentGroup>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageContentGroupStagingEventArgs>{ using type = interface_category; };
     template <> struct category<winrt::Windows::ApplicationModel::IPackageContentGroupStatics>{ using type = interface_category; };
@@ -236,6 +251,7 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::ApplicationModel::AppInstance>{ using type = class_category; };
     template <> struct category<winrt::Windows::ApplicationModel::DesignMode>{ using type = class_category; };
     template <> struct category<winrt::Windows::ApplicationModel::EnteredBackgroundEventArgs>{ using type = class_category; };
+    template <> struct category<winrt::Windows::ApplicationModel::FindRelatedPackagesOptions>{ using type = class_category; };
     template <> struct category<winrt::Windows::ApplicationModel::LeavingBackgroundEventArgs>{ using type = class_category; };
     template <> struct category<winrt::Windows::ApplicationModel::LimitedAccessFeatureRequestResult>{ using type = class_category; };
     template <> struct category<winrt::Windows::ApplicationModel::LimitedAccessFeatures>{ using type = class_category; };
@@ -264,6 +280,7 @@ namespace winrt::impl
     template <> struct category<winrt::Windows::ApplicationModel::AppInstallerPolicySource>{ using type = enum_category; };
     template <> struct category<winrt::Windows::ApplicationModel::LimitedAccessFeatureStatus>{ using type = enum_category; };
     template <> struct category<winrt::Windows::ApplicationModel::PackageContentGroupState>{ using type = enum_category; };
+    template <> struct category<winrt::Windows::ApplicationModel::PackageRelationship>{ using type = enum_category; };
     template <> struct category<winrt::Windows::ApplicationModel::PackageSignatureKind>{ using type = enum_category; };
     template <> struct category<winrt::Windows::ApplicationModel::PackageUpdateAvailability>{ using type = enum_category; };
     template <> struct category<winrt::Windows::ApplicationModel::StartupTaskState>{ using type = enum_category; };
@@ -275,6 +292,7 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::AppInstance> = L"Windows.ApplicationModel.AppInstance";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::DesignMode> = L"Windows.ApplicationModel.DesignMode";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::EnteredBackgroundEventArgs> = L"Windows.ApplicationModel.EnteredBackgroundEventArgs";
+    template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::FindRelatedPackagesOptions> = L"Windows.ApplicationModel.FindRelatedPackagesOptions";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::LeavingBackgroundEventArgs> = L"Windows.ApplicationModel.LeavingBackgroundEventArgs";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::LimitedAccessFeatureRequestResult> = L"Windows.ApplicationModel.LimitedAccessFeatureRequestResult";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::LimitedAccessFeatures> = L"Windows.ApplicationModel.LimitedAccessFeatures";
@@ -303,6 +321,7 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::AppInstallerPolicySource> = L"Windows.ApplicationModel.AppInstallerPolicySource";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::LimitedAccessFeatureStatus> = L"Windows.ApplicationModel.LimitedAccessFeatureStatus";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::PackageContentGroupState> = L"Windows.ApplicationModel.PackageContentGroupState";
+    template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::PackageRelationship> = L"Windows.ApplicationModel.PackageRelationship";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::PackageSignatureKind> = L"Windows.ApplicationModel.PackageSignatureKind";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::PackageUpdateAvailability> = L"Windows.ApplicationModel.PackageUpdateAvailability";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::StartupTaskState> = L"Windows.ApplicationModel.StartupTaskState";
@@ -321,6 +340,8 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IDesignModeStatics> = L"Windows.ApplicationModel.IDesignModeStatics";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IDesignModeStatics2> = L"Windows.ApplicationModel.IDesignModeStatics2";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IEnteredBackgroundEventArgs> = L"Windows.ApplicationModel.IEnteredBackgroundEventArgs";
+    template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptions> = L"Windows.ApplicationModel.IFindRelatedPackagesOptions";
+    template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptionsFactory> = L"Windows.ApplicationModel.IFindRelatedPackagesOptionsFactory";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::ILeavingBackgroundEventArgs> = L"Windows.ApplicationModel.ILeavingBackgroundEventArgs";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::ILimitedAccessFeatureRequestResult> = L"Windows.ApplicationModel.ILimitedAccessFeatureRequestResult";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::ILimitedAccessFeaturesStatics> = L"Windows.ApplicationModel.ILimitedAccessFeaturesStatics";
@@ -332,6 +353,7 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackage6> = L"Windows.ApplicationModel.IPackage6";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackage7> = L"Windows.ApplicationModel.IPackage7";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackage8> = L"Windows.ApplicationModel.IPackage8";
+    template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackage9> = L"Windows.ApplicationModel.IPackage9";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalog> = L"Windows.ApplicationModel.IPackageCatalog";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalog2> = L"Windows.ApplicationModel.IPackageCatalog2";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalog3> = L"Windows.ApplicationModel.IPackageCatalog3";
@@ -341,6 +363,7 @@ namespace winrt::impl
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalogRemoveOptionalPackagesResult> = L"Windows.ApplicationModel.IPackageCatalogRemoveOptionalPackagesResult";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalogRemoveResourcePackagesResult> = L"Windows.ApplicationModel.IPackageCatalogRemoveResourcePackagesResult";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalogStatics> = L"Windows.ApplicationModel.IPackageCatalogStatics";
+    template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageCatalogStatics2> = L"Windows.ApplicationModel.IPackageCatalogStatics2";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageContentGroup> = L"Windows.ApplicationModel.IPackageContentGroup";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageContentGroupStagingEventArgs> = L"Windows.ApplicationModel.IPackageContentGroupStagingEventArgs";
     template <> inline constexpr auto& name_v<winrt::Windows::ApplicationModel::IPackageContentGroupStatics> = L"Windows.ApplicationModel.IPackageContentGroupStatics";
@@ -374,6 +397,8 @@ namespace winrt::impl
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IDesignModeStatics>{ 0x2C3893CC,0xF81A,0x4E7A,{ 0xB8,0x57,0x76,0xA8,0x08,0x87,0xE1,0x85 } }; // 2C3893CC-F81A-4E7A-B857-76A80887E185
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IDesignModeStatics2>{ 0x80CF8137,0xB064,0x4858,{ 0xBE,0xC8,0x3E,0xBA,0x22,0x35,0x75,0x35 } }; // 80CF8137-B064-4858-BEC8-3EBA22357535
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IEnteredBackgroundEventArgs>{ 0xF722DCC2,0x9827,0x403D,{ 0xAA,0xED,0xEC,0xCA,0x9A,0xC1,0x73,0x98 } }; // F722DCC2-9827-403D-AAED-ECCA9AC17398
+    template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptions>{ 0x41DD7EEA,0xB335,0x521F,{ 0xB9,0x6C,0x5E,0xA0,0x7F,0x5B,0x73,0x29 } }; // 41DD7EEA-B335-521F-B96C-5EA07F5B7329
+    template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptionsFactory>{ 0xD7D17254,0xA4FD,0x55C4,{ 0x98,0xCF,0xF2,0x71,0x0B,0x7D,0x8B,0xE2 } }; // D7D17254-A4FD-55C4-98CF-F2710B7D8BE2
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::ILeavingBackgroundEventArgs>{ 0x39C6EC9A,0xAE6E,0x46F9,{ 0xA0,0x7A,0xCF,0xC2,0x3F,0x88,0x73,0x3E } }; // 39C6EC9A-AE6E-46F9-A07A-CFC23F88733E
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::ILimitedAccessFeatureRequestResult>{ 0xD45156A6,0x1E24,0x5DDD,{ 0xAB,0xB4,0x61,0x88,0xAB,0xA4,0xD5,0xBF } }; // D45156A6-1E24-5DDD-ABB4-6188ABA4D5BF
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::ILimitedAccessFeaturesStatics>{ 0x8BE612D4,0x302B,0x5FBF,{ 0xA6,0x32,0x1A,0x99,0xE4,0x3E,0x89,0x25 } }; // 8BE612D4-302B-5FBF-A632-1A99E43E8925
@@ -385,6 +410,7 @@ namespace winrt::impl
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackage6>{ 0x8B1AD942,0x12D7,0x4754,{ 0xAE,0x4E,0x63,0x8C,0xBC,0x0E,0x3A,0x2E } }; // 8B1AD942-12D7-4754-AE4E-638CBC0E3A2E
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackage7>{ 0x86FF8D31,0xA2E4,0x45E0,{ 0x97,0x32,0x28,0x3A,0x6D,0x88,0xFD,0xE1 } }; // 86FF8D31-A2E4-45E0-9732-283A6D88FDE1
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackage8>{ 0x2C584F7B,0xCE2A,0x4BE6,{ 0xA0,0x93,0x77,0xCF,0xBB,0x2A,0x7E,0xA1 } }; // 2C584F7B-CE2A-4BE6-A093-77CFBB2A7EA1
+    template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackage9>{ 0xD5AB224F,0xD7E1,0x49EC,{ 0x90,0xCE,0x72,0x0C,0xDB,0xD0,0x2E,0x9C } }; // D5AB224F-D7E1-49EC-90CE-720CDBD02E9C
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalog>{ 0x230A3751,0x9DE3,0x4445,{ 0xBE,0x74,0x91,0xFB,0x32,0x5A,0xBE,0xFE } }; // 230A3751-9DE3-4445-BE74-91FB325ABEFE
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalog2>{ 0x96A60C36,0x8FF7,0x4344,{ 0xB6,0xBF,0xEE,0x64,0xC2,0x20,0x7E,0xD2 } }; // 96A60C36-8FF7-4344-B6BF-EE64C2207ED2
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalog3>{ 0x96DD5C88,0x8837,0x43F9,{ 0x90,0x15,0x03,0x34,0x34,0xBA,0x14,0xF3 } }; // 96DD5C88-8837-43F9-9015-033434BA14F3
@@ -394,6 +420,7 @@ namespace winrt::impl
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalogRemoveOptionalPackagesResult>{ 0x29D2F97B,0xD974,0x4E64,{ 0x93,0x59,0x22,0xCA,0xDF,0xD7,0x98,0x28 } }; // 29D2F97B-D974-4E64-9359-22CADFD79828
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalogRemoveResourcePackagesResult>{ 0xAE719709,0x1A52,0x4321,{ 0x87,0xB3,0xE5,0xA1,0xA1,0x79,0x81,0xA7 } }; // AE719709-1A52-4321-87B3-E5A1A17981A7
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalogStatics>{ 0xA18C9696,0xE65B,0x4634,{ 0xBA,0x21,0x5E,0x63,0xEB,0x72,0x44,0xA7 } }; // A18C9696-E65B-4634-BA21-5E63EB7244A7
+    template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageCatalogStatics2>{ 0x4C11C159,0x9A28,0x598C,{ 0xB1,0x85,0x55,0xE1,0x89,0x9B,0x2B,0xE4 } }; // 4C11C159-9A28-598C-B185-55E1899B2BE4
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageContentGroup>{ 0x8F62695D,0x120A,0x4798,{ 0xB5,0xE1,0x58,0x00,0xDD,0xA8,0xF2,0xE1 } }; // 8F62695D-120A-4798-B5E1-5800DDA8F2E1
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageContentGroupStagingEventArgs>{ 0x3D7BC27E,0x6F27,0x446C,{ 0x98,0x6E,0xD4,0x73,0x3D,0x4D,0x91,0x13 } }; // 3D7BC27E-6F27-446C-986E-D4733D4D9113
     template <> inline constexpr guid guid_v<winrt::Windows::ApplicationModel::IPackageContentGroupStatics>{ 0x70EE7619,0x5F12,0x4B92,{ 0xB9,0xEA,0x6C,0xCA,0xDA,0x13,0xBC,0x75 } }; // 70EE7619-5F12-4B92-B9EA-6CCADA13BC75
@@ -419,6 +446,7 @@ namespace winrt::impl
     template <> struct default_interface<winrt::Windows::ApplicationModel::AppInstallerInfo>{ using type = winrt::Windows::ApplicationModel::IAppInstallerInfo; };
     template <> struct default_interface<winrt::Windows::ApplicationModel::AppInstance>{ using type = winrt::Windows::ApplicationModel::IAppInstance; };
     template <> struct default_interface<winrt::Windows::ApplicationModel::EnteredBackgroundEventArgs>{ using type = winrt::Windows::ApplicationModel::IEnteredBackgroundEventArgs; };
+    template <> struct default_interface<winrt::Windows::ApplicationModel::FindRelatedPackagesOptions>{ using type = winrt::Windows::ApplicationModel::IFindRelatedPackagesOptions; };
     template <> struct default_interface<winrt::Windows::ApplicationModel::LeavingBackgroundEventArgs>{ using type = winrt::Windows::ApplicationModel::ILeavingBackgroundEventArgs; };
     template <> struct default_interface<winrt::Windows::ApplicationModel::LimitedAccessFeatureRequestResult>{ using type = winrt::Windows::ApplicationModel::ILimitedAccessFeatureRequestResult; };
     template <> struct default_interface<winrt::Windows::ApplicationModel::Package>{ using type = winrt::Windows::ApplicationModel::IPackage; };
@@ -559,6 +587,29 @@ namespace winrt::impl
             virtual int32_t __stdcall GetDeferral(void**) noexcept = 0;
         };
     };
+    template <> struct abi<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptions>
+    {
+        struct __declspec(novtable) type : inspectable_abi
+        {
+            virtual int32_t __stdcall get_Relationship(int32_t*) noexcept = 0;
+            virtual int32_t __stdcall put_Relationship(int32_t) noexcept = 0;
+            virtual int32_t __stdcall get_IncludeFrameworks(bool*) noexcept = 0;
+            virtual int32_t __stdcall put_IncludeFrameworks(bool) noexcept = 0;
+            virtual int32_t __stdcall get_IncludeHostRuntimes(bool*) noexcept = 0;
+            virtual int32_t __stdcall put_IncludeHostRuntimes(bool) noexcept = 0;
+            virtual int32_t __stdcall get_IncludeOptionals(bool*) noexcept = 0;
+            virtual int32_t __stdcall put_IncludeOptionals(bool) noexcept = 0;
+            virtual int32_t __stdcall get_IncludeResources(bool*) noexcept = 0;
+            virtual int32_t __stdcall put_IncludeResources(bool) noexcept = 0;
+        };
+    };
+    template <> struct abi<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptionsFactory>
+    {
+        struct __declspec(novtable) type : inspectable_abi
+        {
+            virtual int32_t __stdcall CreateInstance(int32_t, void**) noexcept = 0;
+        };
+    };
     template <> struct abi<winrt::Windows::ApplicationModel::ILeavingBackgroundEventArgs>
     {
         struct __declspec(novtable) type : inspectable_abi
@@ -668,6 +719,14 @@ namespace winrt::impl
             virtual int32_t __stdcall get_IsStub(bool*) noexcept = 0;
         };
     };
+    template <> struct abi<winrt::Windows::ApplicationModel::IPackage9>
+    {
+        struct __declspec(novtable) type : inspectable_abi
+        {
+            virtual int32_t __stdcall FindRelatedPackages(void*, void**) noexcept = 0;
+            virtual int32_t __stdcall get_SourceUriSchemeName(void**) noexcept = 0;
+        };
+    };
     template <> struct abi<winrt::Windows::ApplicationModel::IPackageCatalog>
     {
         struct __declspec(novtable) type : inspectable_abi
@@ -747,6 +806,13 @@ namespace winrt::impl
         {
             virtual int32_t __stdcall OpenForCurrentPackage(void**) noexcept = 0;
             virtual int32_t __stdcall OpenForCurrentUser(void**) noexcept = 0;
+        };
+    };
+    template <> struct abi<winrt::Windows::ApplicationModel::IPackageCatalogStatics2>
+    {
+        struct __declspec(novtable) type : inspectable_abi
+        {
+            virtual int32_t __stdcall OpenForPackage(void*, void**) noexcept = 0;
         };
     };
     template <> struct abi<winrt::Windows::ApplicationModel::IPackageContentGroup>
@@ -1087,6 +1153,33 @@ namespace winrt::impl
         template <typename D> using type = consume_Windows_ApplicationModel_IEnteredBackgroundEventArgs<D>;
     };
     template <typename D>
+    struct consume_Windows_ApplicationModel_IFindRelatedPackagesOptions
+    {
+        [[nodiscard]] auto Relationship() const;
+        auto Relationship(winrt::Windows::ApplicationModel::PackageRelationship const& value) const;
+        [[nodiscard]] auto IncludeFrameworks() const;
+        auto IncludeFrameworks(bool value) const;
+        [[nodiscard]] auto IncludeHostRuntimes() const;
+        auto IncludeHostRuntimes(bool value) const;
+        [[nodiscard]] auto IncludeOptionals() const;
+        auto IncludeOptionals(bool value) const;
+        [[nodiscard]] auto IncludeResources() const;
+        auto IncludeResources(bool value) const;
+    };
+    template <> struct consume<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptions>
+    {
+        template <typename D> using type = consume_Windows_ApplicationModel_IFindRelatedPackagesOptions<D>;
+    };
+    template <typename D>
+    struct consume_Windows_ApplicationModel_IFindRelatedPackagesOptionsFactory
+    {
+        auto CreateInstance(winrt::Windows::ApplicationModel::PackageRelationship const& Relationship) const;
+    };
+    template <> struct consume<winrt::Windows::ApplicationModel::IFindRelatedPackagesOptionsFactory>
+    {
+        template <typename D> using type = consume_Windows_ApplicationModel_IFindRelatedPackagesOptionsFactory<D>;
+    };
+    template <typename D>
     struct consume_Windows_ApplicationModel_ILeavingBackgroundEventArgs
     {
         auto GetDeferral() const;
@@ -1218,6 +1311,16 @@ namespace winrt::impl
         template <typename D> using type = consume_Windows_ApplicationModel_IPackage8<D>;
     };
     template <typename D>
+    struct consume_Windows_ApplicationModel_IPackage9
+    {
+        auto FindRelatedPackages(winrt::Windows::ApplicationModel::FindRelatedPackagesOptions const& options) const;
+        [[nodiscard]] auto SourceUriSchemeName() const;
+    };
+    template <> struct consume<winrt::Windows::ApplicationModel::IPackage9>
+    {
+        template <typename D> using type = consume_Windows_ApplicationModel_IPackage9<D>;
+    };
+    template <typename D>
     struct consume_Windows_ApplicationModel_IPackageCatalog
     {
         auto PackageStaging(winrt::Windows::Foundation::TypedEventHandler<winrt::Windows::ApplicationModel::PackageCatalog, winrt::Windows::ApplicationModel::PackageStagingEventArgs> const& handler) const;
@@ -1327,6 +1430,15 @@ namespace winrt::impl
     template <> struct consume<winrt::Windows::ApplicationModel::IPackageCatalogStatics>
     {
         template <typename D> using type = consume_Windows_ApplicationModel_IPackageCatalogStatics<D>;
+    };
+    template <typename D>
+    struct consume_Windows_ApplicationModel_IPackageCatalogStatics2
+    {
+        auto OpenForPackage(winrt::Windows::ApplicationModel::Package const& package) const;
+    };
+    template <> struct consume<winrt::Windows::ApplicationModel::IPackageCatalogStatics2>
+    {
+        template <typename D> using type = consume_Windows_ApplicationModel_IPackageCatalogStatics2<D>;
     };
     template <typename D>
     struct consume_Windows_ApplicationModel_IPackageContentGroup
