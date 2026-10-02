@@ -6,9 +6,9 @@ import '../desktop/island_widgets.dart';
 import 'aod_palette.dart';
 import 'sky_toggle.dart';
 
-/// Gear button + panel: theme, dynamic island settings + live preview,
-/// exit to home. (The island has its own settings page too.)
-class SettingsMenu extends StatefulWidget {
+/// Gear button + panel. Open state is owned by the screen so it can close
+/// the panel when you click anywhere outside it.
+class SettingsMenu extends StatelessWidget {
   const SettingsMenu({
     super.key,
     required this.palette,
@@ -19,6 +19,8 @@ class SettingsMenu extends StatefulWidget {
     required this.onMinimize,
     required this.onQuit,
     required this.onShortcut,
+    required this.open,
+    required this.onOpenChanged,
   });
 
   final AodPalette palette;
@@ -27,17 +29,12 @@ class SettingsMenu extends StatefulWidget {
   final IslandController island;
   final VoidCallback onExit, onMinimize, onQuit;
   final void Function(IslandShortcut) onShortcut;
-
-  @override
-  State<SettingsMenu> createState() => _SettingsMenuState();
-}
-
-class _SettingsMenuState extends State<SettingsMenu> {
-  bool _open = false;
+  final bool open;
+  final ValueChanged<bool> onOpenChanged;
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.palette;
+    final p = palette;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -47,26 +44,25 @@ class _SettingsMenuState extends State<SettingsMenu> {
           shape: const CircleBorder(),
           child: IconButton(
             tooltip: 'Settings',
-            icon: Icon(_open ? Icons.close : Icons.settings, color: p.text),
-            onPressed: () => setState(() => _open = !_open),
+            icon: Icon(open ? Icons.close : Icons.settings, color: p.text),
+            onPressed: () => onOpenChanged(!open),
           ),
         ),
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
           alignment: Alignment.topRight,
-          child: _open
-              ? Padding(padding: const EdgeInsets.only(top: 8), child: _panel(p))
+          child: open
+              ? Padding(padding: const EdgeInsets.only(top: 8), child: _panel(context, p))
               : const SizedBox(width: 0, height: 0),
         ),
       ],
     );
   }
 
-  Widget _panel(AodPalette p) {
+  Widget _panel(BuildContext context, AodPalette p) {
     final label = TextStyle(color: p.text, fontSize: 14, fontWeight: FontWeight.w600);
     final small = TextStyle(color: p.text.withValues(alpha: 0.7), fontSize: 12);
-    final island = widget.island;
 
     return Container(
       width: 380,
@@ -87,7 +83,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
               Row(children: [
                 Text('Theme', style: label),
                 const Spacer(),
-                SkyToggle(isNight: widget.isDark, onChanged: widget.onDarkChanged, em: 12),
+                SkyToggle(isNight: isDark, onChanged: onDarkChanged, em: 12),
               ]),
               const SizedBox(height: 18),
               Text('Dynamic island', style: label),
@@ -95,6 +91,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
               Wrap(spacing: 8, runSpacing: 8, children: [
                 _chip(p, 'Idle', IslandState.idle),
                 _chip(p, 'Open', IslandState.open),
+                _chip(p, 'Chrome notch', IslandState.notch),
                 _chip(p, 'Incoming call', IslandState.call),
                 _chip(p, 'Music', IslandState.music),
                 _chip(p, 'Face ID', IslandState.success),
@@ -113,30 +110,26 @@ class _SettingsMenuState extends State<SettingsMenu> {
                     curve: Curves.easeOut,
                     color: p.text.withValues(alpha: 0.10),
                     width: double.infinity,
-                    height: island.state == IslandState.open ? 250 : 108,
+                    height: island.state == IslandState.open ? 250 : 96,
                     child: ClipRect(
                       child: OverflowBox(
                         alignment: Alignment.topCenter,
                         minWidth: 0,
-                        maxWidth: 520,
+                        maxWidth: 560,
                         minHeight: 0,
-                        maxHeight: 336,
-                        // The island is up to 500 px wide; scale it into the panel.
+                        maxHeight: 380,
                         child: Transform.scale(
-                          scale: 0.67,
+                          scale: 0.62,
                           alignment: Alignment.topCenter,
                           child: SizedBox(
-                            width: 520,
-                            height: 336,
+                            width: 560,
+                            height: 380,
                             child: Align(
                               alignment: Alignment.topCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 10),
-                                child: DynamicIsland(
-                                  controller: island,
-                                  showWhenHidden: true,
-                                  onShortcut: widget.onShortcut,
-                                ),
+                              child: DynamicIsland(
+                                controller: island,
+                                showWhenHidden: true,
+                                onShortcut: onShortcut,
                               ),
                             ),
                           ),
@@ -153,6 +146,14 @@ class _SettingsMenuState extends State<SettingsMenu> {
                 _seg(p, 'Click', !island.openOnHover, () => island.setOpenOnHover(false)),
                 const SizedBox(width: 6),
                 _seg(p, 'Hover', island.openOnHover, () => island.setOpenOnHover(true)),
+              ]),
+              const SizedBox(height: 8),
+              Row(children: [
+                Text('Quiet notch in Chrome', style: label),
+                const Spacer(),
+                _seg(p, 'On', island.quietInChrome, () => island.setQuietInChrome(true)),
+                const SizedBox(width: 6),
+                _seg(p, 'Off', !island.quietInChrome, () => island.setQuietInChrome(false)),
               ]),
               const SizedBox(height: 10),
               Row(children: [
@@ -177,19 +178,19 @@ class _SettingsMenuState extends State<SettingsMenu> {
               Text('Character color', style: label),
               const SizedBox(height: 8),
               Wrap(spacing: 10, children: [
-                for (final c in kPipColors) _swatch(p, c, island),
+                for (final c in kPipColors) _swatch(p, c),
               ]),
               const SizedBox(height: 4),
-              Text('Shortcuts are edited in the island (gear tab).', style: small),
+              Text('Shortcuts and the stock ticker are edited in the island (gear tab).',
+                  style: small),
               const SizedBox(height: 14),
               Divider(color: p.text.withValues(alpha: 0.2)),
               const SizedBox(height: 8),
-              _action(p, Icons.home_outlined, 'Exit to home page', widget.onExit, filled: true),
+              _action(p, Icons.home_outlined, 'Exit to home page', onExit, filled: true),
               const SizedBox(height: 8),
-              _action(p, Icons.picture_in_picture_alt_outlined, 'Minimize to island',
-                  widget.onMinimize),
+              _action(p, Icons.picture_in_picture_alt_outlined, 'Minimize to island', onMinimize),
               const SizedBox(height: 8),
-              _action(p, Icons.power_settings_new, 'Quit', widget.onQuit),
+              _action(p, Icons.power_settings_new, 'Quit', onQuit),
             ],
           ),
         ),
@@ -208,19 +209,17 @@ class _SettingsMenuState extends State<SettingsMenu> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: p.text.withValues(alpha: 0.4)),
             ),
-            child: Text(
-              text,
-              style: TextStyle(
-                color: on ? p.background : p.text,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            child: Text(text,
+                style: TextStyle(
+                  color: on ? p.background : p.text,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                )),
           ),
         ),
       );
 
-  Widget _swatch(AodPalette p, Color c, IslandController island) {
+  Widget _swatch(AodPalette p, Color c) {
     final selected = island.pipColor.toARGB32() == c.toARGB32();
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -245,7 +244,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
   Widget _chip(AodPalette p, String text, IslandState s) => MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: () => widget.island.preview(s),
+          onTap: () => island.preview(s),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
