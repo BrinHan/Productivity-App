@@ -6,6 +6,7 @@ import 'dart:ui' show Color, Offset, Size;
 import 'package:flutter/foundation.dart';
 
 import 'agenda_service.dart';
+import 'google_service.dart';
 import 'planner_model.dart';
 
 enum IslandState { hidden, notch, idle, open, call, music, success }
@@ -111,6 +112,8 @@ class IslandController extends ChangeNotifier {
   /// Set by main(): the same planner the Home page edits.
   PlannerModel? planner;
   final AgendaService agenda = AgendaService();
+  final GoogleService google = GoogleService();
+  Timer? _gTimer;
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
 
@@ -137,6 +140,8 @@ class IslandController extends ChangeNotifier {
   }
 
   Future<void> load() async {
+    await google.load();
+    _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
     try {
       final f = _file;
       if (!await f.exists()) return;
@@ -456,6 +461,8 @@ class IslandController extends ChangeNotifier {
     _saveTimer?.cancel();
     gaze.dispose();
     agenda.dispose();
+    _gTimer?.cancel();
+    google.dispose();
     super.dispose();
   }
 }
