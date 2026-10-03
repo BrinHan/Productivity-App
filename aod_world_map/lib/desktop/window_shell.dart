@@ -69,6 +69,7 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     await _initTray();
     island.sendMusic = (cmd) => _music?.send(cmd);
     island.openUrl = (u) => _try(() => _openWeb(u));
+    island.openUrl = (u) => _try(() => _openWeb(u));
   }
 
   void _initKeys() {
