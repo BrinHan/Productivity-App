@@ -110,6 +110,7 @@ class IslandController extends ChangeNotifier {
 
   void Function(String)? sendMusic;
   void Function(String)? openUrl;
+  void Function(String)? openUrl;
 
   Size get idleSize => Size(idleWidth, (idleWidth * 0.22).roundToDouble());
   bool get visible => state != IslandState.hidden;
