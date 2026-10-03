@@ -5,18 +5,17 @@ import 'dart:ui' show Color, Offset, Size;
 
 import 'package:flutter/foundation.dart';
 
-enum IslandState { hidden, idle, open, call, music, success }
+enum IslandState { hidden, notch, idle, open, call, music, success }
 
-enum IslandPage { home, music, settings }
+enum IslandPage { home, music, stocks, settings }
 
 enum ShortcutKind { web, app, screensaver, planner }
 
-/// What Windows reports as the current media session.
 class NowPlaying {
   const NowPlaying(this.title, this.artist, this.playing, [this.art]);
   final String title, artist;
   final bool playing;
-  final String? art; // path to the extracted album art file
+  final String? art;
   String get key => '$title|$artist';
 }
 
@@ -81,37 +80,43 @@ List<IslandShortcut> defaultShortcuts() => [
       ),
     ];
 
-/// State + settings for the dynamic island. Shared by the real island window
-/// and the inline preview in the settings panel.
 class IslandController extends ChangeNotifier {
   IslandState state = IslandState.hidden;
   IslandPage page = IslandPage.home;
   NowPlaying? nowPlaying;
   bool _demoMusic = false;
-  bool near = false; // cursor near the island
-  bool _over = false; // cursor over the pill itself
+  bool near = false;
+  bool _over = false;
+
+  /// Runtime: Chrome is the foreground app.
+  bool chromeMode = false;
   Timer? _timer, _overTimer, _saveTimer;
 
-  // ---- user settings (saved to disk) ----
+  // ---- user settings (saved) ----
   double idleWidth = 260;
-  Color pipColor = const Color(0xFFF4EFE6); // soft white
-  bool openOnHover = false; // default: click the pill to open
+  Color pipColor = const Color(0xFFF4EFE6);
+  bool openOnHover = false;
+  bool quietInChrome = true;
+  String stockSymbol = 'AAPL';
+  String stockRange = '1d'; // 1d | 5d | 1mo
+  bool stockCandles = true; // false = bars
   List<IslandShortcut> shortcuts = defaultShortcuts();
 
-  /// Where the character looks: -1..1 on each axis.
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
 
-  /// Live pill geometry, published by the real island window.
+  /// Live geometry, published by the real island window.
   Size pillSize = const Size(260, 57);
   double pillDy = 0;
 
-  /// Set by the shell: sends 'toggle' | 'next' | 'prev' to the media player.
   void Function(String)? sendMusic;
+  void Function(String)? openUrl;
 
   Size get idleSize => Size(idleWidth, (idleWidth * 0.22).roundToDouble());
   bool get visible => state != IslandState.hidden;
+  bool get quiet => chromeMode && quietInChrome;
   bool get musicPlaying => (nowPlaying?.playing ?? false) || _demoMusic;
-  IslandState get _resting => musicPlaying ? IslandState.music : IslandState.idle;
+  IslandState get _resting =>
+      quiet ? IslandState.notch : (musicPlaying ? IslandState.music : IslandState.idle);
 
   // ---------------------------------------------------------- persistence
 
@@ -130,6 +135,10 @@ class IslandController extends ChangeNotifier {
       idleWidth = ((j['idleWidth'] as num?) ?? 260).toDouble().clamp(180.0, 360.0).toDouble();
       pipColor = Color((j['pipColor'] as int?) ?? pipColor.toARGB32());
       openOnHover = (j['openOnHover'] as bool?) ?? false;
+      quietInChrome = (j['quietInChrome'] as bool?) ?? true;
+      stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
+      stockRange = (j['stockRange'] as String?) ?? '1d';
+      stockCandles = (j['stockCandles'] as bool?) ?? true;
       final s = j['shortcuts'];
       if (s is List) {
         final list = [
@@ -151,6 +160,10 @@ class IslandController extends ChangeNotifier {
           'idleWidth': idleWidth,
           'pipColor': pipColor.toARGB32(),
           'openOnHover': openOnHover,
+          'quietInChrome': quietInChrome,
+          'stockSymbol': stockSymbol,
+          'stockRange': stockRange,
+          'stockCandles': stockCandles,
           'shortcuts': [for (final s in shortcuts) s.toJson()],
         }));
       } catch (_) {}
@@ -173,6 +186,30 @@ class IslandController extends ChangeNotifier {
 
   void setOpenOnHover(bool v) {
     openOnHover = v;
+    notifyListeners();
+    _persist();
+  }
+
+  void setQuietInChrome(bool v) {
+    quietInChrome = v;
+    _applyQuiet();
+    _persist();
+  }
+
+  void setStockSymbol(String s) {
+    stockSymbol = s.trim().toUpperCase();
+    notifyListeners();
+    _persist();
+  }
+
+  void setStockRange(String r) {
+    stockRange = r;
+    notifyListeners();
+    _persist();
+  }
+
+  void setStockCandles(bool v) {
+    stockCandles = v;
     notifyListeners();
     _persist();
   }
@@ -200,7 +237,22 @@ class IslandController extends ChangeNotifier {
 
   // ----------------------------------------------------------- state flow
 
-  /// Called with live data from Windows. A new track pops the island out.
+  void setChromeMode(bool v) {
+    if (chromeMode == v) return;
+    chromeMode = v;
+    _applyQuiet();
+  }
+
+  /// In Chrome (quiet mode) the island is only a tiny notch until clicked.
+  void _applyQuiet() {
+    if (quiet) {
+      if (state == IslandState.idle || state == IslandState.music) _set(IslandState.notch);
+    } else if (state == IslandState.notch) {
+      _set(near ? _resting : IslandState.hidden);
+    }
+    notifyListeners();
+  }
+
   void setNowPlaying(NowPlaying? n) {
     final oldKey = nowPlaying?.key;
     final wasPlaying = nowPlaying?.playing ?? false;
@@ -209,7 +261,7 @@ class IslandController extends ChangeNotifier {
     final busy = state == IslandState.call ||
         state == IslandState.success ||
         state == IslandState.open;
-    if (isPlaying && (!wasPlaying || n!.key != oldKey) && !busy) {
+    if (isPlaying && (!wasPlaying || n!.key != oldKey) && !busy && !quiet) {
       preview(IslandState.music);
     } else if (!isPlaying && wasPlaying && !_demoMusic && state == IslandState.music) {
       _timer?.cancel();
@@ -219,26 +271,26 @@ class IslandController extends ChangeNotifier {
     }
   }
 
-  /// Cursor is near the island. Peeks out when near, retreats when away.
   void setNear(bool v) {
     if (v == near) return;
     near = v;
     if (v) {
       _timer?.cancel();
       if (state == IslandState.hidden) _set(_resting);
-    } else if (state == IslandState.idle || state == IslandState.music) {
+    } else if (state == IslandState.idle ||
+        state == IslandState.music ||
+        state == IslandState.notch) {
       _later(const Duration(milliseconds: 700), () => _set(IslandState.hidden));
     } else if (state == IslandState.open && openOnHover) {
       _later(const Duration(milliseconds: 500), close);
     }
   }
 
-  /// Cursor is directly over the pill (used by "open on hover").
   void setOverPill(bool v) {
     if (v == _over) return;
     _over = v;
     _overTimer?.cancel();
-    if (v && openOnHover && (state == IslandState.idle || state == IslandState.music)) {
+    if (v && openOnHover && !quiet && (state == IslandState.idle || state == IslandState.music)) {
       _overTimer = Timer(const Duration(milliseconds: 350), () {
         if (_over && (state == IslandState.idle || state == IslandState.music)) {
           open(state == IslandState.music ? IslandPage.music : IslandPage.home);
@@ -269,12 +321,14 @@ class IslandController extends ChangeNotifier {
     _set(near ? _resting : IslandState.hidden);
   }
 
-  /// Jump to a state (preview chips, tray menu, new track).
   void preview(IslandState s) {
     _timer?.cancel();
     switch (s) {
       case IslandState.hidden:
         _set(IslandState.hidden);
+      case IslandState.notch:
+        _set(IslandState.notch);
+        _hideSoon(3);
       case IslandState.idle:
         _set(IslandState.idle);
         _hideSoon(3);
