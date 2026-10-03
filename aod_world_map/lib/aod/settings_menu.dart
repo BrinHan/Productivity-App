@@ -155,6 +155,14 @@ class SettingsMenu extends StatelessWidget {
                 const SizedBox(width: 6),
                 _seg(p, 'Off', !island.quietInChrome, () => island.setQuietInChrome(false)),
               ]),
+              const SizedBox(height: 8),
+              Row(children: [
+                Text('Music helper (uses RAM)', style: label),
+                const Spacer(),
+                _seg(p, 'On', island.musicHelper, () => island.setMusicHelper(true)),
+                const SizedBox(width: 6),
+                _seg(p, 'Off', !island.musicHelper, () => island.setMusicHelper(false)),
+              ]),
               const SizedBox(height: 10),
               Row(children: [
                 Text('Idle size', style: label),
