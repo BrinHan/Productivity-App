@@ -9,17 +9,23 @@ import 'aod/map_model.dart';
 import 'aod/settings_menu.dart';
 import 'desktop/dynamic_island.dart';
 import 'desktop/home_page.dart';
+import 'desktop/island_overlay.dart';
 import 'desktop/planner_model.dart';
 import 'desktop/window_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Keep decoded images small (album art is the only real image).
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 20
+    ..maximumSizeBytes = 8 << 20;
   final shell = ShellController();
   final planner = PlannerModel();
   final map = MapModel();
   await Future.wait([shell.init(), planner.load()]);
   map.start();
   runApp(AodApp(shell: shell, planner: planner, map: map));
+  WidgetsBinding.instance.addPostFrameCallback((_) => shell.settleWindow());
 }
 
 class AodApp extends StatefulWidget {
@@ -52,18 +58,26 @@ class _AodAppState extends State<AodApp> {
             // island mode holds none of the map or planner UI in memory.
             switch (widget.shell.mode) {
               case AppMode.map:
-                return AodScreen(
-                  shell: widget.shell,
-                  map: widget.map,
-                  isDark: _dark,
-                  onDarkChanged: _setDark,
+                return IslandOverlay(
+                  island: widget.shell.island,
+                  onShortcut: widget.shell.runShortcut,
+                  child: AodScreen(
+                    shell: widget.shell,
+                    map: widget.map,
+                    isDark: _dark,
+                    onDarkChanged: _setDark,
+                  ),
                 );
               case AppMode.home:
-                return HomePage(
-                  shell: widget.shell,
-                  planner: widget.planner,
-                  isDark: _dark,
-                  onDarkChanged: _setDark,
+                return IslandOverlay(
+                  island: widget.shell.island,
+                  onShortcut: widget.shell.runShortcut,
+                  child: HomePage(
+                    shell: widget.shell,
+                    planner: widget.planner,
+                    isDark: _dark,
+                    onDarkChanged: _setDark,
+                  ),
                 );
               case AppMode.island:
                 return IslandScreen(
