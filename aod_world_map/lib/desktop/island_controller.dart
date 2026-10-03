@@ -97,6 +97,7 @@ class IslandController extends ChangeNotifier {
   Color pipColor = const Color(0xFFF4EFE6);
   bool openOnHover = false;
   bool quietInChrome = true;
+  bool musicHelper = true; // the PowerShell media-session reader
   String stockSymbol = 'AAPL';
   String stockRange = '1d'; // 1d | 5d | 1mo
   bool stockCandles = true; // false = bars
@@ -136,6 +137,7 @@ class IslandController extends ChangeNotifier {
       pipColor = Color((j['pipColor'] as int?) ?? pipColor.toARGB32());
       openOnHover = (j['openOnHover'] as bool?) ?? false;
       quietInChrome = (j['quietInChrome'] as bool?) ?? true;
+      musicHelper = (j['musicHelper'] as bool?) ?? true;
       stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
       stockRange = (j['stockRange'] as String?) ?? '1d';
       stockCandles = (j['stockCandles'] as bool?) ?? true;
@@ -161,6 +163,7 @@ class IslandController extends ChangeNotifier {
           'pipColor': pipColor.toARGB32(),
           'openOnHover': openOnHover,
           'quietInChrome': quietInChrome,
+          'musicHelper': musicHelper,
           'stockSymbol': stockSymbol,
           'stockRange': stockRange,
           'stockCandles': stockCandles,
@@ -193,6 +196,12 @@ class IslandController extends ChangeNotifier {
   void setQuietInChrome(bool v) {
     quietInChrome = v;
     _applyQuiet();
+    _persist();
+  }
+
+  void setMusicHelper(bool v) {
+    musicHelper = v;
+    notifyListeners();
     _persist();
   }
 
@@ -364,6 +373,7 @@ class IslandController extends ChangeNotifier {
     near = false;
     _over = false;
     _demoMusic = false;
+    chromeMode = false;
     state = IslandState.hidden;
     notifyListeners();
   }
