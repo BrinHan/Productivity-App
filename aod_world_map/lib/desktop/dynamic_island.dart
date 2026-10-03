@@ -7,33 +7,10 @@ import 'package:flutter/services.dart';
 import 'island_controller.dart';
 import 'island_pages.dart';
 import 'island_widgets.dart';
+import 'notch_shape.dart';
+import 'height_fade.dart';
 import 'pip.dart';
-
-/// Damped spring. Defaults: mass 1, stiffness ("tension") 120, damping
-/// ("friction") 14 -> damping ratio ~0.64, i.e. a visible bouncy overshoot.
-class _Spring {
-  _Spring(double v)
-      : value = v,
-        target = v;
-  double value, target, velocity = 0;
-  final double stiffness = 120, damping = 14, mass = 1;
-
-  bool get settled => (value - target).abs() < 0.05 && velocity.abs() < 0.05;
-
-  void step(double dt) {
-    final n = (dt / 0.004).ceil().clamp(1, 12).toInt();
-    final h = dt / n;
-    for (var i = 0; i < n; i++) {
-      final a = (-stiffness * (value - target) - damping * velocity) / mass;
-      velocity += a * h;
-      value += velocity * h;
-    }
-    if (settled) {
-      value = target;
-      velocity = 0;
-    }
-  }
-}
+import 'spring.dart';
 
 /// Transparent screen used while the app is in island mode.
 class IslandScreen extends StatelessWidget {
@@ -54,15 +31,8 @@ class IslandScreen extends StatelessWidget {
             return KeyEventResult.ignored;
           },
           child: Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: DynamicIsland(
-                controller: island,
-                onShortcut: onShortcut,
-                publishGeometry: true,
-              ),
-            ),
+            alignment: Alignment.topCenter, // flush with the top of the screen
+            child: DynamicIsland(controller: island, onShortcut: onShortcut, publishGeometry: true),
           ),
         ),
       );
@@ -77,12 +47,8 @@ class DynamicIsland extends StatefulWidget {
     this.publishGeometry = false,
   });
   final IslandController controller;
-
-  /// Inline previews show the idle pill instead of hiding off-screen.
   final bool showWhenHidden;
   final void Function(IslandShortcut)? onShortcut;
-
-  /// Only the real island window reports its live size to the controller.
   final bool publishGeometry;
 
   @override
@@ -93,9 +59,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   late final Ticker _ticker = createTicker(_onTick);
   Duration _last = Duration.zero;
   late IslandState _shown = _effective;
-  late final _Spring _w = _Spring(_sizeFor(_shown).width);
-  late final _Spring _h = _Spring(_sizeFor(_shown).height);
-  late final _Spring _dy = _Spring(_dyFor(_shown));
+  late final Spring _w = Spring(_sizeFor(_shown).width);
+  late final Spring _h = Spring(_sizeFor(_shown).height);
+  late final Spring _dy = Spring(_dyFor(_shown));
 
   IslandState get _effective {
     final s = widget.controller.state;
@@ -107,13 +73,15 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     final idle = c.idleSize;
     switch (s) {
       case IslandState.open:
-        return c.page == IslandPage.settings ? const Size(500, 316) : const Size(500, 156);
+        return openSizeFor(c.page);
       case IslandState.call:
         return Size(math.max(400, idle.width + 60), math.max(84, idle.height + 16));
       case IslandState.music:
         return Size(math.max(330, idle.width + 40), math.max(68, idle.height + 8));
       case IslandState.success:
         return const Size(86, 86);
+      case IslandState.notch:
+        return const Size(112, 20);
       case IslandState.idle:
       case IslandState.hidden:
         return idle;
@@ -121,7 +89,15 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   }
 
   double _dyFor(IslandState s) =>
-      s == IslandState.hidden ? -(widget.controller.idleSize.height + 26) : 0.0;
+      s == IslandState.hidden ? -(widget.controller.idleSize.height + 24) : 0.0;
+
+  PipSpot get _pipSpot {
+    if (_shown == IslandState.idle) return PipSpot.idle;
+    if (_shown == IslandState.open && widget.controller.page == IslandPage.home) {
+      return PipSpot.seat;
+    }
+    return PipSpot.hidden;
+  }
 
   @override
   void initState() {
@@ -155,10 +131,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     _dy.target = _dyFor(next);
 
     if (next != prev) {
-      // Squash & stretch: widening flattens the pill for a beat, narrowing
-      // makes it pop taller, success pops in every direction.
       final ps = _sizeFor(prev);
-      if (prev != IslandState.hidden && next != IslandState.hidden) {
+      final from = prev != IslandState.hidden && prev != IslandState.notch;
+      if (from && next != IslandState.hidden) {
         if (ns.width > ps.width) {
           _h.velocity -= 120;
           _w.velocity += 60;
@@ -196,7 +171,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
 
   void _onPillTap() {
     final c = widget.controller;
-    if (_shown == IslandState.idle) {
+    if (_shown == IslandState.idle || _shown == IslandState.notch) {
       c.open(IslandPage.home);
     } else if (_shown == IslandState.music) {
       c.open(IslandPage.music);
@@ -207,9 +182,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     final c = widget.controller;
     switch (s) {
       case IslandState.hidden:
+      case IslandState.notch:
+      case IslandState.idle: // Pip is drawn by the PipActor overlay
         return const SizedBox.shrink();
-      case IslandState.idle:
-        return PipView(gaze: c.gaze, color: c.pipColor, interactive: false, wave: true);
       case IslandState.open:
         return IslandOpenContent(c: c, onShortcut: widget.onShortcut);
       case IslandState.call:
@@ -229,55 +204,88 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     }
   }
 
+  Rect _idleBox(double w, double h, double f) {
+    final side = widget.controller.idleSize.height * 1.1;
+    return Rect.fromCenter(center: Offset(f + w / 2, h / 2), width: side, height: side);
+  }
+
+  Rect _seatBox(double w, double h, double f) {
+    const cs = kOpenHome;
+    final origin = Offset(f + (w - cs.width) / 2, (h - cs.height) / 2);
+    return Rect.fromCenter(
+      center: homeSeatCenter(cs) + origin,
+      width: kSeatW,
+      height: kSeatW,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final w = math.max(_w.value, 24.0), h = math.max(_h.value, 20.0);
-    final r = math.min(math.min(w, h) * 0.6, 32.0);
+    final w = math.max(_w.value, 24.0), h = math.max(_h.value, 18.0);
+    final f = notchEar(h);
+    final r = math.min(h * 0.5, 34.0);
     final size = _sizeFor(_shown);
 
     return Transform.translate(
       offset: Offset(0, _dy.value),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _onPillTap,
-        child: Container(
-          width: w,
-          height: h,
-          clipBehavior: Clip.antiAlias, // content can never leave the pill
-          decoration: ShapeDecoration(
-            color: Colors.black,
-            shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(r)),
-          ),
-          child: OverflowBox(
-            minWidth: 0,
-            minHeight: 0,
-            maxWidth: double.infinity,
-            maxHeight: double.infinity,
-            child: DefaultTextStyle(
-              style: const TextStyle(
-                color: Colors.white,
-                fontFamily: 'Inter',
-                fontFamilyFallback: islandFontFallback,
-                fontSize: 14,
-                decoration: TextDecoration.none,
-              ),
-              child: AnimatedSwitcher(
-                // Old content leaves fast; new content waits for the morph.
-                duration: const Duration(milliseconds: 380),
-                reverseDuration: const Duration(milliseconds: 140),
-                transitionBuilder: (child, anim) => FadeTransition(
-                  opacity: anim.drive(CurveTween(curve: const Interval(0.45, 1.0))),
-                  child: child,
-                ),
-                child: KeyedSubtree(
-                  key: ValueKey(_shown),
-                  child: SizedBox(
-                    width: size.width,
-                    height: size.height,
-                    child: _content(_shown),
+      child: SizedBox(
+        width: w + 2 * f,
+        height: h,
+        child: ClipPath(
+          clipper: NotchClipper(w, h, f, r),
+          clipBehavior: Clip.antiAlias,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _onPillTap,
+            child: ColoredBox(
+              color: Colors.black,
+              child: Stack(children: [
+                Positioned(
+                  left: f,
+                  top: 0,
+                  width: w,
+                  height: h,
+                  child: OverflowBox(
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxWidth: double.infinity,
+                    maxHeight: double.infinity,
+                    child: DefaultTextStyle(
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Inter',
+                        fontFamilyFallback: islandFontFallback,
+                        fontSize: 14,
+                        decoration: TextDecoration.none,
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 380),
+                        reverseDuration: const Duration(milliseconds: 140),
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim.drive(CurveTween(curve: const Interval(0.45, 1.0))),
+                          child: child,
+                        ),
+                        child: KeyedSubtree(
+                          key: ValueKey(_shown),
+                          child: SizedBox(
+                            width: size.width,
+                            height: size.height,
+                            child: _content(_shown),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                Positioned.fill(
+                  child: PipActor(
+                    c: widget.controller,
+                    spot: _pipSpot,
+                    idleBox: _idleBox(w, h, f),
+                    seatBox: _seatBox(w, h, f),
+                  ),
+                ),
+              ]),
             ),
           ),
         ),
@@ -340,8 +348,7 @@ class _CallContent extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   SizedBox(height: 2),
-                  Text('Incoming call…',
-                      style: TextStyle(fontSize: 13, color: Color(0x99FFFFFF))),
+                  Text('Incoming call…', style: TextStyle(fontSize: 13, color: Color(0x99FFFFFF))),
                 ],
               ),
             ),
@@ -400,7 +407,6 @@ class _MusicContent extends StatelessWidget {
       );
 }
 
-/// Face-ID style scan, then a check mark that draws itself.
 class _SuccessContent extends StatefulWidget {
   const _SuccessContent();
 
@@ -426,7 +432,6 @@ class _SuccessContentState extends State<_SuccessContent> with SingleTickerProvi
 class _FaceCheckPainter extends CustomPainter {
   _FaceCheckPainter(this.anim) : super(repaint: anim);
   final Animation<double> anim;
-
   static const _green = Color(0xFF30D158);
 
   @override
