@@ -127,6 +127,16 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     final prev = _shown;
     _shown = next;
     final ns = _sizeFor(next);
+    final reveal = prev == IslandState.hidden, hiding = next == IslandState.hidden;
+    for (final s in [_w, _h]) {
+      if (hiding) {
+        s.set(240, 31);
+      } else if (reveal) {
+        s.set(190, 25);
+      } else {
+        s.set(120, 14);
+      }
+    }
     _w.target = ns.width;
     _h.target = ns.height;
     _dy.target = _dyFor(next);
