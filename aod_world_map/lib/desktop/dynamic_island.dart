@@ -248,8 +248,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _onPillTap,
-            child: ColoredBox(
-              color: Colors.black,
+            child: HeightFade(
+              height: h,
               child: Stack(children: [
                 Positioned(
                   left: f,
