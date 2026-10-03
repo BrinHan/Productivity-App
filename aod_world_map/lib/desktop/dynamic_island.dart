@@ -232,7 +232,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final w = math.max(_w.value, 24.0), h = math.max(_h.value, 18.0);
+    final w = math.max(_w.value, 0.0), h = math.max(_h.value, 0.0);
+    // Hidden = nothing on screen (no minimum-size stub).
+    if (_shown == IslandState.hidden && h < 1.0) return const SizedBox.shrink();
     final f = notchEar(h);
     final r = math.min(h * 0.5, 34.0);
     final size = _sizeFor(_shown);
