@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'agenda_service.dart';
+import 'google_service.dart';
 import 'island_controller.dart';
 import 'island_widgets.dart';
 
@@ -46,6 +47,8 @@ class _TodayPageState extends State<TodayPage> {
   final _taskFocus = FocusNode();
   final _name = TextEditingController();
   final _url = TextEditingController();
+  final _gid = TextEditingController();
+  final _gsec = TextEditingController();
 
   @override
   void initState() {
@@ -65,10 +68,15 @@ class _TodayPageState extends State<TodayPage> {
     _taskFocus.dispose();
     _name.dispose();
     _url.dispose();
+    _gid.dispose();
+    _gsec.dispose();
     super.dispose();
   }
 
-  void _sync({bool force = false}) => widget.c.agenda.refresh(widget.c.calendarFeeds, force: force);
+  void _sync({bool force = false}) {
+    widget.c.agenda.refresh(widget.c.calendarFeeds, force: force);
+    widget.c.google.refresh(force: force);
+  }
 
   void _addTask(String v) {
     final s = v.trim();
@@ -114,7 +122,7 @@ class _TodayPageState extends State<TodayPage> {
 
   Widget _header() {
     final n = DateTime.now();
-    final loading = widget.c.agenda.loading;
+    final loading = widget.c.agenda.loading || widget.c.google.loading;
     return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       const Text('Today', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
       const SizedBox(width: 8),
@@ -128,7 +136,7 @@ class _TodayPageState extends State<TodayPage> {
           padding: EdgeInsets.only(right: 10, bottom: 6),
           child: SizedBox(width: 13, height: 13, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white54)),
         )
-      else if (widget.c.calendarFeeds.isNotEmpty)
+      else if (widget.c.calendarFeeds.isNotEmpty || widget.c.google.signedIn)
         _icon(Icons.refresh_rounded, () => _sync(force: true)),
       const SizedBox(width: 4),
       _icon(_manage ? Icons.close_rounded : Icons.calendar_month_rounded, () => setState(() => _manage = !_manage), on: _manage),
@@ -155,10 +163,15 @@ class _TodayPageState extends State<TodayPage> {
   Widget _schedule() {
     final c = widget.c;
     final a = c.agenda;
+    final g = c.google;
+    final allEv = [...a.events, ...g.events]..sort((x, y) {
+        if (x.allDay != y.allDay) return x.allDay ? -1 : 1;
+        return x.start.compareTo(y.start);
+      });
     final now = DateTime.now();
     final today = _day(now), tomorrow = DateTime(now.year, now.month, now.day + 1);
 
-    if (c.calendarFeeds.isEmpty) {
+    if (c.calendarFeeds.isEmpty && !g.signedIn) {
       return _section(
         'Schedule',
         child: Center(
@@ -167,7 +180,7 @@ class _TodayPageState extends State<TodayPage> {
             const SizedBox(height: 8),
             const Text('Connect a calendar', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             const SizedBox(height: 3),
-            const Text('Google, iCloud or Outlook,\nread-only', textAlign: TextAlign.center, style: _dim),
+            const Text('Sign in with Google\nor add an iCal link', textAlign: TextAlign.center, style: _dim),
             const SizedBox(height: 10),
             IslandPressable(
               onTap: () => setState(() => _manage = true),
@@ -188,8 +201,8 @@ class _TodayPageState extends State<TodayPage> {
       return e.start.isBefore(next) && (e.end.isAfter(d) || e.start == d);
     }
 
-    final todayEv = [for (final e in a.events) if (onDay(e, today)) e];
-    final tomEv = [for (final e in a.events) if (!onDay(e, today) && onDay(e, tomorrow)) e];
+    final todayEv = [for (final e in allEv) if (onDay(e, today)) e];
+    final tomEv = [for (final e in allEv) if (!onDay(e, today) && onDay(e, tomorrow)) e];
 
     Widget group(String? label, List<AgendaEvent> list) {
       final allDay = [for (final e in list) if (e.allDay) e];
@@ -235,7 +248,12 @@ class _TodayPageState extends State<TodayPage> {
               child: Text("Couldn't load ${e.key}: ${e.value}",
                   style: const TextStyle(fontSize: 10.5, color: Color(0xFFFF8A80))),
             ),
-          if (empty && !a.loading)
+          if (g.error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(g.error!, style: const TextStyle(fontSize: 10.5, color: Color(0xFFFF8A80))),
+            ),
+          if (empty && !a.loading && !g.loading)
             const Padding(padding: EdgeInsets.only(top: 18), child: Center(child: Text('Nothing scheduled', style: _dim))),
           if (todayEv.isNotEmpty) group(null, todayEv),
           if (tomEv.isNotEmpty) group('Tomorrow', tomEv),
@@ -263,7 +281,7 @@ class _TodayPageState extends State<TodayPage> {
         padding: EdgeInsets.zero,
         physics: const ClampingScrollPhysics(),
         children: [
-          if (tasks.isEmpty && reminders.isEmpty)
+          if (tasks.isEmpty && reminders.isEmpty && widget.c.google.todos.isEmpty)
             const Padding(padding: EdgeInsets.only(top: 18), child: Center(child: Text('Nothing to do. Enjoy it.', style: _dim))),
           for (final t in tasks)
             IslandPressable(
@@ -315,6 +333,34 @@ class _TodayPageState extends State<TodayPage> {
                   Expanded(child: Text(r.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600))),
                   if (r.due != null) Text(_clock(r.due!), style: _dim),
                 ]),
+              ),
+          ],
+          if (widget.c.google.todos.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.only(top: 10, bottom: 2),
+              child: Text('GOOGLE TASKS',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: Color(0x80FFFFFF))),
+            ),
+            for (final t in widget.c.google.todos)
+              IslandPressable(
+                onTap: () => widget.c.google.completeTask(t),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: Row(children: [
+                    const Icon(Icons.radio_button_unchecked_rounded, size: 20, color: Color(0x80FFFFFF)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(t.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    ),
+                    if (t.due != null) ...[
+                      const SizedBox(width: 6),
+                      Text('${_monthShort[t.due!.month - 1]} ${t.due!.day}', style: _dim),
+                    ],
+                  ]),
+                ),
               ),
           ],
         ],
@@ -369,6 +415,86 @@ class _TodayPageState extends State<TodayPage> {
         ),
       );
 
+  Widget _gbtn(String t, VoidCallback f, {bool primary = false}) {
+    final busy = widget.c.google.busy;
+    return Opacity(
+      opacity: busy ? 0.5 : 1,
+      child: IslandPressable(
+        onTap: busy ? () {} : f,
+        child: Container(
+          height: 30,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: primary ? Colors.white : const Color(0x1FFFFFFF),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(t,
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: primary ? Colors.black : Colors.white)),
+        ),
+      ),
+    );
+  }
+
+  Widget _googlePanel() {
+    final g = widget.c.google;
+    const tiny = TextStyle(fontSize: 10.5, height: 1.4, color: Color(0x80FFFFFF));
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Google account', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 8),
+      if (!g.configured) ...[
+        _field(_gid, 'OAuth client ID'),
+        const SizedBox(height: 6),
+        _field(_gsec, 'Client secret'),
+        const SizedBox(height: 8),
+        _gbtn('Save', () => g.setClient(_gid.text, _gsec.text), primary: true),
+        const SizedBox(height: 8),
+        const Text(
+          '1. console.cloud.google.com: create a project.\n'
+          '2. Enable Google Calendar API, Google Tasks API and Google Drive API.\n'
+          '3. OAuth consent screen: External, add your own Google account as a test user.\n'
+          '4. Credentials: Create OAuth client ID, type "Desktop app". Paste the ID and secret here.',
+          style: tiny,
+        ),
+      ] else if (!g.signedIn) ...[
+        Row(children: [
+          _gbtn('Sign in with Google', g.signIn, primary: true),
+          const SizedBox(width: 8),
+          _gbtn('Change client', g.clearClient),
+        ]),
+      ] else ...[
+        Row(children: [
+          const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF30D158)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(g.email ?? 'Signed in', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600))),
+          _gbtn('Sign out', g.signOut),
+        ]),
+        const SizedBox(height: 8),
+        const Text('Calendar events and Google Tasks show in this tab.', style: tiny),
+        const SizedBox(height: 10),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          _gbtn('Back up to Drive', g.backupNow),
+          _gbtn('Restore from Drive', g.restore),
+          _gbtn(g.autoBackup ? 'Auto backup: on' : 'Auto backup: off', () => g.setAutoBackup(!g.autoBackup)),
+        ]),
+        const SizedBox(height: 6),
+        const Text(
+          'Backs up your tasks, watchlist, calendar links and island settings to a hidden app folder in your Drive. '
+          'Restore replaces local data, then restart the app.',
+          style: tiny,
+        ),
+      ],
+      if (g.status != null)
+        Padding(padding: const EdgeInsets.only(top: 6), child: Text(g.status!, style: _dim)),
+      if (g.error != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(g.error!, style: const TextStyle(fontSize: 11, color: Color(0xFFFF8A80))),
+        ),
+    ]);
+  }
+
   Widget _manager() {
     final c = widget.c;
     return Container(
@@ -378,7 +504,9 @@ class _TodayPageState extends State<TodayPage> {
         padding: EdgeInsets.zero,
         physics: const ClampingScrollPhysics(),
         children: [
-          const Text('Calendars', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          _googlePanel(),
+          const SizedBox(height: 16),
+          const Text('iCal calendars', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           if (c.calendarFeeds.isEmpty) const Text('None connected yet', style: _dim),
           for (var i = 0; i < c.calendarFeeds.length; i++)
@@ -436,7 +564,7 @@ class _TodayPageState extends State<TodayPage> {
   Widget build(BuildContext context) {
     final p = widget.c.planner;
     return ListenableBuilder(
-      listenable: Listenable.merge([widget.c.agenda, if (p != null) p]),
+      listenable: Listenable.merge([widget.c.agenda, widget.c.google, if (p != null) p]),
       builder: (context, _) => Padding(
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
         child: Column(children: [
