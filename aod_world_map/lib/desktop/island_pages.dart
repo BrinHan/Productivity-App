@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'island_controller.dart';
 import 'island_widgets.dart';
 import 'stocks_page.dart';
-import 'stocks_page.dart';
 
 // Layout constants shared with the Pip flight (the seat is a hole in the card).
 const double kTabBarH = 38, kHomePadL = 12, kHomePadT = 8, kHomePadB = 12;

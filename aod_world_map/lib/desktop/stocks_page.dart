@@ -173,7 +173,8 @@ class _StocksPageState extends State<StocksPage> {
             key: const ValueKey(2), style: big.copyWith(color: col));
     }
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 280),
+      reverseDuration: const Duration(milliseconds: 100),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
       transitionBuilder: (child, anim) {

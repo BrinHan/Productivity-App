@@ -79,6 +79,7 @@ class IslandArt extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
+        cacheWidth: 240,
         gaplessPlayback: true,
         errorBuilder: (_, _, _) => placeholder,
       ),
