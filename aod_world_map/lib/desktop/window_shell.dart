@@ -29,7 +29,7 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
   bool _wasMaximized = false;
   bool _busy = false, _ticking = false, _captured = false;
   Timer? _poll;
-  NowPlayingService? _music; // runs only while in island mode
+  NowPlayingService? _music;
   int _n = 0;
 
   double _winLeft = 0, _winTop = 0, _zoneCx = 0, _zoneTop = 0;
@@ -60,8 +60,8 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     await windowManager.waitUntilReadyToShow(options, () async {
       await windowManager.setAsFrameless();
       await _try(() => windowManager.setMinimumSize(_kAppMin));
-      await windowManager.maximize();
       await windowManager.show();
+      await windowManager.maximize();
       await windowManager.focus();
     });
     windowManager.addListener(this);
@@ -69,6 +69,37 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     await _initTray();
     island.sendMusic = (cmd) => _music?.send(cmd);
     island.openUrl = (u) => _try(() => _openWeb(u));
+    island.addListener(_syncMusic);
+    _syncMusic();
+  }
+
+  /// The media helper runs in every mode (the island is always available),
+  /// unless the user turned it off in settings.
+  void _syncMusic() {
+    final want = supported && Platform.isWindows && island.musicHelper;
+    if (want && _music == null) {
+      _music = NowPlayingService(island.setNowPlaying);
+      unawaited(_music!.start());
+    } else if (!want && _music != null) {
+      _music!.dispose();
+      _music = null;
+      island.setNowPlaying(null);
+    }
+  }
+
+  /// One-time workaround for the first-launch layout glitch: after the first
+  /// frame, re-trigger a window resize so Flutter re-reads the real size.
+  Future<void> settleWindow() async {
+    if (!supported) return;
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (mode == AppMode.island || _busy) return;
+    await _try(() async {
+      if (await windowManager.isMaximized()) {
+        await windowManager.unmaximize();
+        await Future.delayed(const Duration(milliseconds: 80));
+        await windowManager.maximize();
+      }
+    });
   }
 
   void _initKeys() {
@@ -254,11 +285,6 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
       _captured = false;
       await windowManager.show();
 
-      // the media helper only runs while the island is the active mode
-      _music?.dispose();
-      _music = NowPlayingService(island.setNowPlaying);
-      await _try(() => _music!.start());
-
       _poll?.cancel();
       _poll = Timer.periodic(const Duration(milliseconds: 60), (_) => _tick());
     } finally {
@@ -271,9 +297,6 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     _busy = true;
     try {
       _poll?.cancel();
-      _music?.dispose();
-      _music = null;
-      island.nowPlaying = null;
       island.reset();
       await _try(() => windowManager.setIgnoreMouseEvents(false));
       await windowManager.setAlwaysOnTop(false);
@@ -333,12 +356,17 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
       final visible = island.visible;
       final isOpen = island.state == IslandState.open;
       final over = visible && pill.inflate(6).contains(p);
+      final notch = island.state == IslandState.notch;
+      final hiddenHalf = island.quiet ? 80.0 : 170.0;
       final inZone = isOpen
           ? pill.inflate(40).contains(p)
           : (visible
-              ? Rect.fromLTRB(_zoneCx - 260, _zoneTop - 4, _zoneCx + 260, _zoneTop + 100)
+              ? (notch
+                  ? Rect.fromLTRB(_zoneCx - 90, _zoneTop - 4, _zoneCx + 90, _zoneTop + 34)
+                  : Rect.fromLTRB(_zoneCx - 260, _zoneTop - 4, _zoneCx + 260, _zoneTop + 100))
                   .contains(p)
-              : Rect.fromLTRB(_zoneCx - 170, _zoneTop - 4, _zoneCx + 170, _zoneTop + 8)
+              : Rect.fromLTRB(
+                      _zoneCx - hiddenHalf, _zoneTop - 4, _zoneCx + hiddenHalf, _zoneTop + 8)
                   .contains(p));
       island.setNear(inZone);
       island.setOverPill(over);
