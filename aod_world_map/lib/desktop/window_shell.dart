@@ -8,17 +8,18 @@ import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/legacy.dart' as tray;
 import 'package:window_manager/window_manager.dart';
 
+import 'foreground_app.dart';
 import 'island_controller.dart';
+import 'island_pages.dart';
 import 'now_playing.dart';
 
-/// Order matters: it is the index of the screen shown by the app.
+/// Only one of these screens is built at a time. The others are disposed, so
+/// island mode does not keep the map or planner in memory.
 enum AppMode { map, home, island }
 
-const Size kIslandWindowSize = Size(640, 360);
+const Size kIslandWindowSize = Size(640, 480);
 const Size _kAppMin = Size(720, 480);
 
-/// Owns the native window. Switches between the normal app window and the
-/// tiny transparent always-on-top island window, and runs the tray icon.
 class ShellController extends ChangeNotifier with WindowListener, tray.TrayListener {
   AppMode mode = AppMode.map;
   final IslandController island = IslandController();
@@ -28,12 +29,11 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
   bool _wasMaximized = false;
   bool _busy = false, _ticking = false, _captured = false;
   Timer? _poll;
-  NowPlayingService? _music;
+  NowPlayingService? _music; // runs only while in island mode
+  int _n = 0;
 
-  // Island window position on the primary display (logical pixels).
   double _winLeft = 0, _winTop = 0, _zoneCx = 0, _zoneTop = 0;
 
-  // Global mouse / key state (Windows API) for click-away and Esc.
   int Function(int)? _asyncKey;
   bool _lWas = false, _escWas = false;
 
@@ -47,7 +47,7 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
   }
 
   Future<void> init() async {
-    await island.load(); // saved shortcuts + settings
+    await island.load();
     if (!supported) return;
     await windowManager.ensureInitialized();
     const options = WindowOptions(
@@ -67,9 +67,8 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     windowManager.addListener(this);
     _initKeys();
     await _initTray();
-    _music = NowPlayingService(island.setNowPlaying);
     island.sendMusic = (cmd) => _music?.send(cmd);
-    await _try(() => _music!.start());
+    island.openUrl = (u) => _try(() => _openWeb(u));
   }
 
   void _initKeys() {
@@ -94,6 +93,7 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
         tray.MenuItem(key: 'open', label: 'Open app'),
         tray.MenuItem.separator(),
         tray.MenuItem(key: 'island', label: 'Island: open'),
+        tray.MenuItem(key: 'notch', label: 'Island: Chrome notch'),
         tray.MenuItem(key: 'idle', label: 'Island: idle'),
         tray.MenuItem(key: 'call', label: 'Island: incoming call'),
         tray.MenuItem(key: 'music', label: 'Island: music'),
@@ -178,7 +178,7 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
         return;
       }
     }
-    await Process.start('explorer.exe', [u], mode: ProcessStartMode.detached); // default browser
+    await Process.start('explorer.exe', [u], mode: ProcessStartMode.detached);
   }
 
   Future<void> _launchApp(String target) async {
@@ -204,24 +204,18 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
 
   // ---- island mode -------------------------------------------------------
 
-  /// Puts the island window at the top-centre of the PRIMARY display.
-  /// Windows converts window coordinates with the DPI of the monitor the
-  /// window is currently on, so we hop onto the primary display first, then
-  /// size + position, and verify where it actually landed.
+  /// Flush with the very top of the PRIMARY display, centred. Windows uses
+  /// the DPI of the monitor the window is on, so hop onto the primary
+  /// display first, then size + position, and verify where it landed.
   Future<void> _placeIsland() async {
     final d = await screenRetriever.getPrimaryDisplay();
-    final origin = d.visiblePosition ?? Offset.zero;
-    final area = d.visibleSize ?? d.size;
-    final target = Offset(
-      origin.dx + (area.width - kIslandWindowSize.width) / 2,
-      origin.dy,
-    );
+    final target = Offset((d.size.width - kIslandWindowSize.width) / 2, 0);
     _winLeft = target.dx;
     _winTop = target.dy;
-    _zoneCx = origin.dx + area.width / 2;
-    _zoneTop = origin.dy;
+    _zoneCx = d.size.width / 2;
+    _zoneTop = 0;
 
-    await windowManager.setPosition(origin + const Offset(80, 80));
+    await windowManager.setPosition(const Offset(80, 80));
     await Future.delayed(const Duration(milliseconds: 150));
     for (var i = 0; i < 3; i++) {
       await windowManager.setSize(kIslandWindowSize);
@@ -245,20 +239,28 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
       _savedBounds = await windowManager.getBounds();
       _returnMode = mode;
       island.reset();
-      mode = AppMode.island;
+      mode = AppMode.island; // map / planner widgets are disposed here
       notifyListeners();
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
 
       await _try(() => windowManager.setMinimumSize(const Size(1, 1)));
       await _try(() => windowManager.setHasShadow(false));
       await _placeIsland();
       await _try(() => windowManager.setResizable(false));
-      await windowManager.setSkipTaskbar(true); // gone from the taskbar
+      await windowManager.setSkipTaskbar(true);
       await windowManager.setAlwaysOnTop(true);
       await _try(() => windowManager.setIgnoreMouseEvents(true, forward: true));
       _captured = false;
       await windowManager.show();
+
+      // the media helper only runs while the island is the active mode
+      _music?.dispose();
+      _music = NowPlayingService(island.setNowPlaying);
+      await _try(() => _music!.start());
+
       _poll?.cancel();
-      _poll = Timer.periodic(const Duration(milliseconds: 50), (_) => _tick());
+      _poll = Timer.periodic(const Duration(milliseconds: 60), (_) => _tick());
     } finally {
       _busy = false;
     }
@@ -269,6 +271,9 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     _busy = true;
     try {
       _poll?.cancel();
+      _music?.dispose();
+      _music = null;
+      island.nowPlaying = null;
       island.reset();
       await _try(() => windowManager.setIgnoreMouseEvents(false));
       await windowManager.setAlwaysOnTop(false);
@@ -306,47 +311,52 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     final w = island.pillSize.width, h = island.pillSize.height;
     return Rect.fromLTWH(
       _winLeft + (kIslandWindowSize.width - w) / 2,
-      _winTop + 6 + island.pillDy,
+      _winTop + island.pillDy,
       w,
       h,
     );
   }
 
-  /// Polls the global cursor (50 ms). The window only captures the mouse
-  /// while the cursor is over the pill, so it never blocks clicks on
-  /// whatever is underneath the transparent area.
   Future<void> _tick() async {
     if (mode != AppMode.island || _ticking) return;
     _ticking = true;
     try {
+      _n++;
+      if (_n % 5 == 0) {
+        // Chrome in front? (our own window being clicked doesn't count)
+        final fg = ForegroundApp.current();
+        if (fg != null && fg != ForegroundApp.own) island.setChromeMode(fg == 'chrome.exe');
+      }
+
       final p = await screenRetriever.getCursorScreenPoint();
       final pill = _pillRect();
       final visible = island.visible;
-      final over = visible && pill.inflate(6).contains(p);
       final isOpen = island.state == IslandState.open;
+      final over = visible && pill.inflate(6).contains(p);
       final inZone = isOpen
           ? pill.inflate(40).contains(p)
           : (visible
-              ? Rect.fromLTRB(_zoneCx - 260, _zoneTop - 4, _zoneCx + 260, _zoneTop + 100).contains(p)
-              : Rect.fromLTRB(_zoneCx - 170, _zoneTop - 4, _zoneCx + 170, _zoneTop + 8).contains(p));
+              ? Rect.fromLTRB(_zoneCx - 260, _zoneTop - 4, _zoneCx + 260, _zoneTop + 100)
+                  .contains(p)
+              : Rect.fromLTRB(_zoneCx - 170, _zoneTop - 4, _zoneCx + 170, _zoneTop + 8)
+                  .contains(p));
       island.setNear(inZone);
       island.setOverPill(over);
 
-      // Esc closes; clicking anywhere outside the pill closes (click mode).
+      // Esc closes; a click outside the open island closes (click mode).
       final lDown = _down(0x01), escDown = _down(0x1B);
       final clicked = lDown && !_lWas, esc = escDown && !_escWas;
       _lWas = lDown;
       _escWas = escDown;
-      if (isOpen) {
-        if (esc || (clicked && !island.openOnHover && !pill.inflate(2).contains(p))) {
-          island.close();
-        }
+      if (isOpen && (esc || (clicked && !island.openOnHover && !pill.inflate(2).contains(p)))) {
+        island.close();
       }
 
-      // Pip looks toward the cursor.
       if (visible) {
-        final eye = (isOpen && island.page == IslandPage.home)
-            ? Offset(pill.left + 54, pill.top + 95)
+        final seated = isOpen && island.page == IslandPage.home;
+        final eye = seated
+            ? Offset(pill.left + (pill.width - kOpenHome.width) / 2 + homeSeatCenter(kOpenHome).dx,
+                pill.top + homeSeatCenter(kOpenHome).dy)
             : pill.center;
         final target = Offset(
           ((p.dx - eye.dx) / 240).clamp(-1.0, 1.0).toDouble(),
@@ -385,6 +395,8 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
         _openApp();
       case 'island':
         island.preview(IslandState.open);
+      case 'notch':
+        island.preview(IslandState.notch);
       case 'idle':
         island.preview(IslandState.idle);
       case 'call':
