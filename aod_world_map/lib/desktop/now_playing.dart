@@ -42,7 +42,7 @@ $artTries = 0
 $n = 0
 $tick = 0
 while ($true) {
-  if (-not (Get-Process -Id __PID__ -ErrorAction SilentlyContinue)) { break }
+  if (($tick % 20 -eq 0) -and -not (Get-Process -Id __PID__ -ErrorAction SilentlyContinue)) { break }
   $force = $false
   if (Test-Path $cmdFile) {
     $cmd = (Get-Content $cmdFile -Raw).Trim()
@@ -58,7 +58,7 @@ while ($true) {
     } catch { }
     $force = $true
   }
-  if ($force -or ($tick % 4 -eq 0)) {
+  if ($force -or ($tick % 6 -eq 0)) {
     $out = '{}'
     try {
       $s = $mgr.GetCurrentSession()
@@ -90,6 +90,7 @@ while ($true) {
     [Console]::Out.Flush()
   }
   $tick++
+  if ($tick % 480 -eq 0) { [GC]::Collect() }
   Start-Sleep -Milliseconds 250
 }
 ''';
