@@ -5,9 +5,12 @@ import 'dart:ui' show Color, Offset, Size;
 
 import 'package:flutter/foundation.dart';
 
+import 'agenda_service.dart';
+import 'planner_model.dart';
+
 enum IslandState { hidden, notch, idle, open, call, music, success }
 
-enum IslandPage { home, music, stocks, settings }
+enum IslandPage { home, music, stocks, today, settings }
 
 enum ShortcutKind { web, app, screensaver, planner }
 
@@ -102,6 +105,12 @@ class IslandController extends ChangeNotifier {
   String stockRange = '1d'; // 1d | 5d | 1mo
   bool stockCandles = true; // false = bars
   List<IslandShortcut> shortcuts = defaultShortcuts();
+  List<String> watchlist = ['AAPL', 'NVDA', 'TSLA', 'SNOW'];
+  List<CalendarFeed> calendarFeeds = [];
+
+  /// Set by main(): the same planner the Home page edits.
+  PlannerModel? planner;
+  final AgendaService agenda = AgendaService();
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
 
@@ -141,6 +150,15 @@ class IslandController extends ChangeNotifier {
       stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
       stockRange = (j['stockRange'] as String?) ?? '1d';
       stockCandles = (j['stockCandles'] as bool?) ?? true;
+      final w = j['watchlist'];
+      if (w is List) watchlist = [for (final e in w) if (e is String && e.isNotEmpty) e];
+      final cal = j['calendars'];
+      if (cal is List) {
+        calendarFeeds = [
+          for (final e in cal)
+            if (e is Map<String, dynamic>) CalendarFeed.fromJson(e),
+        ];
+      }
       final s = j['shortcuts'];
       if (s is List) {
         final list = [
@@ -167,6 +185,8 @@ class IslandController extends ChangeNotifier {
           'stockSymbol': stockSymbol,
           'stockRange': stockRange,
           'stockCandles': stockCandles,
+          'watchlist': watchlist,
+          'calendars': [for (final f in calendarFeeds) f.toJson()],
           'shortcuts': [for (final s in shortcuts) s.toJson()],
         }));
       } catch (_) {}
@@ -219,6 +239,39 @@ class IslandController extends ChangeNotifier {
 
   void setStockCandles(bool v) {
     stockCandles = v;
+    notifyListeners();
+    _persist();
+  }
+
+  void addWatch(String sym) {
+    final s = sym.trim().toUpperCase();
+    if (s.isEmpty || watchlist.contains(s)) return;
+    watchlist.add(s);
+    notifyListeners();
+    _persist();
+  }
+
+  void insertWatch(int index, String sym) {
+    if (watchlist.contains(sym)) return;
+    watchlist.insert(index.clamp(0, watchlist.length).toInt(), sym);
+    notifyListeners();
+    _persist();
+  }
+
+  void removeWatch(String sym) {
+    watchlist.remove(sym);
+    notifyListeners();
+    _persist();
+  }
+
+  void addFeed(CalendarFeed f) {
+    calendarFeeds.add(f);
+    notifyListeners();
+    _persist();
+  }
+
+  void removeFeed(CalendarFeed f) {
+    calendarFeeds.remove(f);
     notifyListeners();
     _persist();
   }
@@ -402,6 +455,7 @@ class IslandController extends ChangeNotifier {
     _overTimer?.cancel();
     _saveTimer?.cancel();
     gaze.dispose();
+    agenda.dispose();
     super.dispose();
   }
 }
