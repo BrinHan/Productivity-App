@@ -56,15 +56,24 @@ class _SignalPill extends StatelessWidget {
   }
 }
 
-class StocksPage extends StatefulWidget {
-  const StocksPage({super.key, required this.c});
+/// One stock: chart, analysis, news. Opened from the watchlist.
+class StockDetailPage extends StatefulWidget {
+  const StockDetailPage({
+    super.key,
+    required this.c,
+    required this.onBack,
+    required this.watched,
+    required this.onToggleWatch,
+  });
   final IslandController c;
+  final VoidCallback onBack, onToggleWatch;
+  final bool watched;
 
   @override
-  State<StocksPage> createState() => _StocksPageState();
+  State<StockDetailPage> createState() => _StockDetailPageState();
 }
 
-class _StocksPageState extends State<StocksPage> {
+class _StockDetailPageState extends State<StockDetailPage> {
   StockData? _data;
   String? _error;
   bool _loading = false;
@@ -92,7 +101,7 @@ class _StocksPageState extends State<StocksPage> {
   }
 
   @override
-  void didUpdateWidget(StocksPage old) {
+  void didUpdateWidget(StockDetailPage old) {
     super.didUpdateWidget(old);
     if (_key != _wantKey) _load();
     if (_insightKey != widget.c.stockSymbol) {
@@ -366,24 +375,58 @@ class _StocksPageState extends State<StocksPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
-        physics: const ClampingScrollPhysics(),
-        children: [
-          SizedBox(height: 150, child: _topRow(_data)),
-          const SizedBox(height: 10),
-          _analysisPanel(),
-          const SizedBox(height: 10),
-          _newsPanel(),
-          const SizedBox(height: 8),
-          const Text(
-            'Signals combine analyst ratings, price trend, RSI, MACD and headline tone. '
-            'Informational only, not financial advice.',
-            style: _tiny,
+  Widget _header() => Padding(
+        padding: const EdgeInsets.fromLTRB(8, 2, 14, 0),
+        child: Row(children: [
+          IslandPressable(
+            onTap: widget.onBack,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(2, 4, 10, 4),
+              color: Colors.transparent,
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.chevron_left_rounded, size: 22, color: Colors.white),
+                Text('Watchlist', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              ]),
+            ),
           ),
-        ],
+          const Spacer(),
+          IslandPressable(
+            onTap: widget.onToggleWatch,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                widget.watched ? Icons.star_rounded : Icons.star_outline_rounded,
+                size: 21,
+                color: widget.watched ? const Color(0xFFFFD60A) : Colors.white70,
+              ),
+            ),
+          ),
+        ]),
       );
+
+  @override
+  Widget build(BuildContext context) => Column(children: [
+        _header(),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 14),
+            physics: const ClampingScrollPhysics(),
+            children: [
+              SizedBox(height: 150, child: _topRow(_data)),
+              const SizedBox(height: 10),
+              _analysisPanel(),
+              const SizedBox(height: 10),
+              _newsPanel(),
+              const SizedBox(height: 8),
+              const Text(
+                'Signals combine analyst ratings, price trend, RSI, MACD and headline tone. '
+                'Informational only, not financial advice.',
+                style: _tiny,
+              ),
+            ],
+          ),
+        ),
+      ]);
 }
 
 /// Bearish -> bullish bar. The marker eases to its new position.
