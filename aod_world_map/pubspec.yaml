@@ -40,6 +40,7 @@ dependencies:
   tray_manager: ^0.7.0
   screen_retriever: ^0.2.2
   ffi: ^2.2.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
