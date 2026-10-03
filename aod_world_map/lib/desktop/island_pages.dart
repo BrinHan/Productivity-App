@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'island_controller.dart';
 import 'island_widgets.dart';
-import 'stocks_page.dart';
+import 'stocks_home.dart';
+import 'today_page.dart';
 
 // Layout constants shared with the Pip flight (the seat is a hole in the card).
 const double kTabBarH = 38, kHomePadL = 12, kHomePadT = 8, kHomePadB = 12;
@@ -12,12 +13,15 @@ const double kCardPad = 10, kSeatW = 78, kCardW = 196;
 
 const Size kOpenHome = Size(500, 156);
 const Size kOpenStocks = Size(560, 440);
+const Size kOpenToday = Size(560, 420);
 const Size kOpenSettings = Size(500, 340);
 
 Size openSizeFor(IslandPage p) {
   switch (p) {
     case IslandPage.stocks:
       return kOpenStocks;
+    case IslandPage.today:
+      return kOpenToday;
     case IslandPage.settings:
       return kOpenSettings;
     case IslandPage.home:
@@ -98,6 +102,8 @@ class IslandOpenContent extends StatelessWidget {
         body = _MusicPage(c: c);
       case IslandPage.stocks:
         body = StocksPage(c: c);
+      case IslandPage.today:
+        body = TodayPage(c: c);
       case IslandPage.settings:
         body = _SettingsPage(c: c);
     }
@@ -154,6 +160,8 @@ class _TopBar extends StatelessWidget {
           _tab(Icons.music_note_rounded, IslandPage.music),
           const SizedBox(width: 6),
           _tab(Icons.candlestick_chart_rounded, IslandPage.stocks),
+          const SizedBox(width: 6),
+          _tab(Icons.event_note_rounded, IslandPage.today),
           const Spacer(),
           _tab(Icons.settings_rounded, IslandPage.settings),
         ],

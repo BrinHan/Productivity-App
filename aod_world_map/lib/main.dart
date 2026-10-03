@@ -22,6 +22,7 @@ Future<void> main() async {
   final shell = ShellController();
   final planner = PlannerModel();
   final map = MapModel();
+  shell.island.planner = planner;
   await Future.wait([shell.init(), planner.load()]);
   map.start();
   runApp(AodApp(shell: shell, planner: planner, map: map));
