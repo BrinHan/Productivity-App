@@ -315,90 +315,115 @@ class _WatchRow extends StatefulWidget {
 }
 
 class _WatchRowState extends State<_WatchRow> {
-  bool _hover = false;
+  bool _hover = false, _down = false;
 
   @override
   Widget build(BuildContext context) {
     final d = widget.data;
     final up = (d?.change ?? 0) >= 0;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: IslandPressable(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          padding: const EdgeInsets.fromLTRB(6, 9, 6, 9),
-          decoration: BoxDecoration(
-            color: _hover ? const Color(0x0FFFFFFF) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: widget.last ? null : const Border(bottom: BorderSide(color: Color(0x14FFFFFF))),
-          ),
-          child: Row(children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(widget.sym, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-                const SizedBox(height: 1),
-                Text(
-                  d?.name.isNotEmpty == true ? d!.name : (widget.error ?? ' '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11.5, color: Color(0x80FFFFFF)),
+    final tint = up ? _upLine : _downLine;
+    return Column(children: [
+      MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() {
+          _hover = false;
+          _down = false;
+        }),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _down = true),
+          onTapUp: (_) => setState(() => _down = false),
+          onTapCancel: () => setState(() => _down = false),
+          onTap: widget.onTap,
+          // Only scale and colour change on hover. Nothing in the layout moves.
+          child: AnimatedScale(
+            scale: _down ? 0.985 : (_hover ? 1.03 : 1.0),
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutCubic,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.fromLTRB(8, 9, 4, 9),
+              decoration: BoxDecoration(
+                color: _hover ? tint.withValues(alpha: 0.11) : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(widget.sym,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+                    const SizedBox(height: 1),
+                    Text(
+                      d?.name.isNotEmpty == true ? d!.name : (widget.error ?? ' '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11.5, color: Color(0x80FFFFFF)),
+                    ),
+                  ]),
+                ),
+                SizedBox(
+                  width: 110,
+                  height: 34,
+                  child: d == null
+                      ? const SizedBox.shrink()
+                      : TweenAnimationBuilder<double>(
+                          key: ValueKey('${d.symbol}|${d.candles.length}'),
+                          tween: Tween<double>(begin: 0, end: 1),
+                          duration: const Duration(milliseconds: 650),
+                          curve: Curves.easeOutCubic,
+                          builder: (_, p, __) => CustomPaint(
+                            painter: _SparkPainter([for (final c in d.candles) c.c], d.prevClose, p),
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 14),
+                SizedBox(
+                  width: 84,
+                  child: d == null
+                      ? Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(widget.error == null ? '…' : '—', style: _dim),
+                        )
+                      : Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                          Text(_price(d.price),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+                          const SizedBox(height: 3),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: up ? _upFill : _downFill, borderRadius: BorderRadius.circular(6)),
+                            child: Text('${up ? '+' : '-'}${d.pct.abs().toStringAsFixed(2)}%',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                          ),
+                        ]),
+                ),
+                // Remove: slot is always reserved, only its opacity changes.
+                AnimatedOpacity(
+                  opacity: _hover ? 1 : 0,
+                  duration: const Duration(milliseconds: 160),
+                  child: IgnorePointer(
+                    ignoring: !_hover,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: widget.onRemove,
+                      child: const SizedBox(
+                        width: 26,
+                        height: 30,
+                        child: Icon(Icons.close_rounded, size: 15, color: Color(0xB3FFFFFF)),
+                      ),
+                    ),
+                  ),
                 ),
               ]),
             ),
-            SizedBox(
-              width: 110,
-              height: 34,
-              child: d == null
-                  ? const SizedBox.shrink()
-                  : TweenAnimationBuilder<double>(
-                      key: ValueKey('${d.symbol}|${d.candles.length}'),
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 650),
-                      curve: Curves.easeOutCubic,
-                      builder: (_, p, __) => CustomPaint(
-                        painter: _SparkPainter([for (final c in d.candles) c.c], d.prevClose, p),
-                      ),
-                    ),
-            ),
-            const SizedBox(width: 14),
-            SizedBox(
-              width: 84,
-              child: d == null
-                  ? Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(widget.error == null ? '…' : '—', style: _dim),
-                    )
-                  : Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text(_price(d.price),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-                      const SizedBox(height: 3),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(color: up ? _upFill : _downFill, borderRadius: BorderRadius.circular(6)),
-                        child: Text('${up ? '+' : '-'}${d.pct.abs().toStringAsFixed(2)}%',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                      ),
-                    ]),
-            ),
-            // remove: only exists while hovering, so the row stays clean
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOutCubic,
-              width: _hover ? 26 : 0,
-              child: _hover
-                  ? IslandPressable(
-                      onTap: widget.onRemove,
-                      child: const SizedBox(width: 26, height: 30, child: Icon(Icons.close_rounded, size: 15, color: Color(0x99FFFFFF))),
-                    )
-                  : null,
-            ),
-          ]),
+          ),
         ),
       ),
-    );
+      if (!widget.last)
+        Container(height: 1, margin: const EdgeInsets.symmetric(horizontal: 8), color: const Color(0x14FFFFFF)),
+    ]);
   }
 }
 
