@@ -71,6 +71,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   Size _sizeFor(IslandState s) {
     final c = widget.controller;
     final idle = c.idleSize;
+    if (s == IslandState.hidden) return Size(idle.width * 0.42, 0);
     switch (s) {
       case IslandState.open:
         return openSizeFor(c.page);
@@ -89,7 +90,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   }
 
   double _dyFor(IslandState s) =>
-      s == IslandState.hidden ? -(widget.controller.idleSize.height + 24) : 0.0;
+      0.0;
 
   PipSpot get _pipSpot {
     if (_shown == IslandState.idle) return PipSpot.idle;
