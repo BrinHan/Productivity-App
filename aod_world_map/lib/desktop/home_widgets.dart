@@ -74,12 +74,24 @@ class _IconBtn extends StatelessWidget {
       );
 }
 
+/// shadcn-style button. Default is the neutral foreground fill, [primary]
+/// is the same as shadcn's default variant; without it you get the outline
+/// variant; [ghost] drops the border. Keyboard focus shows a ring with a gap.
 class _Btn extends StatefulWidget {
-  const _Btn(this.t, this.label, this.onTap, {this.primary = false, this.icon, this.compact = false});
+  const _Btn(
+    this.t,
+    this.label,
+    this.onTap, {
+    this.primary = false,
+    this.ghost = false,
+    this.icon,
+    this.compact = false,
+    this.fill = false,
+  });
   final _T t;
   final String label;
   final VoidCallback? onTap;
-  final bool primary, compact;
+  final bool primary, ghost, compact, fill;
   final IconData? icon;
 
   @override
@@ -87,25 +99,31 @@ class _Btn extends StatefulWidget {
 }
 
 class _BtnState extends State<_Btn> {
-  bool _hover = false, _down = false;
+  bool _hover = false, _down = false, _focus = false;
 
   @override
   Widget build(BuildContext context) {
     final t = widget.t;
     final on = widget.onTap != null;
-    final fg = widget.primary ? t.onAccent : t.text;
-    final bg = widget.primary
-        ? (_hover && on ? Color.lerp(t.accent, t.text, 0.12)! : t.accent)
-        : (_hover && on ? t.raised : t.surface);
+    final primary = widget.primary;
+    final fg = primary ? t.bg : t.text;
+    final bg = primary
+        ? (_hover && on ? Color.lerp(t.text, t.bg, 0.12)! : t.text)
+        : (_hover && on ? t.raised : Colors.transparent);
+    final border = primary || widget.ghost ? Colors.transparent : t.line;
     return Opacity(
-      opacity: on ? 1 : 0.45,
-      child: MouseRegion(
-        cursor: on ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() {
-          _hover = false;
-          _down = false;
-        }),
+      opacity: on ? 1 : 0.5,
+      child: FocusableActionDetector(
+        enabled: on,
+        mouseCursor: on ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        onShowHoverHighlight: (v) => setState(() => _hover = v),
+        onShowFocusHighlight: (v) => setState(() => _focus = v),
+        actions: <Type, Action<Intent>>{
+          ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
+            widget.onTap?.call();
+            return null;
+          }),
+        },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: on ? (_) => setState(() => _down = true) : null,
@@ -115,24 +133,159 @@ class _BtnState extends State<_Btn> {
           child: AnimatedScale(
             scale: _down ? 0.98 : 1,
             duration: const Duration(milliseconds: 90),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 140),
-              padding: EdgeInsets.symmetric(
-                horizontal: widget.compact ? 12 : 16,
-                vertical: widget.compact ? 7 : 10,
+            child: Stack(clipBehavior: Clip.none, children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 140),
+                width: widget.fill ? double.infinity : null,
+                padding: EdgeInsets.symmetric(
+                  horizontal: widget.compact ? 12 : 16,
+                  vertical: widget.compact ? 8 : 11,
+                ),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(_rSm),
+                  border: Border.all(color: border),
+                ),
+                child: Row(
+                  mainAxisSize: widget.fill ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.icon != null) ...[
+                      Icon(widget.icon, size: 16, color: fg),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(widget.label, softWrap: false, style: _ts(fg, widget.compact ? 13 : 14, w: FontWeight.w600)),
+                  ],
+                ),
               ),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(_rSm),
-                border: Border.all(color: widget.primary ? Colors.transparent : t.line),
+              Positioned(
+                left: -4,
+                top: -4,
+                right: -4,
+                bottom: -4,
+                child: IgnorePointer(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(_rSm + 4),
+                      border: Border.all(color: _focus ? t.focus : Colors.transparent, width: 2),
+                    ),
+                  ),
+                ),
               ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, size: 16, color: fg),
-                  const SizedBox(width: 8),
-                ],
-                Text(widget.label, softWrap: false, style: _ts(fg, 13, w: FontWeight.w600)),
-              ]),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Toggle group with a sliding pill. Fixed segment width so the pill can
+/// glide between segments with the same easing the checkbox uses.
+class _Seg extends StatelessWidget {
+  const _Seg(this.t, this.labels, this.index, this.onChanged);
+  final _T t;
+  final List<String> labels;
+  final int index;
+  final ValueChanged<int> onChanged;
+
+  static const _w = 74.0, _h = 30.0;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(color: t.raised, borderRadius: BorderRadius.circular(_rSm)),
+        child: SizedBox(
+          width: _w * labels.length,
+          height: _h,
+          child: Stack(children: [
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutBack,
+              left: _w * index,
+              top: 0,
+              width: _w,
+              height: _h,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: t.surface,
+                  borderRadius: BorderRadius.circular(_rSm - 2),
+                  border: Border.all(color: t.line),
+                ),
+              ),
+            ),
+            Row(children: [
+              for (var i = 0; i < labels.length; i++)
+                SizedBox(
+                  width: _w,
+                  height: _h,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onChanged(i),
+                      child: Center(
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
+                          style: _ts(i == index ? t.text : t.sub, 13, w: FontWeight.w600),
+                          child: Text(labels[i], softWrap: false),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ]),
+          ]),
+        ),
+      );
+}
+
+/// Animated checkbox: square box, foreground fill when checked, tick drawn
+/// stroke by stroke. Ported from the supplied React component.
+class _Check extends StatefulWidget {
+  const _Check(this.t, this.done, this.onTap, {this.size = 18});
+  final _T t;
+  final bool done;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  State<_Check> createState() => _CheckState();
+}
+
+class _CheckState extends State<_Check> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.t, s = widget.size;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: s,
+            height: s,
+            decoration: BoxDecoration(
+              color: widget.done ? t.text : Colors.transparent,
+              borderRadius: BorderRadius.circular(6 * s / 18),
+              border: Border.all(
+                color: widget.done ? Colors.transparent : t.sub.withValues(alpha: _hover ? 0.6 : 0.4),
+                width: 1.5,
+              ),
+            ),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: widget.done ? 1 : 0),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              builder: (_, v, __) => CustomPaint(painter: _TickPainter(v, t.bg)),
             ),
           ),
         ),
@@ -141,71 +294,91 @@ class _BtnState extends State<_Btn> {
   }
 }
 
-class _Seg extends StatelessWidget {
-  const _Seg(this.t, this.labels, this.index, this.onChanged);
-  final _T t;
-  final List<String> labels;
-  final int index;
-  final ValueChanged<int> onChanged;
+class _TickPainter extends CustomPainter {
+  _TickPainter(this.progress, this.color);
+  final double progress;
+  final Color color;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(color: t.raised, borderRadius: BorderRadius.circular(_rSm)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          for (var i = 0; i < labels.length; i++)
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onChanged(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: i == index ? t.surface : Colors.transparent,
-                    borderRadius: BorderRadius.circular(_rSm - 3),
-                    border: Border.all(color: i == index ? t.line : Colors.transparent),
-                  ),
-                  child: Text(labels[i],
-                      softWrap: false,
-                      style: _ts(i == index ? t.text : t.sub, 12.5, w: FontWeight.w600)),
-                ),
-              ),
-            ),
-        ]),
-      );
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+    final k = size.width / 20;
+    final path = Path()
+      ..moveTo(5 * k, 10.5 * k)
+      ..lineTo(8.182 * k, 14 * k)
+      ..lineTo(15 * k, 6 * k);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5 * k
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..isAntiAlias = true
+      ..color = color;
+    for (final m in path.computeMetrics()) {
+      canvas.drawPath(m.extractPath(0, m.length * progress), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TickPainter o) => o.progress != progress || o.color != color;
 }
 
-class _Check extends StatelessWidget {
-  const _Check(this.t, this.done, this.onTap, {this.size = 20});
+/// Title text whose strikethrough line draws across when [done] turns true.
+class _StrikeText extends StatelessWidget {
+  const _StrikeText(this.t, this.text, this.done, {this.size = 14, this.w = FontWeight.w500, this.h});
   final _T t;
+  final String text;
   final bool done;
-  final VoidCallback onTap;
   final double size;
+  final FontWeight w;
+  final double? h;
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(2),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: done ? t.accent : Colors.transparent,
-                border: Border.all(color: done ? t.accent : t.faint, width: 1.5),
-              ),
-              child: done ? Icon(Icons.check_rounded, size: size - 6, color: t.onAccent) : null,
-            ),
+  Widget build(BuildContext context) {
+    final style = _ts(done ? t.sub : t.text, size, w: w, h: h);
+    final measure = DefaultTextStyle.of(context).style.merge(_ts(t.text, size, w: w, h: h));
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: done ? 1 : 0),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      builder: (_, p, __) => LayoutBuilder(
+        builder: (context, c) => CustomPaint(
+          foregroundPainter: _StrikePainter(text, measure, c.maxWidth, p, t.sub),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: style,
+            child: Text(text),
           ),
         ),
-      );
+      ),
+    );
+  }
+}
+
+class _StrikePainter extends CustomPainter {
+  _StrikePainter(this.text, this.style, this.maxWidth, this.progress, this.color);
+  final String text;
+  final TextStyle style;
+  final double maxWidth, progress;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+    final tp = TextPainter(text: TextSpan(text: text, style: style), textDirection: TextDirection.ltr)
+      ..layout(maxWidth: maxWidth);
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+    for (final m in tp.computeLineMetrics()) {
+      final y = m.baseline - m.ascent * 0.32;
+      canvas.drawLine(Offset(m.left, y), Offset(m.left + m.width * progress, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StrikePainter o) => true;
 }
 
 class _Toggle extends StatelessWidget {
@@ -220,23 +393,23 @@ class _Toggle extends StatelessWidget {
         child: GestureDetector(
           onTap: () => onChanged(!on),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: 38,
+            duration: const Duration(milliseconds: 200),
+            width: 40,
             height: 22,
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              color: on ? t.accent : t.raised,
+              color: on ? t.text : t.raised,
               borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: on ? t.accent : t.line),
+              border: Border.all(color: on ? Colors.transparent : t.line),
             ),
             child: AnimatedAlign(
-              duration: const Duration(milliseconds: 160),
+              duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
               alignment: on ? Alignment.centerRight : Alignment.centerLeft,
               child: Container(
                 width: 14,
                 height: 14,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.onAccent : t.sub),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.bg : t.sub),
               ),
             ),
           ),
@@ -277,11 +450,12 @@ class _Bar extends StatelessWidget {
 }
 
 class _Hair extends StatelessWidget {
-  const _Hair(this.t);
+  const _Hair(this.t, {this.color});
   final _T t;
+  final Color? color;
 
   @override
-  Widget build(BuildContext context) => Container(height: 1, color: t.line);
+  Widget build(BuildContext context) => Container(height: 1, color: color ?? t.line);
 }
 
 class _Empty extends StatelessWidget {
@@ -310,12 +484,13 @@ OutlineInputBorder _ob(Color c, [double w = 1]) => OutlineInputBorder(
       borderSide: BorderSide(color: c, width: w),
     );
 
+/// shadcn-style input: page background fill, thin border, bolder grey on focus.
 InputDecoration _deco(_T t, String hint, {Widget? prefix, Widget? suffix}) => InputDecoration(
       isDense: true,
       filled: true,
-      fillColor: t.surface,
+      fillColor: t.bg,
       hintText: hint,
-      hintStyle: _ts(t.sub, 13),
+      hintStyle: _ts(t.sub, 14),
       prefixIcon: prefix,
       prefixIconConstraints: const BoxConstraints(minWidth: 38),
       suffixIcon: suffix,
@@ -323,28 +498,40 @@ InputDecoration _deco(_T t, String hint, {Widget? prefix, Widget? suffix}) => In
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       border: _ob(t.line),
       enabledBorder: _ob(t.line),
-      focusedBorder: _ob(t.accent, 1.5),
+      focusedBorder: _ob(t.focus, 1.5),
     );
 
 /// Label above the input, never a placeholder standing in for a label.
 class _Labeled extends StatelessWidget {
-  const _Labeled(this.t, this.label, this.ctl, {this.hint = '', this.obscure = false, this.onChanged});
+  const _Labeled(
+    this.t,
+    this.label,
+    this.ctl, {
+    this.hint = '',
+    this.obscure = false,
+    this.onChanged,
+    this.autofocus = false,
+    this.onSubmitted,
+  });
   final _T t;
   final String label, hint;
   final TextEditingController ctl;
-  final bool obscure;
+  final bool obscure, autofocus;
   final VoidCallback? onChanged;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: _ts(t.text, 12.5, w: FontWeight.w600)),
-        const SizedBox(height: 6),
+        Text(label, style: _ts(t.text, 14, w: FontWeight.w600)),
+        const SizedBox(height: 8),
         TextField(
           controller: ctl,
           obscureText: obscure,
-          style: _ts(t.text, 13),
-          cursorColor: t.accent,
+          autofocus: autofocus,
+          style: _ts(t.text, 14),
+          cursorColor: t.focus,
           onChanged: (_) => onChanged?.call(),
+          onSubmitted: onSubmitted,
           decoration: _deco(t, hint),
         ),
       ]);
