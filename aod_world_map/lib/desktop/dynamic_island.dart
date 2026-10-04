@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'island_controller.dart';
 import 'island_pages.dart';
 import 'island_widgets.dart';
+import 'meeting_detector.dart';
 import 'notch_shape.dart';
 import 'height_fade.dart';
 import 'pip.dart';
@@ -79,6 +80,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         return Size(math.max(400, idle.width + 60), math.max(84, idle.height + 16));
       case IslandState.music:
         return Size(math.max(330, idle.width + 40), math.max(68, idle.height + 8));
+      case IslandState.meeting:
+        return Size(math.max(480, idle.width + 120), math.max(88, idle.height + 20));
       case IslandState.success:
         return const Size(86, 86);
       case IslandState.notch:
@@ -209,6 +212,13 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
               : (np.artist.isEmpty ? 'Unknown artist' : np.artist),
           playing: np?.playing ?? false,
           art: np?.art,
+        );
+      case IslandState.meeting:
+        return _MeetingContent(
+          info: c.offer,
+          ready: c.notes.ready,
+          onYes: c.acceptMeeting,
+          onNo: c.declineMeeting,
         );
       case IslandState.success:
         return const _SuccessContent();
@@ -506,4 +516,74 @@ class _FaceCheckPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FaceCheckPainter old) => false;
+}
+
+class _MeetingContent extends StatelessWidget {
+  const _MeetingContent({
+    required this.info,
+    required this.ready,
+    required this.onYes,
+    required this.onNo,
+  });
+  final MeetingInfo? info;
+  final bool ready;
+  final VoidCallback onYes, onNo;
+
+  Widget _pill(String label, VoidCallback onTap, {required bool filled}) => IslandPressable(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: filled ? Colors.white : const Color(0x24FFFFFF),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: filled ? Colors.black : Colors.white,
+              )),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final name = info?.appName ?? 'Meeting';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color(0x1FFFFFFF),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Icon(Icons.videocam_rounded, color: Colors.white, size: 24),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('$name meeting detected',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(ready ? 'Take notes and transcribe it?' : 'Transcription is not set up yet',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12.5, color: Color(0x99FFFFFF))),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        _pill('Not now', onNo, filled: false),
+        const SizedBox(width: 8),
+        _pill(ready ? 'Take notes' : 'Got it', ready ? onYes : onNo, filled: true),
+      ]),
+    );
+  }
 }
