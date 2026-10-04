@@ -61,7 +61,6 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
       await windowManager.setAsFrameless();
       await _try(() => windowManager.setMinimumSize(_kAppMin));
       await windowManager.show();
-      await windowManager.maximize();
       await windowManager.focus();
     });
     windowManager.addListener(this);
@@ -87,18 +86,22 @@ class ShellController extends ChangeNotifier with WindowListener, tray.TrayListe
     }
   }
 
-  /// One-time workaround for the first-launch layout glitch: after the first
-  /// frame, re-trigger a window resize so Flutter re-reads the real size.
+  /// The first frame can render into a small surface in the corner when the
+  /// window is maximized before Flutter is ready. A real resize event makes
+  /// Flutter re-read the size, so after the first frame: resize to the work
+  /// area, then maximize.
   Future<void> settleWindow() async {
     if (!supported) return;
-    await Future.delayed(const Duration(milliseconds: 350));
+    await Future.delayed(const Duration(milliseconds: 250));
     if (mode == AppMode.island || _busy) return;
     await _try(() async {
-      if (await windowManager.isMaximized()) {
-        await windowManager.unmaximize();
-        await Future.delayed(const Duration(milliseconds: 80));
-        await windowManager.maximize();
-      }
+      final d = await screenRetriever.getPrimaryDisplay();
+      final pos = d.visiblePosition ?? Offset.zero;
+      final size = d.visibleSize ?? d.size;
+      await windowManager.unmaximize();
+      await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width - 4, size.height - 4));
+      await Future.delayed(const Duration(milliseconds: 120));
+      await windowManager.maximize();
     });
   }
 
