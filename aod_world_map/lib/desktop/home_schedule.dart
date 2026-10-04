@@ -91,7 +91,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
 
     return Container(
       width: 300,
-      decoration: BoxDecoration(border: Border(left: BorderSide(color: t.line))),
+      decoration: BoxDecoration(color: t.panel, border: Border(left: BorderSide(color: t.panelLine))),
       child: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 22, 18, 10),
@@ -110,7 +110,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                     constraints: const BoxConstraints(maxWidth: 250),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: t.raised, borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(color: t.panelCard, borderRadius: BorderRadius.circular(8)),
                       child: Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: _ts(t.text, 11.5, w: FontWeight.w600)),
                     ),
                   ),
@@ -139,7 +139,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                   height: h - 2,
                   child: _block(
                     bar: t.accent,
-                    fill: task.done ? t.raised : t.accentSoft,
+                    fill: task.done ? t.panelCard : t.accentSoft,
                     title: task.title,
                     done: task.done,
                     onTap: () => p.toggle(task),
@@ -160,7 +160,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                   height: h - 2,
                   child: _block(
                     bar: t.sub,
-                    fill: t.raised,
+                    fill: t.panelCard,
                     title: e.title,
                     sub: _clock(e.start),
                   ),
@@ -184,7 +184,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                             child: Text(_hour(_startHour + i), style: _ts(t.faint, 10.5, tab: true)),
                           ),
                         ),
-                        Expanded(child: _Hair(t)),
+                        Expanded(child: _Hair(t, color: t.panelLine)),
                       ]),
                     ),
                   ...blocks,
