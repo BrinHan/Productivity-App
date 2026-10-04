@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../aod/sky_toggle.dart';
 import 'google_service.dart';
+import 'notes_service.dart';
 import 'planner_model.dart';
 import 'window_shell.dart';
 
@@ -24,8 +25,9 @@ part 'home_week.dart';
 part 'home_schedule.dart';
 part 'home_account.dart';
 part 'home_settings.dart';
+part 'home_notes.dart';
 
-enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings }
+enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings, notes }
 
 class HomePage extends StatefulWidget {
   const HomePage({
@@ -54,6 +56,7 @@ class _HomePageState extends State<HomePage> {
 
   PlannerModel get p => widget.planner;
   GoogleService get g => widget.shell.island.google;
+  NotesService get notes => widget.shell.island.notes;
 
   @override
   void initState() {
@@ -95,20 +98,23 @@ class _HomePageState extends State<HomePage> {
             body: DefaultTextStyle.merge(
               style: TextStyle(fontFamily: family, fontFamilyFallback: _fontFallback),
               child: ListenableBuilder(
-                listenable: Listenable.merge([p, g, prefs]),
+                listenable: Listenable.merge([p, g, prefs, notes]),
                 builder: (context, _) => Column(children: [
                   _TitleBar(
                     t: t,
                     shell: widget.shell,
                     sidebarOpen: prefs.sidebarOpen,
                     onToggleSidebar: () => prefs.setSidebar(!prefs.sidebarOpen),
+                    notes: notes,
+                    onOpenNotes: () => setState(() => _view = _View.notes),
                   ),
                   Expanded(
                     child: LayoutBuilder(builder: (context, c) {
                       final showPanel = prefs.showSchedule &&
                           c.maxWidth > 1080 &&
                           _view != _View.account &&
-                          _view != _View.settings;
+                          _view != _View.settings &&
+                          _view != _View.notes;
                       return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 280),
@@ -128,6 +134,7 @@ class _HomePageState extends State<HomePage> {
                                 isDark: widget.isDark,
                                 onDark: widget.onDarkChanged,
                                 g: g,
+                                notes: notes,
                               ),
                             ),
                           ),
@@ -171,6 +178,8 @@ class _HomePageState extends State<HomePage> {
         return _ReviewView(t: t, p: p);
       case _View.account:
         return _AccountView(t: t, g: g);
+      case _View.notes:
+        return _NotesView(t: t, notes: notes);
       case _View.settings:
         return _SettingsView(
           t: t,
