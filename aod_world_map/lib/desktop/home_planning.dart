@@ -31,11 +31,7 @@ class _PlanningView extends StatelessWidget {
                       child: Row(children: [
                         _Check(t, tasks[i].done, () => p.toggle(tasks[i])),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(tasks[i].title,
-                              style: _ts(tasks[i].done ? t.sub : t.text, 14,
-                                  deco: tasks[i].done ? TextDecoration.lineThrough : null)),
-                        ),
+                        Expanded(child: _StrikeText(t, tasks[i].title, tasks[i].done, size: 14)),
                         _IconBtn(t, Icons.remove_rounded, 'Shorter by 15 min', () => p.addMinutes(tasks[i], -15)),
                         SizedBox(
                           width: 58,
@@ -66,10 +62,7 @@ class _TaskListView extends StatelessWidget {
           child: Row(children: [
             _Check(t, task.done, () => p.toggle(task)),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(task.title,
-                  style: _ts(task.done ? t.sub : t.text, 14, deco: task.done ? TextDecoration.lineThrough : null)),
-            ),
+            Expanded(child: _StrikeText(t, task.title, task.done, size: 14)),
             Text('#${task.tag}', style: _ts(t.sub, 12)),
             const SizedBox(width: 14),
             Text(_dur(task.minutes), style: _ts(t.sub, 12, w: FontWeight.w600, tab: true)),
