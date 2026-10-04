@@ -6,11 +6,15 @@ class _TitleBar extends StatelessWidget {
     required this.shell,
     required this.sidebarOpen,
     required this.onToggleSidebar,
+    required this.notes,
+    required this.onOpenNotes,
   });
   final _T t;
   final ShellController shell;
   final bool sidebarOpen;
   final VoidCallback onToggleSidebar;
+  final NotesService notes;
+  final VoidCallback onOpenNotes;
 
   @override
   Widget build(BuildContext context) => DragToMoveArea(
@@ -24,6 +28,10 @@ class _TitleBar extends StatelessWidget {
           child: Row(children: [
             _WinBtn(t, Icons.view_sidebar_outlined, sidebarOpen ? 'Hide sidebar (Ctrl+B)' : 'Show sidebar (Ctrl+B)',
                 onToggleSidebar),
+            if (notes.recording) ...[
+              const SizedBox(width: 8),
+              _RecPill(t: t, notes: notes, onTap: onOpenNotes),
+            ],
             const Spacer(),
             _WinBtn(t, Icons.public, 'Screensaver map', shell.showMap),
             _WinBtn(t, Icons.picture_in_picture_alt_outlined, 'Minimize to island', () => shell.enterIsland()),
