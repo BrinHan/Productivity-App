@@ -6,6 +6,9 @@ C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/window
 C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/cnativeapi.dll
 C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/AssetManifest.bin
 C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/AssetManifest.bin.json
+C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/Geist.ttf
+C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/Inter.ttf
+C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/assets/fonts/PlusJakartaSans.ttf
 C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/assets/tray_icon.ico
 C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/FontManifest.json
 C:/Projects/Productivity-App/aod_world_map/build/windows/x64/runner/Debug/data/flutter_assets/fonts/MaterialIcons-Regular.otf
