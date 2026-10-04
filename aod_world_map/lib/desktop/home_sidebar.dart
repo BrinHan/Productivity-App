@@ -10,6 +10,7 @@ class _Sidebar extends StatelessWidget {
     required this.isDark,
     required this.onDark,
     required this.g,
+    required this.notes,
   });
   final _T t;
   final _View view;
@@ -18,14 +19,15 @@ class _Sidebar extends StatelessWidget {
   final VoidCallback onMap;
   final ValueChanged<bool> onDark;
   final GoogleService g;
+  final NotesService notes;
 
   Widget _group(String title) => Padding(
         padding: const EdgeInsets.fromLTRB(12, 18, 0, 6),
         child: Text(title, style: _ts(t.sub, 12, w: FontWeight.w600)),
       );
 
-  Widget _nav(IconData icon, String label, _View v, {bool check = false}) =>
-      _NavItem(t, icon, label, selected: view == v, check: check, onTap: () => onView(v));
+  Widget _nav(IconData icon, String label, _View v, {bool check = false, bool dot = false}) =>
+      _NavItem(t, icon, label, selected: view == v, check: check, dot: dot, onTap: () => onView(v));
 
   @override
   Widget build(BuildContext context) => Container(
@@ -45,6 +47,7 @@ class _Sidebar extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 _nav(Icons.home_outlined, 'Home', _View.home),
                 _nav(Icons.timer_outlined, 'Focus', _View.focus),
+                _nav(Icons.graphic_eq_rounded, 'Notes', _View.notes, dot: notes.recording),
                 _group('Day'),
                 _nav(Icons.event_available_outlined, 'Daily planning', _View.planning),
                 _nav(Icons.checklist_rounded, 'Daily task list', _View.tasks),
@@ -55,6 +58,10 @@ class _Sidebar extends StatelessWidget {
               ]),
             ),
           ),
+          if (notes.recording) ...[
+            _RecordingChip(t: t, notes: notes, onOpen: () => onView(_View.notes)),
+            const SizedBox(height: 8),
+          ],
           _AccountChip(t: t, g: g, selected: view == _View.account, onTap: () => onView(_View.account)),
           const SizedBox(height: 4),
           _nav(Icons.settings_outlined, 'Settings', _View.settings),
@@ -73,11 +80,12 @@ class _Sidebar extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  const _NavItem(this.t, this.icon, this.label, {this.selected = false, this.check = false, this.onTap});
+  const _NavItem(this.t, this.icon, this.label,
+      {this.selected = false, this.check = false, this.dot = false, this.onTap});
   final _T t;
   final IconData icon;
   final String label;
-  final bool selected, check;
+  final bool selected, check, dot;
   final VoidCallback? onTap;
 
   @override
@@ -96,6 +104,7 @@ class _NavItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: _ts(selected ? t.text : t.sub, 13.5, w: selected ? FontWeight.w600 : FontWeight.w500)),
             ),
+            if (dot) _RecDot(t.warn),
             if (check) Icon(Icons.check_rounded, size: 15, color: t.accent),
           ]),
         ),
