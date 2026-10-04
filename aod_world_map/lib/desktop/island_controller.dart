@@ -7,9 +7,11 @@ import 'package:flutter/foundation.dart';
 
 import 'agenda_service.dart';
 import 'google_service.dart';
+import 'meeting_detector.dart';
+import 'notes_service.dart';
 import 'planner_model.dart';
 
-enum IslandState { hidden, notch, idle, open, call, music, success }
+enum IslandState { hidden, notch, idle, open, call, music, success, meeting }
 
 enum IslandPage { home, music, stocks, today, settings }
 
@@ -113,6 +115,8 @@ class IslandController extends ChangeNotifier {
   PlannerModel? planner;
   final AgendaService agenda = AgendaService();
   final GoogleService google = GoogleService();
+  final NotesService notes = NotesService();
+  MeetingInfo? offer;
   Timer? _gTimer;
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
@@ -141,6 +145,8 @@ class IslandController extends ChangeNotifier {
 
   Future<void> load() async {
     await google.load();
+    notes.onOffer = offerMeeting;
+    notes.startWatching();
     _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
     try {
       final f = _file;
@@ -408,6 +414,8 @@ class IslandController extends ChangeNotifier {
       case IslandState.call:
         _set(IslandState.call);
         _later(const Duration(seconds: 15), decline);
+      case IslandState.meeting:
+        offerMeeting(MeetingInfo.demo());
       case IslandState.success:
         _set(IslandState.success);
         _later(const Duration(milliseconds: 2300), _afterSuccess);
@@ -423,6 +431,31 @@ class IslandController extends ChangeNotifier {
     _timer?.cancel();
     _set(IslandState.idle);
     if (!near) _hideSoon(1);
+  }
+
+  /// A meeting window appeared: ask from the island whether to take notes.
+  void offerMeeting(MeetingInfo m) {
+    if (state == IslandState.call || state == IslandState.success) return;
+    offer = m;
+    _set(IslandState.meeting);
+    notifyListeners();
+    _later(const Duration(seconds: 25), declineMeeting);
+  }
+
+  void acceptMeeting() {
+    final m = offer;
+    if (state != IslandState.meeting || m == null) return;
+    _timer?.cancel();
+    offer = null;
+    _set(near ? _resting : IslandState.hidden);
+    notes.start(m);
+  }
+
+  void declineMeeting() {
+    if (state != IslandState.meeting) return;
+    _timer?.cancel();
+    offer = null;
+    _set(near ? _resting : IslandState.hidden);
   }
 
   void reset() {
@@ -463,6 +496,7 @@ class IslandController extends ChangeNotifier {
     agenda.dispose();
     _gTimer?.cancel();
     google.dispose();
+    notes.dispose();
     super.dispose();
   }
 }
