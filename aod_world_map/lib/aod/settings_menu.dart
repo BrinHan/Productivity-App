@@ -95,6 +95,7 @@ class SettingsMenu extends StatelessWidget {
                 _chip(p, 'Incoming call', IslandState.call),
                 _chip(p, 'Music', IslandState.music),
                 _chip(p, 'Face ID', IslandState.success),
+                _chip(p, 'Meeting', IslandState.meeting),
               ]),
               const SizedBox(height: 10),
               ClipRRect(
