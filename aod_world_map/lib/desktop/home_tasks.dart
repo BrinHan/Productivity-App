@@ -52,34 +52,70 @@ class _AddTaskRowState extends State<_AddTaskRow> {
   }
 }
 
+/// Bottom drawer: handle, centred title and description, body, footer buttons.
+Future<T?> _drawer<T>(
+  BuildContext context,
+  _T t, {
+  required String title,
+  required String description,
+  required Widget Function(void Function(T?) close) body,
+  required List<Widget> Function(void Function(T?) close) footer,
+}) {
+  return showModalBottomSheet<T>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: t.surface,
+    barrierColor: Colors.black.withValues(alpha: 0.6),
+    constraints: const BoxConstraints(maxWidth: double.infinity),
+    shape: RoundedRectangleBorder(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+      side: BorderSide(color: t.line),
+    ),
+    builder: (sheet) {
+      void close(T? v) => Navigator.of(sheet).pop(v);
+      return Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 16),
+          Container(
+            width: 100,
+            height: 8,
+            decoration: BoxDecoration(color: t.raised, borderRadius: BorderRadius.circular(4)),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 448),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(title, textAlign: TextAlign.center, style: _ts(t.text, 18, w: FontWeight.w600, ls: -0.3)),
+                const SizedBox(height: 6),
+                Text(description, textAlign: TextAlign.center, style: _ts(t.sub, 14, h: 1.45)),
+                const SizedBox(height: 20),
+                body(close),
+                const SizedBox(height: 24),
+                Row(children: footer(close)),
+              ]),
+            ),
+          ),
+        ]),
+      );
+    },
+  );
+}
+
 Future<void> _rename(BuildContext context, _T t, PlannerModel p, Task task) async {
   final ctl = TextEditingController(text: task.title);
-  final v = await showDialog<String>(
-    context: context,
-    builder: (dctx) => AlertDialog(
-      backgroundColor: t.surface,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(_rLg),
-        side: BorderSide(color: t.line),
-      ),
-      title: Text('Rename task', style: _ts(t.text, 16, w: FontWeight.w700)),
-      content: SizedBox(
-        width: 340,
-        child: TextField(
-          controller: ctl,
-          autofocus: true,
-          style: _ts(t.text, 13),
-          cursorColor: t.accent,
-          decoration: _deco(t, 'Task name'),
-          onSubmitted: (s) => Navigator.of(dctx).pop(s),
-        ),
-      ),
-      actions: [
-        _Btn(t, 'Cancel', () => Navigator.of(dctx).pop(), compact: true),
-        _Btn(t, 'Save', () => Navigator.of(dctx).pop(ctl.text), primary: true, compact: true),
-      ],
-    ),
+  final v = await _drawer<String>(
+    context,
+    t,
+    title: 'Rename task',
+    description: 'Give this task a clearer name.',
+    body: (close) => _Labeled(t, 'Task name', ctl, autofocus: true, onSubmitted: (s) => close(s)),
+    footer: (close) => [
+      Expanded(child: _Btn(t, 'Save', () => close(ctl.text), primary: true, fill: true)),
+      const SizedBox(width: 12),
+      Expanded(child: _Btn(t, 'Cancel', () => close(null), fill: true)),
+    ],
   );
   ctl.dispose();
   if (v != null && v.trim().isNotEmpty) p.rename(task, v.trim());
@@ -202,9 +238,7 @@ class _TaskCard extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Text(task.title,
-                      style: _ts(t.text, 14,
-                          w: FontWeight.w600, h: 1.3, deco: task.done ? TextDecoration.lineThrough : null)),
+                  child: _StrikeText(t, task.title, task.done, size: 14, w: FontWeight.w600, h: 1.3),
                 ),
                 for (final s in task.subs)
                   Padding(
