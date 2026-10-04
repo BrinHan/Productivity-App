@@ -1,20 +1,29 @@
 part of 'home_page.dart';
 
 class _TitleBar extends StatelessWidget {
-  const _TitleBar({required this.t, required this.shell});
+  const _TitleBar({
+    required this.t,
+    required this.shell,
+    required this.sidebarOpen,
+    required this.onToggleSidebar,
+  });
   final _T t;
   final ShellController shell;
+  final bool sidebarOpen;
+  final VoidCallback onToggleSidebar;
 
   @override
   Widget build(BuildContext context) => DragToMoveArea(
         child: Container(
           height: 40,
-          padding: const EdgeInsets.only(left: 16, right: 6),
+          padding: const EdgeInsets.only(left: 8, right: 6),
           decoration: BoxDecoration(
             color: t.side,
             border: Border(bottom: BorderSide(color: t.line)),
           ),
           child: Row(children: [
+            _WinBtn(t, Icons.view_sidebar_outlined, sidebarOpen ? 'Hide sidebar (Ctrl+B)' : 'Show sidebar (Ctrl+B)',
+                onToggleSidebar),
             const Spacer(),
             _WinBtn(t, Icons.public, 'Screensaver map', shell.showMap),
             _WinBtn(t, Icons.picture_in_picture_alt_outlined, 'Minimize to island', () => shell.enterIsland()),
