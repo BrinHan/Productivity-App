@@ -57,6 +57,7 @@ class _Sidebar extends StatelessWidget {
           ),
           _AccountChip(t: t, g: g, selected: view == _View.account, onTap: () => onView(_View.account)),
           const SizedBox(height: 4),
+          _nav(Icons.settings_outlined, 'Settings', _View.settings),
           _NavItem(t, Icons.public, 'Screensaver map', onTap: onMap),
           const SizedBox(height: 12),
           Padding(
