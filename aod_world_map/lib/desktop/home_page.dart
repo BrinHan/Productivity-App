@@ -1,7 +1,9 @@
 import 'dart:async';
-import 'dart:io' show Platform, Process, ProcessStartMode;
+import 'dart:convert';
+import 'dart:io' show Directory, File, Platform, Process, ProcessStartMode;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../aod/sky_toggle.dart';
@@ -21,8 +23,9 @@ part 'home_shutdown.dart';
 part 'home_week.dart';
 part 'home_schedule.dart';
 part 'home_account.dart';
+part 'home_settings.dart';
 
-enum _View { home, focus, planning, tasks, shutdown, week, review, account }
+enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings }
 
 class HomePage extends StatefulWidget {
   const HomePage({
@@ -55,6 +58,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _Prefs.i.load();
     g.refresh();
     _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (!mounted) return;
@@ -73,39 +77,70 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final base = Theme.of(context);
     final t = _T(base.brightness == Brightness.dark);
+    final prefs = _Prefs.i;
+    final family = prefs.font;
     return Theme(
       data: base.copyWith(
-        textTheme: base.textTheme.apply(
-          fontFamily: 'Segoe UI Variable Display',
-          fontFamilyFallback: _fontFallback,
-        ),
+        textTheme: base.textTheme.apply(fontFamily: family, fontFamilyFallback: _fontFallback),
       ),
-      child: Scaffold(
-        backgroundColor: t.bg,
-        body: ListenableBuilder(
-          listenable: Listenable.merge([p, g]),
-          builder: (context, _) => Column(children: [
-            _TitleBar(t: t, shell: widget.shell),
-            Expanded(
-              child: LayoutBuilder(builder: (context, c) {
-                final showPanel = c.maxWidth > 1080 && _view != _View.account;
-                return Row(children: [
-                  _Sidebar(
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyB, control: true): () =>
+              prefs.setSidebar(!prefs.sidebarOpen),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            backgroundColor: t.bg,
+            body: DefaultTextStyle.merge(
+              style: TextStyle(fontFamily: family, fontFamilyFallback: _fontFallback),
+              child: ListenableBuilder(
+                listenable: Listenable.merge([p, g, prefs]),
+                builder: (context, _) => Column(children: [
+                  _TitleBar(
                     t: t,
-                    view: _view,
-                    shutdown: p.shutdownToday,
-                    onView: (v) => setState(() => _view = v),
-                    onMap: widget.shell.showMap,
-                    isDark: widget.isDark,
-                    onDark: widget.onDarkChanged,
-                    g: g,
+                    shell: widget.shell,
+                    sidebarOpen: prefs.sidebarOpen,
+                    onToggleSidebar: () => prefs.setSidebar(!prefs.sidebarOpen),
                   ),
-                  Expanded(child: _content(t)),
-                  if (showPanel) _SchedulePanel(t: t, p: p, g: g),
-                ]);
-              }),
+                  Expanded(
+                    child: LayoutBuilder(builder: (context, c) {
+                      final showPanel = prefs.showSchedule &&
+                          c.maxWidth > 1080 &&
+                          _view != _View.account &&
+                          _view != _View.settings;
+                      return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 280),
+                          curve: Curves.easeOutCubic,
+                          width: prefs.sidebarOpen ? 232 : 0,
+                          child: ClipRect(
+                            child: OverflowBox(
+                              alignment: Alignment.centerLeft,
+                              minWidth: 232,
+                              maxWidth: 232,
+                              child: _Sidebar(
+                                t: t,
+                                view: _view,
+                                shutdown: p.shutdownToday,
+                                onView: (v) => setState(() => _view = v),
+                                onMap: widget.shell.showMap,
+                                isDark: widget.isDark,
+                                onDark: widget.onDarkChanged,
+                                g: g,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(child: _content(t)),
+                        if (showPanel) _SchedulePanel(t: t, p: p, g: g),
+                      ]);
+                    }),
+                  ),
+                ]),
+              ),
             ),
-          ]),
+          ),
         ),
       ),
     );
@@ -136,6 +171,15 @@ class _HomePageState extends State<HomePage> {
         return _ReviewView(t: t, p: p);
       case _View.account:
         return _AccountView(t: t, g: g);
+      case _View.settings:
+        return _SettingsView(
+          t: t,
+          prefs: _Prefs.i,
+          isDark: widget.isDark,
+          onDark: widget.onDarkChanged,
+          g: g,
+          onAccount: () => setState(() => _view = _View.account),
+        );
     }
   }
 
