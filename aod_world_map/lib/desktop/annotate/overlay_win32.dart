@@ -25,6 +25,9 @@ class OverlayWin32 {
   static late int Function(int, int, int, int, ffi.Pointer<ffi.Uint8>, ffi.Pointer<ffi.Uint8>, int) _getDIBits;
   static late int Function(int) _deleteObject;
   static late int Function(int) _deleteDC;
+  static late int Function(int, int) _monitorFromPoint;
+  static late int Function(int, ffi.Pointer<ffi.Int32>) _getMonitorInfo;
+  static late int Function(int, int, int, int, int, int, int) _setWindowPos;
 
   static void _init() {
     if (_ready) return;
@@ -56,6 +59,14 @@ class OverlayWin32 {
         int Function(int, int, int, int, ffi.Pointer<ffi.Uint8>, ffi.Pointer<ffi.Uint8>, int)>('GetDIBits');
     _deleteObject = g.lookupFunction<ffi.Int32 Function(ffi.IntPtr), int Function(int)>('DeleteObject');
     _deleteDC = g.lookupFunction<ffi.Int32 Function(ffi.IntPtr), int Function(int)>('DeleteDC');
+    // POINT is passed by value; on x64 that is one 64-bit register.
+    _monitorFromPoint =
+        u.lookupFunction<ffi.IntPtr Function(ffi.Int64, ffi.Uint32), int Function(int, int)>('MonitorFromPoint');
+    _getMonitorInfo = u.lookupFunction<ffi.Int32 Function(ffi.IntPtr, ffi.Pointer<ffi.Int32>),
+        int Function(int, ffi.Pointer<ffi.Int32>)>('GetMonitorInfoW');
+    _setWindowPos = u.lookupFunction<
+        ffi.Int32 Function(ffi.IntPtr, ffi.IntPtr, ffi.Int32, ffi.Int32, ffi.Int32, ffi.Int32, ffi.Uint32),
+        int Function(int, int, int, int, int, int, int)>('SetWindowPos');
     _ready = true;
   }
 
@@ -94,6 +105,32 @@ class OverlayWin32 {
       return ui.Offset(p[0].toDouble(), p[1].toDouble());
     } finally {
       calloc.free(p);
+    }
+  }
+
+  /// Moves the overlay over the whole monitor the cursor is on, if it is not
+  /// there already (a standby overlay waits wherever it was started). Like
+  /// main.cpp: hop onto the monitor first so its DPI applies, then size.
+  static void coverCursorMonitor() {
+    _init();
+    final h = hwnd;
+    if (h == 0) return;
+    final c = cursor();
+    final pt = (c.dy.toInt() << 32) | (c.dx.toInt() & 0xFFFFFFFF);
+    final mon = _monitorFromPoint(pt, 2); // MONITOR_DEFAULTTONEAREST
+    if (mon == 0) return;
+    final mi = calloc<ffi.Int32>(10); // MONITORINFO
+    try {
+      mi[0] = 40; // cbSize
+      if (_getMonitorInfo(mon, mi) == 0) return;
+      final r = ui.Rect.fromLTRB(mi[1].toDouble(), mi[2].toDouble(), mi[3].toDouble(), mi[4].toDouble());
+      if (windowRect() == r) return;
+      const topmost = -1, flags = 0x0010; // HWND_TOPMOST, SWP_NOACTIVATE
+      final x = r.left.toInt(), y = r.top.toInt();
+      _setWindowPos(h, topmost, x, y, 200, 200, flags);
+      _setWindowPos(h, topmost, x, y, r.width.toInt(), r.height.toInt(), flags);
+    } finally {
+      calloc.free(mi);
     }
   }
 
