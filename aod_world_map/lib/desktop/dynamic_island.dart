@@ -64,6 +64,10 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   late final Spring _h = Spring(_sizeFor(_shown).height);
   late final Spring _dy = Spring(_dyFor(_shown));
 
+  /// Bumped every spring step. Only the outline (size + clip) listens, so
+  /// the content inside is built once per state, not once per frame.
+  final ValueNotifier<int> _frame = ValueNotifier(0);
+
   IslandState get _effective {
     final s = widget.controller.state;
     return (s == IslandState.hidden && widget.showWhenHidden) ? IslandState.idle : s;
@@ -122,6 +126,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   void dispose() {
     widget.controller.removeListener(_onChange);
     _ticker.dispose();
+    _frame.dispose();
     super.dispose();
   }
 
@@ -180,7 +185,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
       widget.controller.pillDy = _dy.value;
     }
     if (_w.settled && _h.settled && _dy.settled) _ticker.stop();
-    setState(() {});
+    _frame.value++;
   }
 
   void _onPillTap() {
@@ -243,77 +248,91 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final w = math.max(_w.value, 0.0), h = math.max(_h.value, 0.0);
-    // Hidden = nothing on screen (no minimum-size stub).
-    if (_shown == IslandState.hidden && h < 1.0) return const SizedBox.shrink();
-    final f = notchEar(h);
-    final r = math.min(h * 0.5, 34.0);
     final size = _sizeFor(_shown);
-
-    return Transform.translate(
-      offset: Offset(0, _dy.value),
-      child: SizedBox(
-        width: w + 2 * f,
-        height: h,
-        child: ClipPath(
-          clipper: NotchClipper(w, h, f, r),
-          clipBehavior: Clip.antiAlias,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _onPillTap,
-            child: HeightFade(
-              height: h,
-              child: Stack(children: [
-                Positioned(
-                  left: f,
-                  top: 0,
-                  width: w,
-                  height: h,
-                  child: OverflowBox(
-                    minWidth: 0,
-                    minHeight: 0,
-                    maxWidth: double.infinity,
-                    maxHeight: double.infinity,
-                    child: DefaultTextStyle(
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Inter',
-                        fontFamilyFallback: islandFontFallback,
-                        fontSize: 14,
-                        decoration: TextDecoration.none,
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 380),
-                        reverseDuration: const Duration(milliseconds: 140),
-                        transitionBuilder: (child, anim) => FadeTransition(
-                          opacity: anim.drive(CurveTween(curve: const Interval(0.45, 1.0))),
-                          child: child,
-                        ),
-                        child: KeyedSubtree(
-                          key: ValueKey(_shown),
-                          child: SizedBox(
-                            width: size.width,
-                            height: size.height,
-                            child: _content(_shown),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: PipActor(
-                    c: widget.controller,
-                    spot: _pipSpot,
-                    idleBox: _idleBox(w, h, f),
-                    seatBox: _seatBox(w, h, f),
-                  ),
-                ),
-              ]),
+    // Built when the state changes; the springs only move the outline
+    // around it. Its own boundary keeps it from repainting as the clip moves.
+    final content = RepaintBoundary(
+      child: DefaultTextStyle(
+        style: const TextStyle(
+          color: Colors.white,
+          fontFamily: 'Inter',
+          fontFamilyFallback: islandFontFallback,
+          fontSize: 14,
+          decoration: TextDecoration.none,
+        ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 380),
+          reverseDuration: const Duration(milliseconds: 140),
+          transitionBuilder: (child, anim) => FadeTransition(
+            opacity: anim.drive(CurveTween(curve: const Interval(0.45, 1.0))),
+            child: child,
+          ),
+          child: KeyedSubtree(
+            key: ValueKey(_shown),
+            child: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: _content(_shown),
             ),
           ),
         ),
       ),
+    );
+
+    return AnimatedBuilder(
+      animation: _frame,
+      child: content,
+      builder: (context, content) {
+        final w = math.max(_w.value, 0.0), h = math.max(_h.value, 0.0);
+        // Hidden = nothing on screen (no minimum-size stub).
+        if (_shown == IslandState.hidden && h < 1.0) return const SizedBox.shrink();
+        final f = notchEar(h);
+        final r = math.min(h * 0.5, 34.0);
+
+        return Transform.translate(
+          offset: Offset(0, _dy.value),
+          child: SizedBox(
+            width: w + 2 * f,
+            height: h,
+            child: ClipPath(
+              clipper: NotchClipper(w, h, f, r),
+              clipBehavior: Clip.antiAlias,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _onPillTap,
+                child: HeightFade(
+                  height: h,
+                  child: Stack(children: [
+                    Positioned(
+                      left: f,
+                      top: 0,
+                      width: w,
+                      height: h,
+                      child: OverflowBox(
+                        minWidth: 0,
+                        minHeight: 0,
+                        maxWidth: double.infinity,
+                        maxHeight: double.infinity,
+                        child: content,
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: RepaintBoundary(
+                        child: PipActor(
+                          c: widget.controller,
+                          spot: _pipSpot,
+                          idleBox: _idleBox(w, h, f),
+                          seatBox: _seatBox(w, h, f),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
