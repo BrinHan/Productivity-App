@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -13,6 +15,12 @@ import 'vision_agent.dart';
 
 enum Tool { mouse, pen, highlighter, line, arrow, rect, ellipse, stamp, text, eraser, pixelEraser }
 
+/// The screen edge the toolbar is docked to. Left and right stand it upright.
+enum Dock { top, bottom, left, right }
+
+/// The three stroke widths the toolbar offers.
+const kInkWidths = <double>[1.5, 3, 6];
+
 const kInkColors = <Color>[
   Color(0xFFFF3B30),
   Color(0xFFFFD60A),
@@ -23,8 +31,11 @@ const kInkColors = <Color>[
 ];
 
 /// The annotation overlay as its own process (`--overlay`): a transparent,
-/// always-on-top window over the monitor the cursor was on when it started.
-/// The island starts it on demand, and closing it frees everything it used.
+/// always-on-top window over the monitor the cursor is on.
+///
+/// Starting a Flutter process takes a second or two, so the island keeps one
+/// waiting hidden (`--standby`) and opening it is only a show. Closing it
+/// wipes the drawing and hides it again, ready for next time.
 ///
 /// With the Mouse tool the window lets every click through to the apps
 /// underneath except over the toolbar and the Ask panel; with any drawing
@@ -42,7 +53,8 @@ class OverlayShell extends ChangeNotifier {
   // ---- what the toolbar shows
   Tool tool = Tool.mouse;
   Color color = kInkColors.first;
-  double width = 4; // 2 | 4 | 8
+  double width = 3; // one of kInkWidths
+  Dock dock = Dock.bottom;
   StampKind stamp = StampKind.check;
   bool askOpen = false;
   bool shown = true;
@@ -67,15 +79,19 @@ class OverlayShell extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// Single-instance lock. False if an overlay already runs (it was told to show).
-  Future<bool> claim({bool ask = false}) async {
+  /// Single-instance lock. False if an overlay already runs (it was told to
+  /// show, unless this one was only meant to wait in standby).
+  Future<bool> claim({bool ask = false, bool standby = false}) async {
     _server = await LinkServer.bind(kOverlayPort, _onMessage);
-    if (_server == null) await LinkServer.sendOnce(kOverlayPort, {'t': ask ? 'ask' : 'show'});
+    if (_server == null && !standby) await LinkServer.sendOnce(kOverlayPort, {'t': ask ? 'ask' : 'show'});
     return _server != null;
   }
 
-  Future<void> init({bool ask = false}) async {
+  /// [standby]: start hidden and wait to be shown.
+  Future<void> init({bool ask = false, bool standby = false}) async {
+    shown = !standby;
     await agent.loadKey();
+    await _loadPrefs();
     await windowManager.ensureInitialized();
     const options = WindowOptions(
       backgroundColor: Colors.transparent,
@@ -89,8 +105,9 @@ class OverlayShell extends ChangeNotifier {
       await _try(() => windowManager.setHasShadow(false));
       await _try(() => windowManager.setResizable(false));
       await _try(() => windowManager.setIgnoreMouseEvents(true, forward: true));
-      await windowManager.show(inactive: true);
+      if (!standby) await windowManager.show(inactive: true);
     });
+    if (standby) trimMemory();
     if (ask) openAsk();
     _poll = Timer.periodic(const Duration(milliseconds: 40), (_) => _tick());
   }
@@ -132,6 +149,28 @@ class OverlayShell extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDock(Dock d) {
+    if (d == dock) return;
+    dock = d;
+    notifyListeners();
+    _savePrefs();
+  }
+
+  File get _prefsFile => File('${appDataDir.path}${Platform.pathSeparator}overlay.json');
+
+  Future<void> _loadPrefs() async {
+    try {
+      final j = jsonDecode(await _prefsFile.readAsString());
+      if (j is! Map) return;
+      dock = Dock.values.where((d) => d.name == j['dock']).firstOrNull ?? dock;
+    } catch (_) {}
+  }
+
+  void _savePrefs() => _try(() async {
+        await _prefsFile.parent.create(recursive: true);
+        await _prefsFile.writeAsString(jsonEncode({'dock': dock.name}));
+      });
+
   void openAsk() {
     askOpen = true;
     _try(() => windowManager.focus());
@@ -152,12 +191,13 @@ class OverlayShell extends ChangeNotifier {
     _idleExit?.cancel();
     if (shown) return;
     shown = true;
+    OverlayWin32.coverCursorMonitor(); // it may have been waiting on another screen
     await _try(() => windowManager.show(inactive: true));
     await _try(() => windowManager.setAlwaysOnTop(true));
     notifyListeners();
   }
 
-  /// Hides but keeps the drawing; an overlay left hidden for a while quits.
+  /// Hides but keeps the drawing; left hidden for a while, it is wiped.
   Future<void> hide() async {
     if (!shown) return;
     shown = false;
@@ -166,9 +206,30 @@ class OverlayShell extends ChangeNotifier {
     notifyListeners();
     await _try(() => windowManager.hide());
     _idleExit?.cancel();
-    _idleExit = Timer(const Duration(minutes: 5), quit);
+    _idleExit = Timer(const Duration(minutes: 5), _wipe);
     trimMemory();
   }
+
+  /// The toolbar's close: wipe the drawing and go back to standby. The
+  /// process stays so the next open is instant.
+  Future<void> close() async {
+    _wipe();
+    // Let the empty frame land before hiding, so the next show never
+    // flashes the old drawing.
+    await WidgetsBinding.instance.endOfFrame;
+    await hide();
+    _idleExit?.cancel();
+  }
+
+  void _wipe() {
+    agent.reset();
+    store.reset();
+    askOpen = false;
+    tool = Tool.mouse;
+    notifyListeners();
+  }
+
+  /// Ends the process (the island quitting).
 
   Future<void> quit() async {
     _poll?.cancel();
