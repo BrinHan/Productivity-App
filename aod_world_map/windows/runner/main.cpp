@@ -25,10 +25,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // The island and overlay processes start small and hidden; Dart (or the
   // block below, for the overlay) places them before they are shown. Without this it would size up as a
   // 1280x720 window and take focus from whatever you are using.
-  bool island = false, overlay = false;
+  bool island = false, overlay = false, standby = false;
   for (const auto& a : command_line_arguments) {
     if (a == "--island") island = true;
     if (a == "--overlay") overlay = true;
+    if (a == "--standby") standby = true;
   }
   const bool quiet = island || overlay;
 
@@ -38,6 +39,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   Win32Window::Point origin = quiet ? Win32Window::Point(0, 0) : Win32Window::Point(10, 10);
   Win32Window::Size size = quiet ? Win32Window::Size(640, 480) : Win32Window::Size(1280, 720);
   window.SetShowWithoutActivating(quiet);
+  window.SetStartHidden(overlay && standby);
   const wchar_t* title = island ? L"AOD Island" : overlay ? L"AOD Overlay" : L"aod_world_map";
   if (!window.Create(title, origin, size)) {
     return EXIT_FAILURE;
