@@ -84,6 +84,11 @@ class _ApiError implements Exception {
 /// redirect, PKCE) plus Calendar, Tasks, Gmail, Contacts and a private
 /// Drive backup. One client for every user, so nobody visits Google Cloud.
 class GoogleService extends ChangeNotifier {
+  /// [backups]: run the Drive auto-backup timer (only one process should).
+  /// [inbox]: also load mail and birthdays (the island never shows them).
+  GoogleService({this.backups = true, this.inbox = true});
+  final bool backups, inbox;
+
   static const _scCalList = 'https://www.googleapis.com/auth/calendar.calendarlist.readonly';
   static const _scCalEv = 'https://www.googleapis.com/auth/calendar.events';
   static const _scCalEvRead = 'https://www.googleapis.com/auth/calendar.events.readonly'; // older grants
@@ -164,29 +169,69 @@ class GoogleService extends ChangeNotifier {
 
   File get _file => File('${_dir.path}${Platform.pathSeparator}google.json');
 
+  String? _lastRaw; // google.json as this process last read or wrote it
+
   Future<void> load() async {
     if (_loaded) return;
     _loaded = true;
     try {
-      if (await _file.exists()) {
-        final j = jsonDecode(await _file.readAsString());
-        if (j is Map) {
-          _userId = j['userClientId'] as String?;
-          _userSecret = j['userClientSecret'] as String?;
-          _refreshTok = j['refresh'] as String?;
-          _access = j['access'] as String?;
-          final exp = j['expiry'] as String?;
-          _expiry = exp == null ? null : DateTime.tryParse(exp);
-          email = j['email'] as String?;
-          _granted = {for (final s in (j['scopes'] as List? ?? const [])) '$s'};
-          autoBackup = (j['autoBackup'] as bool?) ?? false;
-          final ls = j['lastSync'] as String?;
-          lastSync = ls == null ? null : DateTime.tryParse(ls);
-        }
-      }
+      if (await _file.exists()) _apply(await _file.readAsString());
     } catch (_) {}
     if (autoBackup && signedIn) _startAuto();
     notifyListeners();
+  }
+
+  void _apply(String raw) {
+    final j = jsonDecode(raw);
+    if (j is! Map) return;
+    _lastRaw = raw;
+    _userId = j['userClientId'] as String?;
+    _userSecret = j['userClientSecret'] as String?;
+    _refreshTok = j['refresh'] as String?;
+    _access = j['access'] as String?;
+    final exp = j['expiry'] as String?;
+    _expiry = exp == null ? null : DateTime.tryParse(exp);
+    email = j['email'] as String?;
+    _granted = {for (final s in (j['scopes'] as List? ?? const [])) '$s'};
+    autoBackup = (j['autoBackup'] as bool?) ?? false;
+    final ls = j['lastSync'] as String?;
+    lastSync = ls == null ? null : DateTime.tryParse(ls);
+  }
+
+  /// The other process signed in or out, changed a setting, or refreshed a
+  /// token. A new account or new permissions mean a fresh sync.
+  Future<void> reloadFromDisk() async {
+    if (!_loaded || busy) return;
+    try {
+      final raw = await _file.exists() ? await _file.readAsString() : '';
+      if (raw == _lastRaw) return;
+      final wasRefresh = _refreshTok, wasScopes = _granted.join(' ');
+      if (raw.isEmpty) {
+        _refreshTok = null;
+        _access = null;
+        _lastRaw = raw;
+      } else {
+        _apply(raw);
+      }
+      _autoTimer?.cancel();
+      if (autoBackup && signedIn) _startAuto();
+      if (wasRefresh != _refreshTok || wasScopes != _granted.join(' ')) {
+        _updated = null;
+        if (signedIn) {
+          unawaited(refreshAll(force: true));
+        } else {
+          events = const [];
+          todos = const [];
+          datedTasks = const [];
+          mail = const [];
+          birthdays = const [];
+          calendars = const [];
+          unread = 0;
+          _months.clear();
+        }
+      }
+      notifyListeners();
+    } catch (_) {}
   }
 
   Future<void> _ensureLoaded() async {
@@ -196,7 +241,7 @@ class GoogleService extends ChangeNotifier {
   Future<void> _save() async {
     try {
       await _dir.create(recursive: true);
-      await _file.writeAsString(jsonEncode({
+      final raw = jsonEncode({
         'userClientId': _userId,
         'userClientSecret': _userSecret,
         'refresh': _refreshTok,
@@ -206,7 +251,9 @@ class GoogleService extends ChangeNotifier {
         'scopes': _granted.toList(),
         'autoBackup': autoBackup,
         'lastSync': lastSync?.toIso8601String(),
-      }));
+      });
+      _lastRaw = raw;
+      await _file.writeAsString(raw);
     } catch (_) {}
   }
 
@@ -475,7 +522,12 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       }
     }
 
-    await Future.wait([guard(_loadCalendar), guard(_loadTasks), guard(_loadMail), guard(_loadBirthdays)]);
+    await Future.wait([
+      guard(_loadCalendar),
+      guard(_loadTasks),
+      if (inbox) guard(_loadMail),
+      if (inbox) guard(_loadBirthdays),
+    ]);
     // Mark the Calendar page's months stale, keeping them on screen until
     // the fresh copy lands.
     _months.updateAll((_, v) => (at: DateTime(2000), items: v.items));
@@ -1127,6 +1179,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
 
   void _startAuto() {
     _autoTimer?.cancel();
+    if (!backups) return;
     _autoTimer = Timer.periodic(const Duration(minutes: 2), (_) => autoBackupTick());
   }
 
