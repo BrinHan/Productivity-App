@@ -31,12 +31,19 @@ class OverlayScreen extends StatefulWidget {
   State<OverlayScreen> createState() => _OverlayScreenState();
 }
 
-class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProviderStateMixin {
+class _OverlayScreenState extends State<OverlayScreen> with TickerProviderStateMixin {
   OverlayShell get shell => widget.shell;
   AnnotationStore get store => shell.store;
 
-  final _barKey = GlobalKey(), _panelKey = GlobalKey(), _textKey = GlobalKey();
+  final _barKey = GlobalKey(), _panelKey = GlobalKey(), _textKey = GlobalKey(), _flyKey = GlobalKey();
   final _focus = FocusNode();
+
+  // the open group flyout, anchored to its button
+  ToolGroup? _flyout;
+  final _links = {for (final g in ToolGroup.values) g: LayerLink()};
+
+  // vanishing pen strokes, fading out on their own
+  late final _VanishInk _vanish = _VanishInk(this);
 
   // toolbar drag: where the bar's top-left is while it is being dragged
   Offset? _drag;
@@ -76,6 +83,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     store.removeListener(_syncTicker);
     _ticker.dispose();
     _clock.dispose();
+    _vanish.dispose();
     _live.dispose();
     _focus.dispose();
     _text.dispose();
@@ -84,7 +92,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
   }
 
   List<Rect> _regions() => [
-        for (final k in [_barKey, _panelKey, _textKey])
+        for (final k in [_barKey, _panelKey, _textKey, _flyKey])
           if (k.currentContext?.findRenderObject() case final RenderBox b when b.attached)
             b.localToGlobal(Offset.zero) & b.size,
       ];
@@ -104,10 +112,11 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
 
   Tool get _tool => _invertedEraser ? Tool.eraser : shell.tool;
   double get _strokeWidth => shell.tool == Tool.highlighter ? math.max(12, shell.width * 4) : shell.width;
-  double get _eraserRadius => math.max(7, shell.width * 3);
+  double get _eraserRadius => math.max(7, shell.widths[ToolGroup.eraser]! * 3);
   Color get _ink => shell.tool == Tool.highlighter ? shell.color.withValues(alpha: 0.4) : shell.color;
 
   void _down(PointerDownEvent e) {
+    if (_flyout != null) setState(() => _flyout = null);
     if (!shell.drawing) return;
     if (e.buttons == kSecondaryMouseButton) {
       shell.setTool(Tool.mouse); // right-click: back to the mouse
@@ -124,6 +133,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     switch (_tool) {
       case Tool.pen:
       case Tool.highlighter:
+      case Tool.vanish:
       case Tool.pixelEraser:
         _filter = OneEuro();
         final erase = _tool == Tool.pixelEraser;
@@ -162,6 +172,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     switch (_tool) {
       case Tool.pen:
       case Tool.highlighter:
+      case Tool.vanish:
       case Tool.pixelEraser:
         if (!_live.active) return;
         final f = _filter!.filter(p, e.timeStamp.inMicroseconds / 1e6);
@@ -188,18 +199,18 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     switch (_tool) {
       case Tool.pen:
       case Tool.highlighter:
+      case Tool.vanish:
         if (pts.isEmpty) break;
         final keep = simplify(pts, 0.4);
-        store.add(
-          Layer.user,
-          StrokeShape(
-            color: _live.color,
-            width: _live.width,
-            points: [for (final i in keep) pts[i]],
-            pressures: pr == null ? null : [for (final i in keep) pr[i]],
-            highlighter: _live.highlighter,
-          ),
+        final stroke = StrokeShape(
+          color: _live.color,
+          width: _live.width,
+          points: [for (final i in keep) pts[i]],
+          pressures: pr == null ? null : [for (final i in keep) pr[i]],
+          highlighter: _live.highlighter,
         );
+        // Vanishing ink never enters the document or its undo history.
+        _tool == Tool.vanish ? _vanish.add(stroke) : store.add(Layer.user, stroke);
       case Tool.pixelEraser:
         if (pts.isEmpty) break;
         store.add(Layer.user, EraseShape(points: [for (final i in simplify(pts, 0.4)) pts[i]], radius: _live.width / 2));
@@ -278,13 +289,23 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
       return KeyEventResult.ignored;
     }
     if (key == LogicalKeyboardKey.escape) {
-      shell.drawing ? shell.setTool(Tool.mouse) : shell.hide();
+      if (_flyout != null) {
+        setState(() => _flyout = null);
+      } else {
+        shell.drawing ? shell.setTool(Tool.mouse) : shell.hide();
+      }
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyS && shell.tool == Tool.stamp) {
+      // S again cycles the stamp.
+      shell.setStamp(StampKind.values[(shell.stamp.index + 1) % StampKind.values.length]);
       return KeyEventResult.handled;
     }
     final t = const {
       'm': Tool.mouse,
       'p': Tool.pen,
       'h': Tool.highlighter,
+      'v': Tool.vanish,
       'l': Tool.line,
       'a': Tool.arrow,
       'r': Tool.rect,
@@ -303,7 +324,56 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
 
   static const _margin = EdgeInsets.fromLTRB(16, 16, 16, 84);
 
+  /// First click picks the group's tool; clicking it again opens or closes
+  /// its flyout.
+  void _onGroup(ToolGroup g) {
+    if (shell.group == g) {
+      setState(() => _flyout = _flyout == g ? null : g);
+    } else {
+      shell.setTool(shell.lastTool[g]!);
+      setState(() => _flyout = null);
+    }
+  }
+
+  void _onMouse() {
+    shell.setTool(Tool.mouse);
+    setState(() => _flyout = null);
+  }
+
+  /// The open flyout, pinned to its button on the screen side of the bar.
+  Widget _flyoutPanel(ToolGroup g) {
+    final (target, follower, gap) = switch (shell.dock) {
+      Dock.bottom => (Alignment.topCenter, Alignment.bottomCenter, const Offset(0, -10)),
+      Dock.top => (Alignment.bottomCenter, Alignment.topCenter, const Offset(0, 10)),
+      Dock.left => (Alignment.centerRight, Alignment.centerLeft, const Offset(10, 0)),
+      Dock.right => (Alignment.centerLeft, Alignment.centerRight, const Offset(-10, 0)),
+    };
+    return Positioned(
+      left: 0,
+      top: 0,
+      child: CompositedTransformFollower(
+        link: _links[g]!,
+        showWhenUnlinked: false,
+        targetAnchor: target,
+        followerAnchor: follower,
+        offset: gap,
+        child: TweenAnimationBuilder<double>(
+          key: ValueKey(g),
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          builder: (context, t, child) => Opacity(
+            opacity: t,
+            child: Transform.scale(scale: 0.94 + 0.06 * t, alignment: follower, child: child),
+          ),
+          child: _Flyout(key: _flyKey, shell: shell, group: g),
+        ),
+      ),
+    );
+  }
+
   void _dragStart(DragStartDetails d) {
+    _flyout = null;
     final box = _barKey.currentContext?.findRenderObject();
     if (box is! RenderBox || !box.attached) return;
     _dragPointer = _dragGrab = d.globalPosition;
@@ -386,6 +456,10 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
       key: _barKey,
       shell: shell,
       axis: dock == Dock.left || dock == Dock.right ? Axis.vertical : Axis.horizontal,
+      links: _links,
+      flyout: _flyout,
+      onGroup: _onGroup,
+      onMouse: _onMouse,
       onDragStart: _dragStart,
       onDragUpdate: _dragUpdate,
       onDragEnd: _dragEnd,
@@ -454,6 +528,9 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
                   ),
                 ),
                 IgnorePointer(
+                  child: RepaintBoundary(child: CustomPaint(painter: _VanishPainter(_vanish), size: Size.infinite)),
+                ),
+                IgnorePointer(
                   child: RepaintBoundary(child: CustomPaint(painter: _AiPainter(store, _clock), size: Size.infinite)),
                 ),
                 if (_textAt != null)
@@ -503,6 +580,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
                       ),
                     ),
                   ),
+                if (_flyout case final g? when drag == null) _flyoutPanel(g),
               ],
             ),
           );
@@ -513,6 +591,60 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
 }
 
 // ------------------------------------------------------------------ painters
+
+/// Vanishing pen: each stroke holds for a moment, then fades away. Runs its
+/// own ticker only while something is still on screen.
+class _VanishInk extends ChangeNotifier {
+  _VanishInk(TickerProvider vsync) {
+    _ticker = vsync.createTicker(_tick);
+  }
+  static const holdMs = 1800, fadeMs = 600;
+  late final Ticker _ticker;
+  final List<(StrokeShape, int)> strokes = [];
+
+  void add(StrokeShape s) {
+    strokes.add((s, DateTime.now().millisecondsSinceEpoch));
+    if (!_ticker.isActive) _ticker.start();
+    notifyListeners();
+  }
+
+  void _tick(Duration _) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    strokes.removeWhere((x) => now - x.$2 > holdMs + fadeMs);
+    if (strokes.isEmpty) _ticker.stop();
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+}
+
+class _VanishPainter extends CustomPainter {
+  _VanishPainter(this.ink) : super(repaint: ink);
+  final _VanishInk ink;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final (s, at) in ink.strokes) {
+      final a = (1 - (now - at - _VanishInk.holdMs) / _VanishInk.fadeMs).clamp(0.0, 1.0);
+      if (a <= 0) continue;
+      if (a >= 1) {
+        s.paint(canvas, size, 1);
+      } else {
+        canvas.saveLayer(s.bounds.inflate(s.width + 2), Paint()..color = Color.fromRGBO(0, 0, 0, a));
+        s.paint(canvas, size, 1);
+        canvas.restore();
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_VanishPainter old) => old.ink != ink;
+}
 
 /// Your layer, recorded into a Picture only when the document changes.
 class _UserLayerPainter extends CustomPainter {
@@ -593,19 +725,27 @@ class _AiPainter extends CustomPainter {
 const _panelBg = Color(0xF21C1C1E);
 
 /// The tool strip. Horizontal on the top and bottom edges; on the left and
-/// right it stands upright, top to bottom (wrapping into a second column if
-/// the screen is too short for one).
+/// right it stands upright, top to bottom. Tools that belong together share
+/// one button (see [ToolGroup]); their options live in a flyout.
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     super.key,
     required this.shell,
     required this.axis,
+    required this.links,
+    required this.flyout,
+    required this.onGroup,
+    required this.onMouse,
     required this.onDragStart,
     required this.onDragUpdate,
     required this.onDragEnd,
   });
   final OverlayShell shell;
   final Axis axis;
+  final Map<ToolGroup, LayerLink> links;
+  final ToolGroup? flyout;
+  final ValueChanged<ToolGroup> onGroup;
+  final VoidCallback onMouse;
   final GestureDragStartCallback onDragStart;
   final GestureDragUpdateCallback onDragUpdate;
   final VoidCallback onDragEnd;
@@ -620,8 +760,64 @@ class _Toolbar extends StatelessWidget {
         StampKind.step => Icons.looks_one_rounded,
       };
 
-  Widget _tool(Tool t, IconData icon, String tip) =>
-      _Btn(icon: icon, tip: tip, axis: axis, on: shell.tool == t, onTap: () => shell.setTool(t));
+  static IconData toolIcon(Tool t, StampKind stamp) => switch (t) {
+        Tool.mouse => Icons.near_me_rounded,
+        Tool.pen => Icons.edit_rounded,
+        Tool.highlighter => Icons.border_color_rounded,
+        Tool.vanish => Icons.gesture_rounded,
+        Tool.line => Icons.horizontal_rule_rounded,
+        Tool.arrow => Icons.north_east_rounded,
+        Tool.rect => Icons.crop_square_rounded,
+        Tool.ellipse => Icons.circle_outlined,
+        Tool.stamp => stampIcon(stamp),
+        Tool.text => Icons.text_fields_rounded,
+        Tool.eraser => Icons.auto_fix_normal_rounded,
+        Tool.pixelEraser => Icons.blur_on_rounded,
+      };
+
+  static const _groupTips = {
+    ToolGroup.pen: 'Pen (P)',
+    ToolGroup.shape: 'Shapes (R)',
+    ToolGroup.stamp: 'Stamp (S)',
+    ToolGroup.text: 'Text (T)',
+    ToolGroup.eraser: 'Eraser (E)',
+  };
+
+  Widget _group(ToolGroup g) {
+    final active = shell.group == g;
+    final hasColor = g != ToolGroup.eraser;
+    return CompositedTransformTarget(
+      link: links[g]!,
+      child: _Btn(
+        tip: '${_groupTips[g]}  ·  click again for options',
+        axis: axis,
+        on: active,
+        onTap: () => onGroup(g),
+        child: Stack(alignment: Alignment.center, children: [
+          Icon(toolIcon(shell.lastTool[g]!, shell.stamp), size: 18, color: active ? Colors.white : const Color(0xCCFFFFFF)),
+          // The group's colour, so you can see it without opening anything.
+          if (hasColor)
+            Positioned(
+              bottom: 3,
+              child: Container(
+                width: 12,
+                height: 3,
+                decoration: BoxDecoration(color: shell.colors[g], borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+          // Corner wedge: this button has more inside.
+          Positioned(
+            right: 4,
+            bottom: 4,
+            child: CustomPaint(
+              size: const Size(5, 5),
+              painter: _Wedge(flyout == g ? Colors.white : const Color(0x80FFFFFF)),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -658,33 +854,14 @@ class _Toolbar extends StatelessWidget {
                 ),
               ),
             ),
-            _tool(Tool.mouse, Icons.near_me_rounded, 'Mouse: click through (M / Esc)'),
-            _tool(Tool.pen, Icons.edit_rounded, 'Pen (P)'),
-            _tool(Tool.highlighter, Icons.border_color_rounded, 'Highlighter (H)'),
-            _tool(Tool.line, Icons.horizontal_rule_rounded, 'Line (L, Shift snaps)'),
-            _tool(Tool.arrow, Icons.north_east_rounded, 'Arrow (A, Shift snaps)'),
-            _tool(Tool.rect, Icons.crop_square_rounded, 'Rectangle (R, Shift square, Alt from centre)'),
-            _tool(Tool.ellipse, Icons.circle_outlined, 'Ellipse (O)'),
-            _tool(Tool.stamp, stampIcon(shell.stamp), 'Stamp (S, click again to change)'),
-            _tool(Tool.text, Icons.text_fields_rounded, 'Text (T)'),
-            _tool(Tool.eraser, Icons.auto_fix_normal_rounded, 'Eraser: whole marks (E)'),
-            _tool(Tool.pixelEraser, Icons.blur_on_rounded, 'Eraser: pixels (X)'),
-            sep,
-            for (final c in kInkColors)
-              _Dot(color: c, axis: axis, on: shell.color.toARGB32() == c.toARGB32(), onTap: () => shell.setColor(c)),
-            sep,
-            for (final (i, w) in kInkWidths.indexed)
-              _Btn(
-                tip: 'Width',
-                axis: axis,
-                on: shell.width == w,
-                onTap: () => shell.setWidth(w),
-                child: Container(
-                  width: 6.0 + 4 * i,
-                  height: 6.0 + 4 * i,
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                ),
-              ),
+            _Btn(
+              icon: Icons.near_me_rounded,
+              tip: 'Mouse: click through (M / Esc)',
+              axis: axis,
+              on: shell.tool == Tool.mouse,
+              onTap: onMouse,
+            ),
+            for (final g in ToolGroup.values) _group(g),
             sep,
             _Btn(
                 icon: Icons.undo_rounded,
@@ -728,6 +905,167 @@ class _Toolbar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Small filled triangle in a button's corner.
+class _Wedge extends CustomPainter {
+  const _Wedge(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) => canvas.drawPath(
+        Path()
+          ..moveTo(size.width, 0)
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close(),
+        Paint()..color = color,
+      );
+
+  @override
+  bool shouldRepaint(_Wedge old) => old.color != color;
+}
+
+/// A group's options: its types, then colour, then size.
+class _Flyout extends StatelessWidget {
+  const _Flyout({super.key, required this.shell, required this.group});
+  final OverlayShell shell;
+  final ToolGroup group;
+
+  static const _labels = {
+    Tool.pen: 'Pen',
+    Tool.highlighter: 'Highlighter',
+    Tool.vanish: 'Vanishing',
+    Tool.line: 'Line',
+    Tool.arrow: 'Arrow',
+    Tool.rect: 'Rectangle',
+    Tool.ellipse: 'Ellipse',
+    Tool.eraser: 'Whole marks',
+    Tool.pixelEraser: 'Pixels',
+  };
+
+  static const _sizeLabels = {
+    ToolGroup.pen: 'Thickness',
+    ToolGroup.shape: 'Border',
+    ToolGroup.stamp: 'Size',
+    ToolGroup.text: 'Size',
+    ToolGroup.eraser: 'Size',
+  };
+
+  Widget _label(String s) => Padding(
+        padding: const EdgeInsets.only(left: 2, bottom: 6),
+        child: Text(s, style: const TextStyle(color: Color(0x99FFFFFF), fontSize: 11, fontWeight: FontWeight.w600)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final g = group;
+    final types = kGroupTools[g]!;
+    final current = shell.lastTool[g]!;
+    final width = shell.widths[g]!;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+      decoration: BoxDecoration(
+        color: _panelBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0x1FFFFFFF)),
+        boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 18, offset: Offset(0, 6))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (types.length > 1) ...[
+            Wrap(spacing: 4, runSpacing: 4, children: [
+              for (final t in types)
+                _Chip(
+                  icon: _Toolbar.toolIcon(t, shell.stamp),
+                  label: _labels[t]!,
+                  on: current == t,
+                  onTap: () => shell.setTool(t),
+                ),
+            ]),
+            const SizedBox(height: 10),
+          ],
+          if (g == ToolGroup.stamp) ...[
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              for (final k in StampKind.values)
+                _Btn(
+                  icon: _Toolbar.stampIcon(k),
+                  tip: k.name,
+                  on: shell.stamp == k,
+                  onTap: () => shell.setStamp(k),
+                ),
+            ]),
+            const SizedBox(height: 10),
+          ],
+          if (g != ToolGroup.eraser) ...[
+            _label('Colour'),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              for (final c in kInkColors)
+                _Dot(
+                  color: c,
+                  on: shell.colors[g]!.toARGB32() == c.toARGB32(),
+                  onTap: () => shell.setColor(g, c),
+                ),
+            ]),
+            const SizedBox(height: 10),
+          ],
+          _label(_sizeLabels[g]!),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            for (final (i, w) in kInkWidths.indexed)
+              _Btn(
+                tip: _sizeLabels[g]!,
+                on: width == w,
+                onTap: () => shell.setWidth(g, w),
+                child: Container(
+                  width: 6.0 + 4 * i,
+                  height: 6.0 + 4 * i,
+                  decoration: BoxDecoration(
+                    color: g == ToolGroup.eraser ? Colors.white : shell.colors[g],
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0x55FFFFFF)),
+                  ),
+                ),
+              ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip({required this.icon, required this.label, required this.on, required this.onTap});
+  final IconData icon;
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: on ? const Color(0x33FFFFFF) : const Color(0x0FFFFFFF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(icon, size: 16, color: on ? Colors.white : const Color(0xB3FFFFFF)),
+              const SizedBox(width: 6),
+              Text(label,
+                  style: TextStyle(
+                      color: on ? Colors.white : const Color(0xB3FFFFFF),
+                      fontSize: 12.5,
+                      fontWeight: on ? FontWeight.w600 : FontWeight.w500)),
+            ]),
+          ),
+        ),
+      );
 }
 
 class _Sep extends StatelessWidget {
@@ -793,8 +1131,7 @@ class _Btn extends StatelessWidget {
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({required this.color, required this.on, required this.onTap, this.axis = Axis.horizontal});
-  final Axis axis;
+  const _Dot({required this.color, required this.on, required this.onTap});
   final Color color;
   final bool on;
   final VoidCallback onTap;
@@ -807,9 +1144,7 @@ class _Dot extends StatelessWidget {
           child: Container(
             width: 22,
             height: 22,
-            margin: axis == Axis.horizontal
-                ? const EdgeInsets.symmetric(horizontal: 2)
-                : const EdgeInsets.symmetric(vertical: 2),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
