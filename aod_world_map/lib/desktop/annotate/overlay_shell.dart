@@ -133,10 +133,20 @@ class OverlayShell extends ChangeNotifier {
       await windowManager.setAsFrameless();
       await _try(() => windowManager.setHasShadow(false));
       await _try(() => windowManager.setResizable(false));
-      await _try(() => windowManager.setIgnoreMouseEvents(true, forward: true));
+      await _clickThrough(true);
       if (!standby) await windowManager.show(inactive: true);
     });
-    if (standby) trimMemory();
+    if (standby) {
+      // main.cpp showed it off-screen, since Flutter never draws into a
+      // window that was hidden for its first frames. Once they (after
+      // runApp) have landed, hide it; show() moves it back on screen.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Timer(const Duration(milliseconds: 300), () async {
+          if (!shown) await _try(() => windowManager.hide());
+          trimMemory();
+        });
+      });
+    }
     if (ask) openAsk();
     _poll = Timer.periodic(const Duration(milliseconds: 40), (_) => _tick());
   }
@@ -334,7 +344,7 @@ class OverlayShell extends ChangeNotifier {
       final want = overUi || (drawing && !ctrlPeek);
       if (want != _interactive) {
         _interactive = want;
-        await _try(() => windowManager.setIgnoreMouseEvents(!want, forward: true));
+        await _clickThrough(!want);
       }
       if (_n % 12 == 0) {
         final fg = ForegroundApp.current();
@@ -344,6 +354,11 @@ class OverlayShell extends ChangeNotifier {
     } finally {
       _ticking = false;
     }
+  }
+
+  Future<void> _clickThrough(bool on) async {
+    await _try(() => windowManager.setIgnoreMouseEvents(on, forward: true));
+    if (on) OverlayWin32.showLayered();
   }
 
   double get _dpr => ui.PlatformDispatcher.instance.views.firstOrNull?.devicePixelRatio ?? 1;
