@@ -95,6 +95,7 @@ class SettingsMenu extends StatelessWidget {
                 _chip(p, 'Incoming call', IslandState.call),
                 _chip(p, 'Music', IslandState.music),
                 _chip(p, 'Face ID', IslandState.success),
+                _chip(p, 'Meeting', IslandState.meeting),
               ]),
               const SizedBox(height: 10),
               ClipRRect(
@@ -155,6 +156,14 @@ class SettingsMenu extends StatelessWidget {
                 const SizedBox(width: 6),
                 _seg(p, 'Off', !island.quietInChrome, () => island.setQuietInChrome(false)),
               ]),
+              const SizedBox(height: 8),
+              Row(children: [
+                Text('Music helper (uses RAM)', style: label),
+                const Spacer(),
+                _seg(p, 'On', island.musicHelper, () => island.setMusicHelper(true)),
+                const SizedBox(width: 6),
+                _seg(p, 'Off', !island.musicHelper, () => island.setMusicHelper(false)),
+              ]),
               const SizedBox(height: 10),
               Row(children: [
                 Text('Idle size', style: label),
@@ -188,7 +197,7 @@ class SettingsMenu extends StatelessWidget {
               const SizedBox(height: 8),
               _action(p, Icons.home_outlined, 'Exit to home page', onExit, filled: true),
               const SizedBox(height: 8),
-              _action(p, Icons.picture_in_picture_alt_outlined, 'Minimize to island', onMinimize),
+              _action(p, Icons.picture_in_picture_alt_outlined, 'Close to island', onMinimize),
               const SizedBox(height: 8),
               _action(p, Icons.power_settings_new, 'Quit', onQuit),
             ],

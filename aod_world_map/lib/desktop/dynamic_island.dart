@@ -7,31 +7,11 @@ import 'package:flutter/services.dart';
 import 'island_controller.dart';
 import 'island_pages.dart';
 import 'island_widgets.dart';
+import 'meeting_detector.dart';
 import 'notch_shape.dart';
+import 'height_fade.dart';
 import 'pip.dart';
-
-/// Damped spring (mass 1, stiffness 120, damping 14 -> ratio ~0.64). Every
-/// retarget starts from the live value and velocity, so it is interruptible.
-class _Spring {
-  _Spring(this.value) : target = value;
-  double value, target, velocity = 0;
-  static const stiffness = 120.0, damping = 14.0;
-
-  bool get settled => (value - target).abs() < 0.05 && velocity.abs() < 0.05;
-
-  void step(double dt) {
-    final n = (dt / 0.004).ceil().clamp(1, 12).toInt();
-    final h = dt / n;
-    for (var i = 0; i < n; i++) {
-      velocity += (-stiffness * (value - target) - damping * velocity) * h;
-      value += velocity * h;
-    }
-    if (settled) {
-      value = target;
-      velocity = 0;
-    }
-  }
-}
+import 'spring.dart';
 
 /// Transparent screen used while the app is in island mode.
 class IslandScreen extends StatelessWidget {
@@ -80,9 +60,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   late final Ticker _ticker = createTicker(_onTick);
   Duration _last = Duration.zero;
   late IslandState _shown = _effective;
-  late final _Spring _w = _Spring(_sizeFor(_shown).width);
-  late final _Spring _h = _Spring(_sizeFor(_shown).height);
-  late final _Spring _dy = _Spring(_dyFor(_shown));
+  late final Spring _w = Spring(_sizeFor(_shown).width);
+  late final Spring _h = Spring(_sizeFor(_shown).height);
+  late final Spring _dy = Spring(_dyFor(_shown));
 
   IslandState get _effective {
     final s = widget.controller.state;
@@ -92,6 +72,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   Size _sizeFor(IslandState s) {
     final c = widget.controller;
     final idle = c.idleSize;
+    if (s == IslandState.hidden) return Size(idle.width * 0.42, 0);
     switch (s) {
       case IslandState.open:
         return openSizeFor(c.page);
@@ -99,6 +80,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         return Size(math.max(400, idle.width + 60), math.max(84, idle.height + 16));
       case IslandState.music:
         return Size(math.max(330, idle.width + 40), math.max(68, idle.height + 8));
+      case IslandState.meeting:
+        return Size(math.max(480, idle.width + 120), math.max(88, idle.height + 20));
       case IslandState.success:
         return const Size(86, 86);
       case IslandState.notch:
@@ -110,7 +93,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   }
 
   double _dyFor(IslandState s) =>
-      s == IslandState.hidden ? -(widget.controller.idleSize.height + 24) : 0.0;
+      0.0;
 
   PipSpot get _pipSpot {
     if (_shown == IslandState.idle) return PipSpot.idle;
@@ -147,6 +130,16 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     final prev = _shown;
     _shown = next;
     final ns = _sizeFor(next);
+    final reveal = prev == IslandState.hidden, hiding = next == IslandState.hidden;
+    for (final s in [_w, _h]) {
+      if (hiding) {
+        s.set(240, 31);
+      } else if (reveal) {
+        s.set(190, 25);
+      } else {
+        s.set(120, 14);
+      }
+    }
     _w.target = ns.width;
     _h.target = ns.height;
     _dy.target = _dyFor(next);
@@ -219,6 +212,14 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
               : (np.artist.isEmpty ? 'Unknown artist' : np.artist),
           playing: np?.playing ?? false,
           art: np?.art,
+          bands: c.bands,
+        );
+      case IslandState.meeting:
+        return _MeetingContent(
+          info: c.offer,
+          ready: c.notes.ready,
+          onYes: c.acceptMeeting,
+          onNo: c.declineMeeting,
         );
       case IslandState.success:
         return const _SuccessContent();
@@ -242,7 +243,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final w = math.max(_w.value, 24.0), h = math.max(_h.value, 18.0);
+    final w = math.max(_w.value, 0.0), h = math.max(_h.value, 0.0);
+    // Hidden = nothing on screen (no minimum-size stub).
+    if (_shown == IslandState.hidden && h < 1.0) return const SizedBox.shrink();
     final f = notchEar(h);
     final r = math.min(h * 0.5, 34.0);
     final size = _sizeFor(_shown);
@@ -258,8 +261,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: _onPillTap,
-            child: ColoredBox(
-              color: Colors.black,
+            child: HeightFade(
+              height: h,
               child: Stack(children: [
                 Positioned(
                   left: f,
@@ -387,10 +390,12 @@ class _MusicContent extends StatelessWidget {
     required this.artist,
     required this.playing,
     required this.art,
+    required this.bands,
   });
   final String title, artist;
   final bool playing;
   final String? art;
+  final AudioBands bands;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -422,7 +427,7 @@ class _MusicContent extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            IslandWaveform(active: playing),
+            IslandWaveform(active: playing, bands: bands),
           ],
         ),
       );
@@ -514,4 +519,74 @@ class _FaceCheckPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FaceCheckPainter old) => false;
+}
+
+class _MeetingContent extends StatelessWidget {
+  const _MeetingContent({
+    required this.info,
+    required this.ready,
+    required this.onYes,
+    required this.onNo,
+  });
+  final MeetingInfo? info;
+  final bool ready;
+  final VoidCallback onYes, onNo;
+
+  Widget _pill(String label, VoidCallback onTap, {required bool filled}) => IslandPressable(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: filled ? Colors.white : const Color(0x24FFFFFF),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: filled ? Colors.black : Colors.white,
+              )),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final name = info?.appName ?? 'Meeting';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color(0x1FFFFFFF),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Icon(Icons.videocam_rounded, color: Colors.white, size: 24),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('$name meeting detected',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(ready ? 'Take notes and transcribe it?' : 'Transcription is not set up yet',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12.5, color: Color(0x99FFFFFF))),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        _pill('Not now', onNo, filled: false),
+        const SizedBox(width: 8),
+        _pill(ready ? 'Take notes' : 'Got it', ready ? onYes : onNo, filled: true),
+      ]),
+    );
+  }
 }

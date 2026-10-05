@@ -5,9 +5,15 @@ import 'dart:ui' show Color, Offset, Size;
 
 import 'package:flutter/foundation.dart';
 
-enum IslandState { hidden, notch, idle, open, call, music, success }
+import 'agenda_service.dart';
+import 'google_service.dart';
+import 'meeting_detector.dart';
+import 'notes_service.dart';
+import 'planner_model.dart';
 
-enum IslandPage { home, music, stocks, settings }
+enum IslandState { hidden, notch, idle, open, call, music, success, meeting }
+
+enum IslandPage { home, music, stocks, today, settings }
 
 enum ShortcutKind { web, app, screensaver, planner }
 
@@ -17,6 +23,28 @@ class NowPlaying {
   final bool playing;
   final String? art;
   String get key => '$title|$artist';
+}
+
+/// Live loudness of five bands of what the speakers play, for the
+/// visualizer: sub-bass, bass, low-mid, high-mid, treble, each 0..1.
+/// Arrives about 30 times a second; the bars read it every frame, so there
+/// is nothing to notify.
+class AudioBands {
+  List<double> values = const [0, 0, 0, 0, 0];
+  DateTime _at = DateTime(2000);
+  bool _seen = false;
+
+  /// Levels arrived a moment ago (something is playing right now).
+  bool get live => DateTime.now().difference(_at).inMilliseconds < 400;
+
+  /// The helper measures audio at all (the PowerShell fallback does not).
+  bool get supported => _seen;
+
+  void set(List<double> v) {
+    values = v;
+    _at = DateTime.now();
+    _seen = true;
+  }
 }
 
 class IslandShortcut {
@@ -81,6 +109,14 @@ List<IslandShortcut> defaultShortcuts() => [
     ];
 
 class IslandController extends ChangeNotifier {
+  /// [inApp]: the copy inside the app window. It edits the island's settings
+  /// and shares Google and notes with the planner, but the island process
+  /// owns the background work (meeting detection, recording, backups).
+  IslandController({this.inApp = false})
+      : google = GoogleService(backups: !inApp, inbox: inApp),
+        notes = NotesService(remote: inApp);
+  final bool inApp;
+
   IslandState state = IslandState.hidden;
   IslandPage page = IslandPage.home;
   NowPlaying? nowPlaying;
@@ -97,18 +133,31 @@ class IslandController extends ChangeNotifier {
   Color pipColor = const Color(0xFFF4EFE6);
   bool openOnHover = false;
   bool quietInChrome = true;
+  bool musicHelper = true; // the PowerShell media-session reader
   String stockSymbol = 'AAPL';
   String stockRange = '1d'; // 1d | 5d | 1mo
   bool stockCandles = true; // false = bars
   List<IslandShortcut> shortcuts = defaultShortcuts();
+  List<String> watchlist = ['AAPL', 'NVDA', 'TSLA', 'SNOW'];
+  List<CalendarFeed> calendarFeeds = [];
+
+  /// Set by main(): the same planner the Home page edits.
+  PlannerModel? planner;
+  final AgendaService agenda = AgendaService();
+  final GoogleService google;
+  final NotesService notes;
+  MeetingInfo? offer;
+  Timer? _gTimer;
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
+  final AudioBands bands = AudioBands();
 
   /// Live geometry, published by the real island window.
   Size pillSize = const Size(260, 57);
   double pillDy = 0;
 
   void Function(String)? sendMusic;
+  void Function(String)? openUrl;
 
   Size get idleSize => Size(idleWidth, (idleWidth * 0.22).roundToDouble());
   bool get visible => state != IslandState.hidden;
@@ -125,19 +174,54 @@ class IslandController extends ChangeNotifier {
     return File('$base${s}AodWorldMap${s}island.json');
   }
 
+  String? _lastJson; // island.json as this process last read or wrote it
+
   Future<void> load() async {
+    await google.load();
+    await loadSettings();
+    if (inApp) {
+      await notes.loadNotes();
+      return;
+    }
+    notes.onOffer = offerMeeting;
+    notes.startWatching();
+    _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
+  }
+
+  /// The other process changed a setting.
+  Future<void> reloadSettings() async {
+    if (_saveTimer?.isActive == true) return;
+    final before = _lastJson;
+    await loadSettings();
+    if (_lastJson != before) notifyListeners();
+  }
+
+  Future<void> loadSettings() async {
     try {
       final f = _file;
       if (!await f.exists()) return;
-      final j = jsonDecode(await f.readAsString());
+      final raw = await f.readAsString();
+      if (raw == _lastJson) return;
+      final j = jsonDecode(raw);
       if (j is! Map<String, dynamic>) return;
+      _lastJson = raw;
       idleWidth = ((j['idleWidth'] as num?) ?? 260).toDouble().clamp(180.0, 360.0).toDouble();
       pipColor = Color((j['pipColor'] as int?) ?? pipColor.toARGB32());
       openOnHover = (j['openOnHover'] as bool?) ?? false;
       quietInChrome = (j['quietInChrome'] as bool?) ?? true;
+      musicHelper = (j['musicHelper'] as bool?) ?? true;
       stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
       stockRange = (j['stockRange'] as String?) ?? '1d';
       stockCandles = (j['stockCandles'] as bool?) ?? true;
+      final w = j['watchlist'];
+      if (w is List) watchlist = [for (final e in w) if (e is String && e.isNotEmpty) e];
+      final cal = j['calendars'];
+      if (cal is List) {
+        calendarFeeds = [
+          for (final e in cal)
+            if (e is Map<String, dynamic>) CalendarFeed.fromJson(e),
+        ];
+      }
       final s = j['shortcuts'];
       if (s is List) {
         final list = [
@@ -155,16 +239,21 @@ class IslandController extends ChangeNotifier {
       try {
         final f = _file;
         await f.parent.create(recursive: true);
-        await f.writeAsString(jsonEncode({
+        final raw = jsonEncode({
           'idleWidth': idleWidth,
           'pipColor': pipColor.toARGB32(),
           'openOnHover': openOnHover,
           'quietInChrome': quietInChrome,
+          'musicHelper': musicHelper,
           'stockSymbol': stockSymbol,
           'stockRange': stockRange,
           'stockCandles': stockCandles,
+          'watchlist': watchlist,
+          'calendars': [for (final f in calendarFeeds) f.toJson()],
           'shortcuts': [for (final s in shortcuts) s.toJson()],
-        }));
+        });
+        _lastJson = raw;
+        await f.writeAsString(raw);
       } catch (_) {}
     });
   }
@@ -195,6 +284,12 @@ class IslandController extends ChangeNotifier {
     _persist();
   }
 
+  void setMusicHelper(bool v) {
+    musicHelper = v;
+    notifyListeners();
+    _persist();
+  }
+
   void setStockSymbol(String s) {
     stockSymbol = s.trim().toUpperCase();
     notifyListeners();
@@ -209,6 +304,39 @@ class IslandController extends ChangeNotifier {
 
   void setStockCandles(bool v) {
     stockCandles = v;
+    notifyListeners();
+    _persist();
+  }
+
+  void addWatch(String sym) {
+    final s = sym.trim().toUpperCase();
+    if (s.isEmpty || watchlist.contains(s)) return;
+    watchlist.add(s);
+    notifyListeners();
+    _persist();
+  }
+
+  void insertWatch(int index, String sym) {
+    if (watchlist.contains(sym)) return;
+    watchlist.insert(index.clamp(0, watchlist.length).toInt(), sym);
+    notifyListeners();
+    _persist();
+  }
+
+  void removeWatch(String sym) {
+    watchlist.remove(sym);
+    notifyListeners();
+    _persist();
+  }
+
+  void addFeed(CalendarFeed f) {
+    calendarFeeds.add(f);
+    notifyListeners();
+    _persist();
+  }
+
+  void removeFeed(CalendarFeed f) {
+    calendarFeeds.remove(f);
     notifyListeners();
     _persist();
   }
@@ -340,6 +468,8 @@ class IslandController extends ChangeNotifier {
       case IslandState.call:
         _set(IslandState.call);
         _later(const Duration(seconds: 15), decline);
+      case IslandState.meeting:
+        offerMeeting(MeetingInfo.demo());
       case IslandState.success:
         _set(IslandState.success);
         _later(const Duration(milliseconds: 2300), _afterSuccess);
@@ -357,12 +487,38 @@ class IslandController extends ChangeNotifier {
     if (!near) _hideSoon(1);
   }
 
+  /// A meeting window appeared: ask from the island whether to take notes.
+  void offerMeeting(MeetingInfo m) {
+    if (state == IslandState.call || state == IslandState.success) return;
+    offer = m;
+    _set(IslandState.meeting);
+    notifyListeners();
+    _later(const Duration(seconds: 25), declineMeeting);
+  }
+
+  void acceptMeeting() {
+    final m = offer;
+    if (state != IslandState.meeting || m == null) return;
+    _timer?.cancel();
+    offer = null;
+    _set(near ? _resting : IslandState.hidden);
+    notes.start(m);
+  }
+
+  void declineMeeting() {
+    if (state != IslandState.meeting) return;
+    _timer?.cancel();
+    offer = null;
+    _set(near ? _resting : IslandState.hidden);
+  }
+
   void reset() {
     _timer?.cancel();
     _overTimer?.cancel();
     near = false;
     _over = false;
     _demoMusic = false;
+    chromeMode = false;
     state = IslandState.hidden;
     notifyListeners();
   }
@@ -391,6 +547,10 @@ class IslandController extends ChangeNotifier {
     _overTimer?.cancel();
     _saveTimer?.cancel();
     gaze.dispose();
+    agenda.dispose();
+    _gTimer?.cancel();
+    google.dispose();
+    notes.dispose();
     super.dispose();
   }
 }

@@ -2,6 +2,9 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart' show Ticker;
+
+import 'island_controller.dart' show AudioBands;
 
 const islandFontFallback = ['SF Pro Display', 'Segoe UI', 'Roboto'];
 
@@ -152,49 +155,90 @@ class _IslandMarqueeState extends State<IslandMarquee> with SingleTickerProvider
       });
 }
 
-/// Five bars bouncing at different speeds; flat when nothing is playing.
+/// Five bars, low end on the left to treble on the right, following what the
+/// speakers play (see [AudioBands]). A bar jumps up on a hit and falls back
+/// more gently, like a VU meter. Without measured audio (the PowerShell
+/// fallback) the bars just bounce; with nothing playing they lie flat.
 class IslandWaveform extends StatefulWidget {
-  const IslandWaveform({super.key, required this.active});
+  const IslandWaveform({super.key, required this.active, this.bands});
   final bool active;
+  final AudioBands? bands;
 
   @override
   State<IslandWaveform> createState() => _IslandWaveformState();
 }
 
 class _IslandWaveformState extends State<IslandWaveform> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat();
+  late final Ticker _ticker = createTicker(_onTick);
+  final List<double> _lv = List.filled(5, 0.0);
+  Duration _last = Duration.zero;
+  double _t = 0;
 
   static const _cycles = [1, 2, 3, 2, 1];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.active) _ticker.start();
+  }
+
+  @override
+  void didUpdateWidget(IslandWaveform old) {
+    super.didUpdateWidget(old);
+    if (widget.active && !_ticker.isActive) {
+      _last = Duration.zero;
+      _ticker.start();
+    }
+  }
+
+  @override
   void dispose() {
-    _c.dispose();
+    _ticker.dispose();
     super.dispose();
+  }
+
+  void _onTick(Duration e) {
+    final dt = ((e - _last).inMicroseconds / 1e6).clamp(0.0, 0.1).toDouble();
+    _last = e;
+    _t += dt;
+    final b = widget.bands;
+    final measured = b != null && b.supported;
+    var settled = true;
+    for (var i = 0; i < 5; i++) {
+      final double target;
+      if (!widget.active) {
+        target = 0;
+      } else if (measured) {
+        target = b.live ? b.values[i] : 0;
+      } else {
+        target = math.sin(2 * math.pi * _cycles[i] * _t / 1.2 + i * 1.3).abs();
+      }
+      // Snap up on a hit, fall back gently.
+      final rate = target > _lv[i] ? 32.0 : 9.0;
+      _lv[i] += (target - _lv[i]) * (1 - math.exp(-rate * dt));
+      if (target > 0 || _lv[i] > 0.002) settled = false;
+    }
+    if (!widget.active && settled) _ticker.stop();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) => SizedBox(
         width: 32,
         height: 30,
-        child: AnimatedBuilder(
-          animation: _c,
-          builder: (_, _) => Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(5, (i) {
-              final v = widget.active
-                  ? math.sin(2 * math.pi * _cycles[i] * _c.value + i * 1.3).abs()
-                  : 0.0;
-              return Container(
-                width: 3.5,
-                height: 5 + 23 * v,
-                decoration: BoxDecoration(
-                  color: widget.active ? const Color(0xFF30D158) : const Color(0x55FFFFFF),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              );
-            }),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: List.generate(
+            5,
+            (i) => Container(
+              width: 3.5,
+              height: 5 + 23 * _lv[i],
+              decoration: BoxDecoration(
+                color: widget.active ? const Color(0xFF30D158) : const Color(0x55FFFFFF),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
           ),
         ),
       );

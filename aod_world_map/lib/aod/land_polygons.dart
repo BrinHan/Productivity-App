@@ -173,10 +173,3 @@ const _caspian = <double>[
 
 /// Inland water carved out of the land above.
 const List<List<double>> kWaterPolygons = [_caspian];
-/// Very coarse Antarctica so the southern edge of the map isn't blank.
-// const kAntarcticaPolygon = <double>[
-//   -180, -90, 180, -90, 180, -78, 165, -78, 160, -70, 140, -66, 110, -66, 80, -68, 50, -66,
-//   20, -70, 0, -70, -20, -72, -40, -78, -60, -75, -58, -64, -64, -65, -70, -72, -80, -73,
-//   -100, -74, -125, -74, -150, -77, -180, -78,
-// ];
-

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io' show exit;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemChannels;
 
 import 'aod/aod_face.dart';
 import 'aod/aod_palette.dart';
@@ -9,18 +11,60 @@ import 'aod/map_model.dart';
 import 'aod/settings_menu.dart';
 import 'desktop/dynamic_island.dart';
 import 'desktop/home_page.dart';
+import 'desktop/island_shell.dart';
 import 'desktop/planner_model.dart';
-import 'desktop/app_mode.dart';
 import 'desktop/window_shell.dart';
 
-Future<void> main() async {
+/// One exe, two processes: `--island` runs the always-on-top island on its
+/// own; anything else opens the app window (`--home` for the planner), which
+/// starts the island if it is not running yet.
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  final shell = ShellController();
+  if (args.contains('--island')) return _runIsland();
+
+  // Keep decoded images small (album art is the only real image).
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 20
+    ..maximumSizeBytes = 8 << 20;
+  final shell = ShellController(mode: args.contains('--home') ? AppMode.home : AppMode.map);
+  if (!await shell.claim()) exit(0); // already open; it was brought forward
   final planner = PlannerModel();
-  final map = MapModel();
-  await Future.wait([shell.init(), planner.load()]);
-  map.start();
+  await planner.load();
+  await shell.init(planner);
+  final map = MapModel()..start();
   runApp(AodApp(shell: shell, planner: planner, map: map));
+  WidgetsBinding.instance.addPostFrameCallback((_) => shell.settleWindow());
+}
+
+Future<void> _runIsland() async {
+  // The island draws album art and little else.
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 6
+    ..maximumSizeBytes = 2 << 20;
+  final planner = PlannerModel();
+  final shell = IslandShell(planner);
+  if (!await shell.claim()) exit(0); // one island at a time
+  // A small pill needs a small GPU cache; the default is sized for a
+  // full-screen app.
+  unawaited(SystemChannels.skia.invokeMethod<void>('Skia.setResourceCacheMaxBytes', 6 << 20).catchError((_) {}));
+  await planner.load();
+  await shell.init();
+  runApp(IslandApp(shell: shell));
+}
+
+/// The island process: just the island, on a transparent window.
+class IslandApp extends StatelessWidget {
+  const IslandApp({super.key, required this.shell});
+  final IslandShell shell;
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'AOD Island',
+        debugShowCheckedModeBanner: false,
+        color: Colors.transparent,
+        theme: ThemeData(brightness: Brightness.dark, useMaterial3: true, canvasColor: Colors.transparent),
+        home: IslandScreen(island: shell.island, onShortcut: shell.runShortcut),
+      );
 }
 
 class AodApp extends StatefulWidget {
@@ -49,8 +93,8 @@ class _AodAppState extends State<AodApp> {
         home: ListenableBuilder(
           listenable: widget.shell,
           builder: (context, _) {
-            // Only the active screen exists. The other two are disposed, so
-            // island mode holds none of the map or planner UI in memory.
+            // Only the active screen exists; the other is disposed. The
+            // island is its own process, so it is not drawn here.
             switch (widget.shell.mode) {
               case AppMode.map:
                 return AodScreen(
@@ -65,11 +109,6 @@ class _AodAppState extends State<AodApp> {
                   planner: widget.planner,
                   isDark: _dark,
                   onDarkChanged: _setDark,
-                );
-              case AppMode.island:
-                return IslandScreen(
-                  island: widget.shell.island,
-                  onShortcut: widget.shell.runShortcut,
                 );
             }
           },
@@ -152,8 +191,8 @@ class _AodScreenState extends State<AodScreen> {
                     onDarkChanged: widget.onDarkChanged,
                     island: widget.shell.island,
                     onExit: widget.shell.showHome,
-                    onMinimize: () => widget.shell.enterIsland(),
-                    onQuit: () => widget.shell.quit(),
+                    onMinimize: widget.shell.quit, // the island keeps running
+                    onQuit: widget.shell.quitAll,
                     onShortcut: widget.shell.runShortcut,
                     open: _settingsOpen,
                     onOpenChanged: (v) => setState(() => _settingsOpen = v),

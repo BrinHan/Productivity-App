@@ -68,20 +68,40 @@ class PlannerModel extends ChangeNotifier {
     return File('$base${s}AodWorldMap${s}planner.json');
   }
 
+  String? _lastJson; // what this process last read or wrote
+
   Future<void> load() async {
     try {
       final f = _file;
-      if (await f.exists()) {
-        final j = jsonDecode(await f.readAsString());
-        if (j is Map<String, dynamic>) {
-          for (final t in ((j['tasks'] as List?) ?? const [])) {
-            if (t is Map<String, dynamic>) tasks.add(Task.fromJson(t));
-          }
-          _shutdownDay = j['shutdownDay'] as String?;
-        }
-      }
+      if (await f.exists()) _apply(await f.readAsString());
     } catch (_) {}
     if (tasks.isEmpty) _seed();
+  }
+
+  bool _apply(String raw) {
+    final j = jsonDecode(raw);
+    if (j is! Map<String, dynamic>) return false;
+    tasks
+      ..clear()
+      ..addAll([
+        for (final t in ((j['tasks'] as List?) ?? const []))
+          if (t is Map<String, dynamic>) Task.fromJson(t),
+      ]);
+    _shutdownDay = j['shutdownDay'] as String?;
+    _lastJson = raw;
+    // Keep the Focus pick pointing at the fresh copy of the same task.
+    final f = focusTask;
+    if (f != null) focusTask = tasks.where((x) => x.id == f.id).firstOrNull;
+    return true;
+  }
+
+  /// The other process (island or app window) saved the planner.
+  Future<void> reload() async {
+    try {
+      final raw = await _file.readAsString();
+      if (raw == _lastJson || _saveTimer?.isActive == true) return;
+      if (_apply(raw)) notifyListeners();
+    } catch (_) {}
   }
 
   void _seed() {
@@ -110,10 +130,12 @@ class PlannerModel extends ChangeNotifier {
     try {
       final f = _file;
       await f.parent.create(recursive: true);
-      await f.writeAsString(jsonEncode({
+      final raw = jsonEncode({
         'tasks': [for (final t in tasks) t.toJson()],
         'shutdownDay': _shutdownDay,
-      }));
+      });
+      _lastJson = raw;
+      await f.writeAsString(raw);
     } catch (_) {}
   }
 
