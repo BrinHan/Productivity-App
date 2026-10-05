@@ -24,7 +24,9 @@ import 'desktop/window_shell.dart';
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   if (args.contains('--island')) return _runIsland();
-  if (args.contains('--overlay')) return _runOverlay(ask: args.contains('--ask'));
+  if (args.contains('--overlay')) {
+    return _runOverlay(ask: args.contains('--ask'), standby: args.contains('--standby'));
+  }
 
   // Keep decoded images small (album art is the only real image).
   PaintingBinding.instance.imageCache
@@ -56,13 +58,13 @@ Future<void> _runIsland() async {
   runApp(IslandApp(shell: shell));
 }
 
-Future<void> _runOverlay({required bool ask}) async {
+Future<void> _runOverlay({required bool ask, required bool standby}) async {
   PaintingBinding.instance.imageCache
     ..maximumSize = 4
     ..maximumSizeBytes = 2 << 20;
   final shell = OverlayShell();
-  if (!await shell.claim(ask: ask)) exit(0); // one overlay at a time
-  await shell.init(ask: ask);
+  if (!await shell.claim(ask: ask, standby: standby)) exit(0); // one overlay at a time
+  await shell.init(ask: ask, standby: standby);
   runApp(OverlayApp(shell: shell));
 }
 

@@ -92,6 +92,14 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     island.addListener(_onIslandChanged);
     _onIslandChanged();
     _poll = Timer.periodic(const Duration(milliseconds: 60), (_) => _tick());
+    // Have an overlay waiting so annotating opens instantly. Started a moment
+    // after the island so the two don't compete at login.
+    Timer(const Duration(seconds: 4), _warmOverlay);
+  }
+
+  /// Starts a hidden overlay unless one is already running.
+  Future<void> _warmOverlay() async {
+    if (!await LinkServer.isUp(kOverlayPort)) await spawnSelf(['--overlay', '--standby']);
   }
 
   // ---- messages and shared files ----------------------------------------
@@ -178,7 +186,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   Future<void> openOverlay({bool toggle = false, bool ask = false}) async {
     final t = ask ? 'ask' : (toggle ? 'toggle' : 'show');
     final sent = await LinkServer.sendOnce(kOverlayPort, {'t': t});
-    if (!sent) await spawnSelf(['--overlay', if (ask) '--ask']);
+    if (!sent) await spawnSelf(['--overlay', if (ask) '--ask']); // none waiting (it crashed or was ended)
   }
 
   Future<void> runShortcut(IslandShortcut s) async {
