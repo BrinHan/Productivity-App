@@ -55,8 +55,8 @@ class Win32Window {
   // Show without taking focus (the always-on-top island process).
   void SetShowWithoutActivating(bool v) { show_no_activate_ = v; }
 
-  // Stay hidden after the first frame (a standby overlay waits to be shown;
-  // Dart shows it through window_manager when it is wanted).
+  // Leave visibility alone after the first frame (a standby overlay is shown
+  // off-screen by main.cpp; Dart hides it and shows it when it is wanted).
   void SetStartHidden(bool v) { start_hidden_ = v; }
 
   // Return a RECT representing the bounds of the current client area.

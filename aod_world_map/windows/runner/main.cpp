@@ -59,6 +59,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     const UINT flags = SWP_NOACTIVATE | SWP_FRAMECHANGED;
     ::SetWindowPos(hwnd, HWND_TOPMOST, r.left, r.top, 200, 200, flags);
     ::SetWindowPos(hwnd, HWND_TOPMOST, r.left, r.top, r.right - r.left, r.bottom - r.top, flags);
+    // Covering the whole monitor, it would count as a fullscreen app and
+    // Windows would shade the taskbar under it. This property opts out.
+    ::SetPropW(hwnd, L"NonRudeHWND", reinterpret_cast<HANDLE>(TRUE));
+    if (standby) {
+      // Flutter never draws into a window that was hidden when its first
+      // frames came, so a standby overlay would open blank. Show it parked
+      // off every screen instead; Dart hides it once those frames have
+      // landed and moves it back when it is opened.
+      ::SetWindowPos(hwnd, HWND_TOPMOST, -32000, -32000, 0, 0, SWP_NOACTIVATE | SWP_NOSIZE);
+      ::ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+    }
   }
   window.SetQuitOnClose(true);
 
