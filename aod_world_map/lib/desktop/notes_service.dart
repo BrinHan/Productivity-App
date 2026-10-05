@@ -21,6 +21,13 @@ class _Chunk {
 /// helper (WASAPI process loopback), and transcribes it on this computer with
 /// whisper.cpp. Notes are saved as JSON files under %APPDATA%\AodWorldMap\notes.
 class NotesService extends ChangeNotifier {
+  /// [remote]: the app window's copy. The island process records; this one
+  /// mirrors its state through [applySnapshot] and forwards the buttons
+  /// through [send].
+  NotesService({this.remote = false});
+  final bool remote;
+  bool Function(Map<String, dynamic>)? send;
+
   final List<MeetingNote> notes = [];
   MeetingNote? active;
   MeetingInfo? current, detected;
@@ -75,6 +82,8 @@ class NotesService extends ChangeNotifier {
 
   // ----------------------------------------------------------- storage
 
+  Future<void> loadNotes() => _loadNotes();
+
   Future<void> _loadNotes() async {
     try {
       final d = notesDir;
@@ -88,6 +97,13 @@ class NotesService extends ChangeNotifier {
         } catch (_) {}
       }
       out.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+      // The live note comes from the island, not from its half-written file.
+      final live = active;
+      if (live != null) {
+        out
+          ..removeWhere((x) => x.id == live.id)
+          ..insert(0, live);
+      }
       notes
         ..clear()
         ..addAll(out);
@@ -106,11 +122,16 @@ class NotesService extends ChangeNotifier {
   void setText(MeetingNote n, String v) {
     n.text = v;
     _saveTimer?.cancel();
+    // The island is writing the live note's file, so it saves that text too.
+    if (remote && n.id == active?.id) {
+      _saveTimer = Timer(const Duration(milliseconds: 300), () => _send({'t': 'notes.text', 'id': n.id, 'text': v}));
+      return;
+    }
     _saveTimer = Timer(const Duration(milliseconds: 500), () => _save(n));
   }
 
   Future<void> delete(MeetingNote n) async {
-    if (n == active) return;
+    if (n.id == active?.id) return;
     notes.remove(n);
     notifyListeners();
     try {
@@ -156,7 +177,104 @@ class NotesService extends ChangeNotifier {
 
   // --------------------------------------------------------- recording
 
+  // ------------------------------------------------- island <-> app window
+
+  bool _send(Map<String, dynamic> msg) {
+    final ok = send?.call(msg) ?? false;
+    if (!ok) {
+      error = 'The island is not running, so recording is unavailable. Reopen the app to start it.';
+      notifyListeners();
+    }
+    return ok;
+  }
+
+  static Map<String, dynamic> _meetingJson(MeetingInfo m) =>
+      {'app': m.app.name, 'key': m.key, 'pid': m.pid, 'title': m.title};
+
+  static MeetingInfo? _meeting(Object? j) {
+    if (j is! Map) return null;
+    final app = MeetingApp.values.where((a) => a.name == j['app']).firstOrNull;
+    if (app == null) return null;
+    return MeetingInfo(app, '${j['key']}', (j['pid'] as num?)?.toInt() ?? 0, '${j['title'] ?? ''}');
+  }
+
+  /// Island side: everything the app window needs to draw the Notes page.
+  Map<String, dynamic> snapshot() => {
+        't': 'notes',
+        'state': state.name,
+        'status': status,
+        'error': error,
+        'detected': detected == null ? null : _meetingJson(detected!),
+        'active': active?.toJson(),
+        'pausedMs': _pausedFor.inMilliseconds,
+        'pauseAt': _pauseAt?.toIso8601String(),
+        'levels': [for (final v in levels) (v * 100).round()],
+      };
+
+  String _sig = '';
+
+  /// App side: take the island's state.
+  void applySnapshot(Map<String, dynamic> j) {
+    state = RecState.values.where((s) => s.name == j['state']).firstOrNull ?? RecState.idle;
+    status = j['status'] as String?;
+    error = j['error'] as String?;
+    detected = _meeting(j['detected']);
+    _pausedFor = Duration(milliseconds: (j['pausedMs'] as num?)?.toInt() ?? 0);
+    final pa = j['pauseAt'] as String?;
+    _pauseAt = pa == null ? null : DateTime.tryParse(pa);
+    final lv = j['levels'];
+    if (lv is List && lv.length == levels.length) {
+      for (var i = 0; i < lv.length; i++) {
+        levels[i] = ((lv[i] as num?) ?? 0) / 100;
+      }
+    }
+    final was = active;
+    final a = j['active'];
+    if (a is Map<String, dynamic>) {
+      final n = MeetingNote.fromJson(a);
+      // Keep what is being typed here; the island only echoes it back.
+      final local = notes.where((x) => x.id == n.id).firstOrNull;
+      if (local != null) {
+        n.text = _saveTimer?.isActive == true ? local.text : n.text;
+        notes[notes.indexOf(local)] = n;
+      } else {
+        notes.insert(0, n);
+      }
+      active = n;
+    } else {
+      active = null;
+    }
+    tick.value++;
+    // Level updates arrive ten times a second; rebuild the page only when
+    // something other than the level line changed.
+    final sig = '${state.name}|$status|$error|${detected?.key}|${active?.id}|${active?.segments.length}';
+    if (sig != _sig) {
+      _sig = sig;
+      notifyListeners();
+    }
+    if (was != null && active == null) _loadNotes(); // the finished note is on disk now
+  }
+
+  /// Island side: a button pressed in the app window.
+  void handleCommand(Map<String, dynamic> j) {
+    switch (j['t']) {
+      case 'notes.start':
+        final m = _meeting(j['m']);
+        if (m != null) start(m);
+      case 'notes.stop':
+        stop();
+      case 'notes.pause':
+        pause();
+      case 'notes.resume':
+        resume();
+      case 'notes.text':
+        final n = active;
+        if (n != null && n.id == j['id']) setText(n, '${j['text'] ?? ''}');
+    }
+  }
+
   Future<bool> start(MeetingInfo m) async {
+    if (remote) return _send({'t': 'notes.start', 'm': _meetingJson(m)});
     if (recording) return false;
     error = null;
     if (!Platform.isWindows) {
@@ -286,6 +404,10 @@ class NotesService extends ChangeNotifier {
   }
 
   void pause() {
+    if (remote) {
+      _send({'t': 'notes.pause'});
+      return;
+    }
     if (state != RecState.recording) return;
     state = RecState.paused;
     _pauseAt = DateTime.now();
@@ -293,6 +415,10 @@ class NotesService extends ChangeNotifier {
   }
 
   void resume() {
+    if (remote) {
+      _send({'t': 'notes.resume'});
+      return;
+    }
     if (state != RecState.paused) return;
     final at = _pauseAt;
     if (at != null) _pausedFor += DateTime.now().difference(at);
@@ -302,6 +428,10 @@ class NotesService extends ChangeNotifier {
   }
 
   Future<void> stop() async {
+    if (remote) {
+      _send({'t': 'notes.stop'});
+      return;
+    }
     if (!recording || state == RecState.finishing) return;
     final note = active;
     _stopping = true;
