@@ -39,7 +39,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
 
   double _winLeft = 0, _winTop = 0, _zoneCx = 0, _zoneTop = 0;
   int Function(int)? _asyncKey;
-  bool _lWas = false, _escWas = false;
+  bool _lWas = false, _escWas = false, _annotateWas = false, _askWas = false;
 
   Future<void> _try(Future<void> Function() f) async {
     try {
@@ -85,6 +85,10 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     await _initTray();
     island.sendMusic = (cmd) => _music?.send(cmd);
     island.openUrl = (u) => _try(() => openWeb(u));
+    island.startAnnotate = () {
+      island.close();
+      openOverlay();
+    };
     island.addListener(_onIslandChanged);
     _onIslandChanged();
     _poll = Timer.periodic(const Duration(milliseconds: 60), (_) => _tick());
@@ -169,6 +173,14 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     if (!sent) await spawnSelf([if (mode != null) '--$mode']);
   }
 
+  /// Shows the annotation overlay, starting it if it is not running.
+  /// [toggle] hides it instead when it is showing; [ask] opens the AI panel.
+  Future<void> openOverlay({bool toggle = false, bool ask = false}) async {
+    final t = ask ? 'ask' : (toggle ? 'toggle' : 'show');
+    final sent = await LinkServer.sendOnce(kOverlayPort, {'t': t});
+    if (!sent) await spawnSelf(['--overlay', if (ask) '--ask']);
+  }
+
   Future<void> runShortcut(IslandShortcut s) async {
     switch (s.kind) {
       case ShortcutKind.screensaver:
@@ -189,6 +201,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     _poll?.cancel();
     _trim?.cancel();
     await LinkServer.sendOnce(kAppPort, const {'t': 'quit'});
+    await LinkServer.sendOnce(kOverlayPort, const {'t': 'quit'});
     _music?.dispose();
     _watch?.stop();
     await _try(() => tray.trayManager.destroy());
@@ -243,6 +256,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
       await tray.trayManager.setContextMenu(tray.Menu(items: [
         tray.MenuItem(key: 'open', label: 'Open app'),
         tray.MenuItem(key: 'planner', label: 'Open planner'),
+        tray.MenuItem(key: 'annotate', label: 'Annotate screen  (Ctrl+Shift+A)'),
         tray.MenuItem.separator(),
         tray.MenuItem(key: 'island', label: 'Island: open'),
         tray.MenuItem(key: 'notch', label: 'Island: Chrome notch'),
@@ -267,6 +281,13 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     _ticking = true;
     try {
       _n++;
+      // Ctrl+Shift+A: annotate (again to hide). Ctrl+Shift+Space: ask the AI.
+      final chord = _down(0x11) && _down(0x10);
+      final annotate = chord && _down(0x41), ask = chord && _down(0x20);
+      if (annotate && !_annotateWas) unawaited(openOverlay(toggle: true));
+      if (ask && !_askWas) unawaited(openOverlay(ask: true));
+      _annotateWas = annotate;
+      _askWas = ask;
       if (_n % 5 == 0) {
         // Chrome in front? (our own windows being clicked don't count)
         final fg = ForegroundApp.current();
@@ -338,6 +359,8 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         openApp();
       case 'planner':
         openApp('home');
+      case 'annotate':
+        openOverlay();
       case 'island':
         island.preview(IslandState.open);
       case 'notch':
