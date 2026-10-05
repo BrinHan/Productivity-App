@@ -785,7 +785,6 @@ class _Toolbar extends StatelessWidget {
 
   Widget _group(ToolGroup g) {
     final active = shell.group == g;
-    final hasColor = g != ToolGroup.eraser;
     return CompositedTransformTarget(
       link: links[g]!,
       child: _Btn(
@@ -795,16 +794,6 @@ class _Toolbar extends StatelessWidget {
         onTap: () => onGroup(g),
         child: Stack(alignment: Alignment.center, children: [
           Icon(toolIcon(shell.lastTool[g]!, shell.stamp), size: 18, color: active ? Colors.white : const Color(0xCCFFFFFF)),
-          // The group's colour, so you can see it without opening anything.
-          if (hasColor)
-            Positioned(
-              bottom: 3,
-              child: Container(
-                width: 12,
-                height: 3,
-                decoration: BoxDecoration(color: shell.colors[g], borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
           // Corner wedge: this button has more inside.
           Positioned(
             right: 4,
