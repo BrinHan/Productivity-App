@@ -212,6 +212,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
               : (np.artist.isEmpty ? 'Unknown artist' : np.artist),
           playing: np?.playing ?? false,
           art: np?.art,
+          bands: c.bands,
         );
       case IslandState.meeting:
         return _MeetingContent(
@@ -389,10 +390,12 @@ class _MusicContent extends StatelessWidget {
     required this.artist,
     required this.playing,
     required this.art,
+    required this.bands,
   });
   final String title, artist;
   final bool playing;
   final String? art;
+  final AudioBands bands;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -424,7 +427,7 @@ class _MusicContent extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            IslandWaveform(active: playing),
+            IslandWaveform(active: playing, bands: bands),
           ],
         ),
       );

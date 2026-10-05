@@ -439,7 +439,7 @@ class _MusicPage extends StatelessWidget {
                     const SizedBox(width: 8),
                     _ctl(Icons.skip_next_rounded, 'next'),
                     const Spacer(),
-                    IslandWaveform(active: playing),
+                    IslandWaveform(active: playing, bands: c.bands),
                   ],
                 ),
               ],
