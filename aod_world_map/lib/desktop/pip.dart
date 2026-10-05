@@ -695,6 +695,16 @@ class _PipActorState extends State<PipActor>
   Offset _from = Offset.zero;
   final List<Offset> _trail = [];
 
+  /// Bumped every tick: Pip and its trail repaint from it without the
+  /// widget tree rebuilding. Only the hover/press area is a widget, and it
+  /// rebuilds only when Pip becomes touchable or changes size.
+  final ValueNotifier<int> _frame = ValueNotifier(0);
+  late final _PipLayerPainter _painter = _PipLayerPainter(this);
+  bool _interactive = false, _gone = true;
+  double _hitScale = 0;
+
+  double get _drawScale => _scale * _vis.clamp(0.0, 1.2);
+
   Rect get _box => _spot == PipSpot.seat ? widget.seatBox : widget.idleBox;
 
   @override
@@ -749,6 +759,7 @@ class _PipActorState extends State<PipActor>
   @override
   void dispose() {
     _ticker.dispose();
+    _frame.dispose();
     super.dispose();
   }
 
@@ -810,47 +821,33 @@ class _PipActorState extends State<PipActor>
       _vis = 0;
       _ticker.stop();
     }
-    setState(() {});
+    final interactive = _spot == PipSpot.seat && _ft < 0 && _vis > 0.6;
+    final gone = _vis < 0.01 && _spot == PipSpot.hidden;
+    if (interactive != _interactive ||
+        gone != _gone ||
+        (interactive && (_drawScale - _hitScale).abs() > 0.004)) {
+      setState(() {});
+    }
+    _frame.value++;
   }
 
   Offset _n(Offset p) => Offset(p.dx / _nominal, p.dy / _nominal);
 
   @override
   Widget build(BuildContext context) {
-    if (_vis < 0.01 && _spot == PipSpot.hidden) return const SizedBox.shrink();
-    final s = _scale * _vis.clamp(0.0, 1.2);
-    final interactive = _spot == PipSpot.seat && _ft < 0 && _vis > 0.6;
+    _gone = _vis < 0.01 && _spot == PipSpot.hidden;
+    _interactive = _spot == PipSpot.seat && _ft < 0 && _vis > 0.6;
+    if (_gone) return const SizedBox.shrink();
+    _frame.value++; // the colour or boxes may have changed with the widget
+    final layer = IgnorePointer(child: CustomPaint(painter: _painter, size: Size.infinite));
+    if (!_interactive) return layer;
 
-    Widget pip = SizedBox(
-      width: _nominal,
-      height: _nominal,
-      child: CustomPaint(painter: PipPainter(_m, widget.c.pipColor)),
-    );
-    pip = interactive
-        ? MouseRegion(
-            cursor: SystemMouseCursors.grab,
-            onEnter: (e) => _m.hoverMove(_n(e.localPosition)),
-            onHover: (e) => _m.hoverMove(_n(e.localPosition)),
-            onExit: (_) => _m.leave(),
-            child: Listener(
-              behavior: HitTestBehavior.opaque,
-              onPointerDown: (_) => _m.poke(),
-              child: pip,
-            ),
-          )
-        : IgnorePointer(child: pip);
-
+    // Seated: the same box Pip is drawn in, so hover lands where it did.
+    _hitScale = _drawScale;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (_trail.length > 1)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: CustomPaint(
-                painter: _TrailPainter(List.of(_trail), widget.c.pipColor),
-              ),
-            ),
-          ),
+        Positioned.fill(child: layer),
         Positioned(
           left: _pos.dx - _nominal / 2,
           top: _pos.dy - _nominal / 2,
@@ -858,7 +855,20 @@ class _PipActorState extends State<PipActor>
           height: _nominal,
           child: Transform.rotate(
             angle: _rot,
-            child: Transform.scale(scale: s, child: pip),
+            child: Transform.scale(
+              scale: _hitScale,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.grab,
+                onEnter: (e) => _m.hoverMove(_n(e.localPosition)),
+                onHover: (e) => _m.hoverMove(_n(e.localPosition)),
+                onExit: (_) => _m.leave(),
+                child: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (_) => _m.poke(),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -866,23 +876,33 @@ class _PipActorState extends State<PipActor>
   }
 }
 
-class _TrailPainter extends CustomPainter {
-  _TrailPainter(this.pts, this.color);
-  final List<Offset> pts;
-  final Color color;
+/// Pip and its flight trail, drawn straight from the actor's state.
+class _PipLayerPainter extends CustomPainter {
+  _PipLayerPainter(this.a) : super(repaint: a._frame);
+  final _PipActorState a;
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (var i = 0; i < pts.length; i++) {
-      final f = i / pts.length;
-      canvas.drawCircle(
-        pts[i],
-        2 + 5 * f,
-        Paint()..color = color.withValues(alpha: 0.05 + 0.35 * f),
-      );
+    final color = a.widget.c.pipColor;
+    final pts = a._trail;
+    if (pts.length > 1) {
+      for (var i = 0; i < pts.length; i++) {
+        final f = i / pts.length;
+        canvas.drawCircle(pts[i], 2 + 5 * f, Paint()..color = color.withValues(alpha: 0.05 + 0.35 * f));
+      }
     }
+    if (a._vis < 0.01 && a._spot == PipSpot.hidden) return;
+    const half = _PipActorState._nominal / 2;
+    canvas.save();
+    // Same as Transform.rotate + Transform.scale about the box centre.
+    canvas.translate(a._pos.dx, a._pos.dy);
+    canvas.rotate(a._rot);
+    canvas.scale(a._drawScale);
+    canvas.translate(-half, -half);
+    PipPainter(a._m, color).paint(canvas, const Size.square(_PipActorState._nominal));
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_TrailPainter old) => true;
+  bool shouldRepaint(_PipLayerPainter old) => old.a != a;
 }
