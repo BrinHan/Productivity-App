@@ -101,23 +101,52 @@ class IslandMarquee extends StatefulWidget {
 }
 
 class _IslandMarqueeState extends State<IslandMarquee> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 9))..repeat();
+  // Runs only while the text is too long to fit; a ticker left running
+  // would make the island redraw every frame for nothing.
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 9));
+  TextPainter? _tp;
+  bool _scroll = false;
+
+  TextPainter get _measured => _tp ??= TextPainter(
+        text: TextSpan(text: widget.text, style: widget.style),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+
+  @override
+  void didUpdateWidget(IslandMarquee old) {
+    super.didUpdateWidget(old);
+    if (old.text != widget.text || old.style != widget.style) {
+      _tp?.dispose();
+      _tp = null;
+    }
+  }
 
   @override
   void dispose() {
     _c.dispose();
+    _tp?.dispose();
     super.dispose();
+  }
+
+  void _setScrolling(bool v) {
+    if (v == _scroll) return;
+    _scroll = v;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_scroll) {
+        if (!_c.isAnimating) _c.repeat();
+      } else {
+        _c.stop();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, cons) {
-        final tp = TextPainter(
-          text: TextSpan(text: widget.text, style: widget.style),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout();
+        final tp = _measured;
         final tw = tp.width;
+        _setScrolling(tw > cons.maxWidth);
         if (tw <= cons.maxWidth) return Text(widget.text, style: widget.style, maxLines: 1);
 
         const gap = 36.0;
@@ -132,20 +161,24 @@ class _IslandMarqueeState extends State<IslandMarquee> with SingleTickerProvider
               height: tp.height,
               child: AnimatedBuilder(
                 animation: _c,
-                builder: (_, _) => OverflowBox(
+                // The text is laid out and recorded once; frames only slide it.
+                child: RepaintBoundary(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(widget.text, style: widget.style, maxLines: 1),
+                      const SizedBox(width: gap),
+                      Text(widget.text, style: widget.style, maxLines: 1),
+                    ],
+                  ),
+                ),
+                builder: (_, row) => OverflowBox(
                   alignment: Alignment.centerLeft,
                   minWidth: 0,
                   maxWidth: double.infinity,
                   child: Transform.translate(
                     offset: Offset(-_c.value * (tw + gap), 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(widget.text, style: widget.style, maxLines: 1),
-                        const SizedBox(width: gap),
-                        Text(widget.text, style: widget.style, maxLines: 1),
-                      ],
-                    ),
+                    child: row,
                   ),
                 ),
               ),
@@ -171,6 +204,7 @@ class IslandWaveform extends StatefulWidget {
 class _IslandWaveformState extends State<IslandWaveform> with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_onTick);
   final List<double> _lv = List.filled(5, 0.0);
+  final ValueNotifier<int> _frame = ValueNotifier(0); // bars repaint, nothing rebuilds
   Duration _last = Duration.zero;
   double _t = 0;
 
@@ -194,6 +228,7 @@ class _IslandWaveformState extends State<IslandWaveform> with SingleTickerProvid
   @override
   void dispose() {
     _ticker.dispose();
+    _frame.dispose();
     super.dispose();
   }
 
@@ -219,27 +254,37 @@ class _IslandWaveformState extends State<IslandWaveform> with SingleTickerProvid
       if (target > 0 || _lv[i] > 0.002) settled = false;
     }
     if (!widget.active && settled) _ticker.stop();
-    setState(() {});
+    _frame.value++;
   }
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 32,
-        height: 30,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(
-            5,
-            (i) => Container(
-              width: 3.5,
-              height: 5 + 23 * _lv[i],
-              decoration: BoxDecoration(
-                color: widget.active ? const Color(0xFF30D158) : const Color(0x55FFFFFF),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-        ),
+  Widget build(BuildContext context) => RepaintBoundary(
+        child: CustomPaint(size: const Size(32, 30), painter: _BarsPainter(this)),
       );
+}
+
+/// The five bars: 3.5 wide, spread across 32, centred vertically.
+class _BarsPainter extends CustomPainter {
+  _BarsPainter(this.s) : super(repaint: s._frame);
+  final _IslandWaveformState s;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const bw = 3.5;
+    final gap = (size.width - 5 * bw) / 4;
+    final paint = Paint()..color = s.widget.active ? const Color(0xFF30D158) : const Color(0x55FFFFFF);
+    for (var i = 0; i < 5; i++) {
+      final h = 5 + 23 * s._lv[i];
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(i * (bw + gap), (size.height - h) / 2, bw, h),
+          const Radius.circular(2),
+        ),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BarsPainter old) => old.s != s || old.s.widget.active != s.widget.active;
 }
