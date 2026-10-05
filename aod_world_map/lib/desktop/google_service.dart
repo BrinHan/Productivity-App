@@ -26,6 +26,41 @@ class GoogleTask {
   final DateTime? due;
 }
 
+class GoogleCalendar {
+  const GoogleCalendar(this.id, this.name, this.color, this.primary, this.writable);
+  final String id, name;
+  final int color; // ARGB
+  final bool primary, writable;
+}
+
+/// A calendar event with the calendar it came from, for the Calendar page.
+/// An empty [id] is a draft that has not been saved yet.
+class CalEvent {
+  const CalEvent(this.id, this.calId, this.title, this.start, this.end, this.allDay, this.location, this.color,
+      {this.description = ''});
+  final String id, calId, title, location, description;
+  final DateTime start, end;
+  final bool allDay;
+  final int? color; // the event's own colour, when it overrides the calendar's
+
+  bool get isDraft => id.isEmpty;
+  bool same(CalEvent o) => id == o.id && calId == o.calId;
+
+  CalEvent copyWith({
+    String? id,
+    String? calId,
+    String? title,
+    DateTime? start,
+    DateTime? end,
+    bool? allDay,
+    String? location,
+    String? description,
+  }) =>
+      CalEvent(id ?? this.id, calId ?? this.calId, title ?? this.title, start ?? this.start, end ?? this.end,
+          allDay ?? this.allDay, location ?? this.location, color,
+          description: description ?? this.description);
+}
+
 class GoogleMail {
   const GoogleMail(this.id, this.threadId, this.from, this.subject);
   final String id, threadId, from, subject;
@@ -50,7 +85,8 @@ class _ApiError implements Exception {
 /// Drive backup. One client for every user, so nobody visits Google Cloud.
 class GoogleService extends ChangeNotifier {
   static const _scCalList = 'https://www.googleapis.com/auth/calendar.calendarlist.readonly';
-  static const _scCalEv = 'https://www.googleapis.com/auth/calendar.events.readonly';
+  static const _scCalEv = 'https://www.googleapis.com/auth/calendar.events';
+  static const _scCalEvRead = 'https://www.googleapis.com/auth/calendar.events.readonly'; // older grants
   static const _scTasks = 'https://www.googleapis.com/auth/tasks';
   static const _scDrive = 'https://www.googleapis.com/auth/drive.appdata';
   static const _scMail = 'https://www.googleapis.com/auth/gmail.readonly';
@@ -61,15 +97,22 @@ class GoogleService extends ChangeNotifier {
 
   // ---- live data (read by the planner and the island) ----
   List<AgendaEvent> events = const []; // same type as iCal events, so the island can merge them
-  List<GoogleTask> todos = const [];
+  List<GoogleTask> todos = const []; // due today or earlier, or undated
+  List<GoogleTask> datedTasks = const []; // every open task with a due date, for the Calendar page
   List<GoogleMail> mail = const [];
   List<GoogleBirthday> birthdays = const [];
+  List<GoogleCalendar> calendars = const [];
   int unread = 0;
+
+  // Calendar page: events per month ("2026-10"), fetched on demand.
+  final Map<String, ({DateTime at, List<CalEvent> items})> _months = {};
+  final Set<String> _monthLoading = {};
 
   bool busy = false, loading = false;
   String? status;
   String? _actionError, _syncError;
   String? get error => _actionError ?? _syncError;
+  String? get actionError => _actionError;
 
   bool autoBackup = false;
   DateTime? lastSync;
@@ -94,7 +137,8 @@ class GoogleService extends ChangeNotifier {
   bool get signedIn => _refreshTok != null;
 
   bool _has(String scope) => _granted.contains(scope);
-  bool get canCalendar => _has(_scCalList) && _has(_scCalEv);
+  bool get canCalendar => _has(_scCalList) && (_has(_scCalEv) || _has(_scCalEvRead));
+  bool get canEditCalendar => _has(_scCalEv);
   bool get canTasks => _has(_scTasks);
   bool get canMail => _has(_scMail);
   bool get canContacts => _has(_scContacts);
@@ -334,6 +378,10 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
     mail = const [];
     birthdays = const [];
     unread = 0;
+    calendars = const [];
+    datedTasks = const [];
+    _months.clear();
+    _monthLoading.clear();
     status = null;
     _syncError = null;
     _actionError = why;
@@ -428,6 +476,9 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
     }
 
     await Future.wait([guard(_loadCalendar), guard(_loadTasks), guard(_loadMail), guard(_loadBirthdays)]);
+    // Mark the Calendar page's months stale, keeping them on screen until
+    // the fresh copy lands.
+    _months.updateAll((_, v) => (at: DateTime(2000), items: v.items));
     _updated = DateTime.now();
     _syncError = problems.isEmpty ? null : problems.toSet().join(' ');
     loading = false;
@@ -454,7 +505,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       'GET',
       Uri.https('www.googleapis.com', '/calendar/v3/users/me/calendarList', {
         'minAccessRole': 'reader',
-        'fields': 'items(id,summary,selected,primary)',
+        'fields': 'items(id,summary,summaryOverride,selected,primary,backgroundColor,accessRole)',
       }),
     );
     _ok(lr, 'Calendar');
@@ -463,6 +514,16 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       for (final c in items)
         if (c is Map && (c['selected'] == true || c['primary'] == true)) c,
     ].take(12).toList();
+    calendars = [
+      for (final c in cals)
+        GoogleCalendar(
+          '${c['id']}',
+          '${c['summaryOverride'] ?? c['summary'] ?? c['id']}',
+          _hex(c['backgroundColor'] as String?) ?? 0xFF4A9EE8,
+          c['primary'] == true,
+          c['accessRole'] == 'owner' || c['accessRole'] == 'writer',
+        ),
+    ]..sort((a, b) => a.primary == b.primary ? 0 : (a.primary ? -1 : 1));
 
     final out = <AgendaEvent>[];
     await Future.wait([
@@ -539,7 +600,6 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
                 final u = DateTime.tryParse(raw);
                 if (u != null) due = DateTime(u.year, u.month, u.day); // a date, not an instant
               }
-              if (due != null && !due.isBefore(tomorrow)) continue;
               out.add(GoogleTask('${t['id']}', '${l['id']}', title, due));
             }
           }(),
@@ -549,12 +609,14 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       if (b.due == null) return -1;
       return a.due!.compareTo(b.due!);
     });
-    todos = out.take(30).toList();
+    datedTasks = [for (final t in out) if (t.due != null) t];
+    todos = [for (final t in out) if (t.due == null || t.due!.isBefore(tomorrow)) t].take(30).toList();
   }
 
   Future<void> completeTask(GoogleTask t) async {
-    final before = todos;
+    final before = todos, beforeDated = datedTasks;
     todos = [for (final x in todos) if (x.id != t.id) x];
+    datedTasks = [for (final x in datedTasks) if (x.id != t.id) x];
     notifyListeners();
     try {
       final r = await _call(
@@ -566,9 +628,267 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       _ok(r, 'Tasks');
     } catch (e) {
       todos = before;
+      datedTasks = beforeDated;
       _actionError = 'Could not complete that task in Google.';
       notifyListeners();
     }
+  }
+
+  static int? _hex(String? s) {
+    if (s == null || !s.startsWith('#') || s.length != 7) return null;
+    final v = int.tryParse(s.substring(1), radix: 16);
+    return v == null ? null : 0xFF000000 | v;
+  }
+
+  // Google's fixed event palette (colorId 1..11).
+  static const _eventColors = [
+    0xFFA4BDFC, 0xFF7AE7BF, 0xFFDBADFF, 0xFFFF887C, 0xFFFBD75B, 0xFFFFB878,
+    0xFF46D6DB, 0xFFE1E1E1, 0xFF5484ED, 0xFF51B749, 0xFFDC2127,
+  ];
+
+  /// Events for every day in the month's six-week grid (Sunday start).
+  /// Returns what is cached and fetches in the background when missing or
+  /// older than ten minutes; listeners hear about it when it lands.
+  List<CalEvent>? monthEvents(int year, int month) {
+    final key = '$year-$month';
+    final hit = _months[key];
+    final stale = hit == null || DateTime.now().difference(hit.at).inMinutes >= 10;
+    if (stale && signedIn && canCalendar && !_monthLoading.contains(key)) {
+      _monthLoading.add(key);
+      _loadMonth(year, month).whenComplete(() {
+        _monthLoading.remove(key);
+        notifyListeners();
+      });
+    }
+    return hit?.items;
+  }
+
+  bool monthLoading(int year, int month) => _monthLoading.contains('$year-$month');
+
+  Future<void> _loadMonth(int year, int month) async {
+    try {
+      if (calendars.isEmpty) await _loadCalendar();
+      final first = DateTime(year, month);
+      final from = first.subtract(Duration(days: first.weekday % 7));
+      final to = from.add(const Duration(days: 42));
+      final out = <CalEvent>[];
+      final failed = <String>[];
+      await Future.wait([
+        for (final c in calendars)
+          () async {
+            final r = await _call(
+              'GET',
+              // Uri.https encodes the path itself; encoding the id here too
+              // turned "@" into "%2540" and every request came back 404.
+              Uri.https('www.googleapis.com', '/calendar/v3/calendars/${c.id}/events', {
+                'timeMin': from.toUtc().toIso8601String(),
+                'timeMax': to.toUtc().toIso8601String(),
+                'singleEvents': 'true',
+                'orderBy': 'startTime',
+                'maxResults': '500',
+                'fields': 'items(id,summary,location,description,status,start,end,colorId)',
+              }),
+            );
+            if (r.statusCode != 200) {
+              // One calendar failing should not blank the others; say which one.
+              failed.add(c.name);
+              return;
+            }
+            for (final e in ((jsonDecode(r.body) as Map)['items'] as List?) ?? const []) {
+              if (e is! Map || e['status'] == 'cancelled') continue;
+              final s = _when(e['start'] as Map?), en = _when(e['end'] as Map?);
+              if (s == null) continue;
+              final ci = int.tryParse('${e['colorId'] ?? ''}');
+              out.add(CalEvent(
+                '${e['id']}',
+                c.id,
+                '${e['summary'] ?? '(No title)'}',
+                s,
+                en ?? s,
+                (e['start'] as Map)['date'] != null,
+                '${e['location'] ?? ''}',
+                ci != null && ci >= 1 && ci <= _eventColors.length ? _eventColors[ci - 1] : null,
+                description: '${e['description'] ?? ''}',
+              ));
+            }
+          }(),
+      ]);
+      out.sort((a, b) => a.start.compareTo(b.start));
+      _months['$year-$month'] = (at: DateTime.now(), items: out);
+      calendarError = failed.isEmpty ? null : 'Could not load ${failed.join(', ')}.';
+    } catch (e) {
+      // Keep whatever was cached and say why, instead of showing an empty grid.
+      calendarError = e is _ApiError ? e.message : 'Could not load the calendar. Check your connection.';
+    }
+  }
+
+  /// Why the Calendar page could not load, if it could not.
+  String? calendarError;
+
+  // ------------------------------------------------------------- writing
+
+  static String _ymd(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Map<String, Object?> _eventBody(CalEvent e) => {
+        'summary': e.title,
+        'location': e.location,
+        'description': e.description,
+        // All-day ends are exclusive dates; timed events go over as UTC instants.
+        // The other key is nulled so switching between the two kinds sticks.
+        'start': e.allDay
+            ? {'date': _ymd(e.start), 'dateTime': null}
+            : {'dateTime': e.start.toUtc().toIso8601String(), 'date': null},
+        'end': e.allDay
+            ? {'date': _ymd(e.end), 'dateTime': null}
+            : {'dateTime': e.end.toUtc().toIso8601String(), 'date': null},
+      };
+
+  /// Rewrites every cached month, so a change shows wherever it is visible.
+  void _editCache(List<CalEvent> Function(List<CalEvent>) f) {
+    _months.updateAll((_, v) => (at: v.at, items: f(v.items)..sort((a, b) => a.start.compareTo(b.start))));
+    notifyListeners();
+  }
+
+  /// Keeps the Home schedule panel in step after a change on the Calendar page.
+  void _refreshToday() => unawaited(_loadCalendar().then((_) => notifyListeners(), onError: (_) {}));
+
+  static const _json = {'Content-Type': 'application/json'};
+
+  Uri _evUri(String calId, [String? path, Map<String, String>? q]) =>
+      Uri.https('www.googleapis.com', '/calendar/v3/calendars/$calId/events${path == null ? '' : '/$path'}', q);
+
+  String _why(Object e, String fallback) => e is _ApiError ? e.message : fallback;
+
+  /// Saves a draft. It shows straight away and is rolled back if Google refuses.
+  Future<CalEvent?> createEvent(CalEvent draft) async {
+    final temp = draft.copyWith(id: 'local-${DateTime.now().microsecondsSinceEpoch}');
+    _actionError = null;
+    _editCache((l) => [...l, temp]);
+    try {
+      final r = await _call('POST', _evUri(draft.calId), body: jsonEncode(_eventBody(draft)), headers: _json);
+      _ok(r, 'Calendar');
+      final real = temp.copyWith(id: '${(jsonDecode(r.body) as Map)['id']}');
+      _editCache((l) => [for (final x in l) x.same(temp) ? real : x]);
+      _refreshToday();
+      return real;
+    } catch (e) {
+      _actionError = _why(e, 'Could not create the event.');
+      _editCache((l) => [for (final x in l) if (!x.same(temp)) x]);
+      return null;
+    }
+  }
+
+  Future<bool> updateEvent(CalEvent old, CalEvent next) async {
+    _actionError = null;
+    _editCache((l) => [for (final x in l) x.same(old) ? next : x]);
+    try {
+      if (next.calId != old.calId) {
+        final m = await _call('POST', _evUri(old.calId, '${old.id}/move', {'destination': next.calId}));
+        _ok(m, 'Calendar');
+      }
+      final r = await _call('PATCH', _evUri(next.calId, old.id), body: jsonEncode(_eventBody(next)), headers: _json);
+      _ok(r, 'Calendar');
+      _refreshToday();
+      return true;
+    } catch (e) {
+      _actionError = _why(e, 'Could not save that change.');
+      _editCache((l) => [for (final x in l) x.same(next) ? old : x]);
+      return false;
+    }
+  }
+
+  Future<bool> deleteEvent(CalEvent e) async {
+    _actionError = null;
+    _editCache((l) => [for (final x in l) if (!x.same(e)) x]);
+    try {
+      final r = await _call('DELETE', _evUri(e.calId, e.id));
+      if (r.statusCode != 410) _ok(r, 'Calendar'); // 410: already gone
+      _refreshToday();
+      return true;
+    } catch (err) {
+      _actionError = _why(err, 'Could not delete the event.');
+      _editCache((l) => [...l, e]);
+      return false;
+    }
+  }
+
+  /// Swaps [old] for [next] in both task lists (either may be null).
+  void _putTask(GoogleTask? old, GoogleTask? next) {
+    final n = DateTime.now();
+    final tomorrow = DateTime(n.year, n.month, n.day + 1);
+    List<GoogleTask> swap(List<GoogleTask> l, bool keep) => [
+          for (final x in l)
+            if (old == null || x.id != old.id) x,
+          if (next != null && keep) next,
+        ];
+    datedTasks = swap(datedTasks, next?.due != null);
+    todos = swap(todos, next != null && (next.due == null || next.due!.isBefore(tomorrow)));
+    notifyListeners();
+  }
+
+  String _dueBody(DateTime d) => '${_ymd(d)}T00:00:00.000Z';
+
+  Future<GoogleTask?> createTask(String title, DateTime due) async {
+    final temp = GoogleTask('local-${DateTime.now().microsecondsSinceEpoch}', '@default', title, due);
+    _actionError = null;
+    _putTask(null, temp);
+    try {
+      final r = await _call(
+        'POST',
+        Uri.https('tasks.googleapis.com', '/tasks/v1/lists/@default/tasks'),
+        body: jsonEncode({'title': title, 'due': _dueBody(due)}),
+        headers: _json,
+      );
+      _ok(r, 'Tasks');
+      final real = GoogleTask('${(jsonDecode(r.body) as Map)['id']}', '@default', title, due);
+      _putTask(temp, real);
+      return real;
+    } catch (e) {
+      _actionError = _why(e, 'Could not create the task.');
+      _putTask(temp, null);
+      return null;
+    }
+  }
+
+  Future<bool> updateTask(GoogleTask old, {String? title, DateTime? due}) async {
+    final next = GoogleTask(old.id, old.listId, title ?? old.title, due ?? old.due);
+    _actionError = null;
+    _putTask(old, next);
+    try {
+      final r = await _call(
+        'PATCH',
+        Uri.https('tasks.googleapis.com', '/tasks/v1/lists/${old.listId}/tasks/${old.id}'),
+        body: jsonEncode({'title': next.title, if (next.due != null) 'due': _dueBody(next.due!)}),
+        headers: _json,
+      );
+      _ok(r, 'Tasks');
+      return true;
+    } catch (e) {
+      _actionError = _why(e, 'Could not save the task.');
+      _putTask(next, old);
+      return false;
+    }
+  }
+
+  Future<bool> deleteTask(GoogleTask t) async {
+    _actionError = null;
+    _putTask(t, null);
+    try {
+      final r = await _call('DELETE', Uri.https('tasks.googleapis.com', '/tasks/v1/lists/${t.listId}/tasks/${t.id}'));
+      _ok(r, 'Tasks');
+      return true;
+    } catch (e) {
+      _actionError = _why(e, 'Could not delete the task.');
+      _putTask(null, t);
+      return false;
+    }
+  }
+
+  void clearActionError() {
+    if (_actionError == null) return;
+    _actionError = null;
+    notifyListeners();
   }
 
   String _senderName(String from) {
