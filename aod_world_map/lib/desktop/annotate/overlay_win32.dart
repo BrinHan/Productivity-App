@@ -28,6 +28,7 @@ class OverlayWin32 {
   static late int Function(int, int) _monitorFromPoint;
   static late int Function(int, ffi.Pointer<ffi.Int32>) _getMonitorInfo;
   static late int Function(int, int, int, int, int, int, int) _setWindowPos;
+  static late int Function(int, int, int, int) _setLayeredAttrs;
 
   static void _init() {
     if (_ready) return;
@@ -67,6 +68,8 @@ class OverlayWin32 {
     _setWindowPos = u.lookupFunction<
         ffi.Int32 Function(ffi.IntPtr, ffi.IntPtr, ffi.Int32, ffi.Int32, ffi.Int32, ffi.Int32, ffi.Uint32),
         int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+    _setLayeredAttrs = u.lookupFunction<ffi.Int32 Function(ffi.IntPtr, ffi.Uint32, ffi.Uint8, ffi.Uint32),
+        int Function(int, int, int, int)>('SetLayeredWindowAttributes');
     _ready = true;
   }
 
@@ -137,6 +140,15 @@ class OverlayWin32 {
   static bool keyDown(int vk) {
     _init();
     return (_asyncKey(vk) & 0x8000) != 0;
+  }
+
+  /// Click-through makes the window layered, and a layered window given no
+  /// attributes keeps showing old frames (the toolbar stays invisible until
+  /// a click turns click-through off). Fully opaque attributes fix that.
+  static void showLayered() {
+    _init();
+    final h = hwnd;
+    if (h != 0) _setLayeredAttrs(h, 0, 255, 0x2); // LWA_ALPHA
   }
 
   /// Hides the overlay from screen capture (ours and everyone else's) while
