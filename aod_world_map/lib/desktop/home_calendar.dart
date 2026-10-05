@@ -89,7 +89,7 @@ class _CalendarViewState extends State<_CalendarView> {
   CalEvent? _draft; // a new event that has not been saved
   Object? _sel; // CalEvent, or a task key
   Object? _shown; // what the panel draws, kept while it slides away
-  late double _scroll;
+  late double _scroll; // hour at the top of the time grid
   final _focus = FocusNode(debugLabel: 'calendar');
 
   _T get t => widget.t;
@@ -101,7 +101,7 @@ class _CalendarViewState extends State<_CalendarView> {
     super.initState();
     _mode = _CalMode.values[_Prefs.i.calMode.clamp(0, 2)];
     final n = DateTime.now();
-    _scroll = math.max(0, (n.hour - 2) * _CalTimeGrid.rowH).toDouble();
+    _scroll = math.max(0, n.hour - 2).toDouble();
     // The page root already holds focus, so autofocus alone would not win.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focus.requestFocus();
@@ -1076,18 +1076,29 @@ class _CalTimeGrid extends StatefulWidget {
   final void Function(DateTime start, DateTime end, bool allDay) onCreate;
   final void Function(CalEvent old, CalEvent next) onChange;
   final void Function(_CalDrag, DateTime) onDrop;
+  /// Hour at the top of the view (not pixels: the hour height follows the window).
   final double scroll;
   final ValueChanged<double> onScroll;
 
-  static const rowH = 44.0, gutter = 56.0;
+  static const gutter = 56.0;
+
+  /// An hour is a twelfth of the visible grid, so a day reads the same on a
+  /// laptop and a big monitor, within sensible limits.
+  static const hoursInView = 12.0, minRowH = 44.0, maxRowH = 96.0;
 
   @override
   State<_CalTimeGrid> createState() => _CalTimeGridState();
 }
 
 class _CalTimeGridState extends State<_CalTimeGrid> {
-  late final ScrollController _sc = ScrollController(initialScrollOffset: widget.scroll)
-    ..addListener(() => widget.onScroll(_sc.offset));
+  // Created on first build, after the hour height is known.
+  late final ScrollController _sc = ScrollController(initialScrollOffset: _topHour * _rowH)
+    ..addListener(() {
+      _topHour = _sc.offset / _rowH;
+      widget.onScroll(_topHour);
+    });
+  late double _topHour = widget.scroll;
+  double _rowH = _CalTimeGrid.minRowH;
   final _stackKey = GlobalKey(), _viewKey = GlobalKey();
   Timer? _tick;
   double _colW = 1;
@@ -1098,7 +1109,20 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
   double _min0 = 0;
   CalEvent? _preview;
 
-  static const rowH = _CalTimeGrid.rowH, gutter = _CalTimeGrid.gutter;
+  static const gutter = _CalTimeGrid.gutter;
+  double get rowH => _rowH;
+
+  /// Fits the hour height to the visible grid; keeps the same hour on top.
+  void _fitRows(double viewH) {
+    final r = (viewH / _CalTimeGrid.hoursInView).clamp(_CalTimeGrid.minRowH, _CalTimeGrid.maxRowH).toDouble();
+    if ((r - _rowH).abs() < 0.5) return;
+    final top = _topHour;
+    _rowH = r;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_sc.hasClients) return;
+      _sc.jumpTo((top * _rowH).clamp(0.0, _sc.position.maxScrollExtent));
+    });
+  }
 
   @override
   void initState() {
@@ -1348,7 +1372,9 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
       ),
       // Hours.
       Expanded(
-        child: SingleChildScrollView(
+        child: LayoutBuilder(builder: (context, view) {
+          _fitRows(view.maxHeight);
+          return SingleChildScrollView(
           key: _viewKey,
           controller: _sc,
           child: SizedBox(
@@ -1509,7 +1535,8 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
               ]);
             }),
           ),
-        ),
+          );
+        }),
       ),
     ]);
   }
