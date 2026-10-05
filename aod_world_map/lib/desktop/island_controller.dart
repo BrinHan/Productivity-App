@@ -25,6 +25,28 @@ class NowPlaying {
   String get key => '$title|$artist';
 }
 
+/// Live loudness of five bands of what the speakers play, for the
+/// visualizer: sub-bass, bass, low-mid, high-mid, treble, each 0..1.
+/// Arrives about 30 times a second; the bars read it every frame, so there
+/// is nothing to notify.
+class AudioBands {
+  List<double> values = const [0, 0, 0, 0, 0];
+  DateTime _at = DateTime(2000);
+  bool _seen = false;
+
+  /// Levels arrived a moment ago (something is playing right now).
+  bool get live => DateTime.now().difference(_at).inMilliseconds < 400;
+
+  /// The helper measures audio at all (the PowerShell fallback does not).
+  bool get supported => _seen;
+
+  void set(List<double> v) {
+    values = v;
+    _at = DateTime.now();
+    _seen = true;
+  }
+}
+
 class IslandShortcut {
   IslandShortcut({
     required this.label,
@@ -87,6 +109,14 @@ List<IslandShortcut> defaultShortcuts() => [
     ];
 
 class IslandController extends ChangeNotifier {
+  /// [inApp]: the copy inside the app window. It edits the island's settings
+  /// and shares Google and notes with the planner, but the island process
+  /// owns the background work (meeting detection, recording, backups).
+  IslandController({this.inApp = false})
+      : google = GoogleService(backups: !inApp, inbox: inApp),
+        notes = NotesService(remote: inApp);
+  final bool inApp;
+
   IslandState state = IslandState.hidden;
   IslandPage page = IslandPage.home;
   NowPlaying? nowPlaying;
@@ -114,12 +144,13 @@ class IslandController extends ChangeNotifier {
   /// Set by main(): the same planner the Home page edits.
   PlannerModel? planner;
   final AgendaService agenda = AgendaService();
-  final GoogleService google = GoogleService();
-  final NotesService notes = NotesService();
+  final GoogleService google;
+  final NotesService notes;
   MeetingInfo? offer;
   Timer? _gTimer;
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
+  final AudioBands bands = AudioBands();
 
   /// Live geometry, published by the real island window.
   Size pillSize = const Size(260, 57);
@@ -143,16 +174,37 @@ class IslandController extends ChangeNotifier {
     return File('$base${s}AodWorldMap${s}island.json');
   }
 
+  String? _lastJson; // island.json as this process last read or wrote it
+
   Future<void> load() async {
     await google.load();
+    await loadSettings();
+    if (inApp) {
+      await notes.loadNotes();
+      return;
+    }
     notes.onOffer = offerMeeting;
     notes.startWatching();
     _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
+  }
+
+  /// The other process changed a setting.
+  Future<void> reloadSettings() async {
+    if (_saveTimer?.isActive == true) return;
+    final before = _lastJson;
+    await loadSettings();
+    if (_lastJson != before) notifyListeners();
+  }
+
+  Future<void> loadSettings() async {
     try {
       final f = _file;
       if (!await f.exists()) return;
-      final j = jsonDecode(await f.readAsString());
+      final raw = await f.readAsString();
+      if (raw == _lastJson) return;
+      final j = jsonDecode(raw);
       if (j is! Map<String, dynamic>) return;
+      _lastJson = raw;
       idleWidth = ((j['idleWidth'] as num?) ?? 260).toDouble().clamp(180.0, 360.0).toDouble();
       pipColor = Color((j['pipColor'] as int?) ?? pipColor.toARGB32());
       openOnHover = (j['openOnHover'] as bool?) ?? false;
@@ -187,7 +239,7 @@ class IslandController extends ChangeNotifier {
       try {
         final f = _file;
         await f.parent.create(recursive: true);
-        await f.writeAsString(jsonEncode({
+        final raw = jsonEncode({
           'idleWidth': idleWidth,
           'pipColor': pipColor.toARGB32(),
           'openOnHover': openOnHover,
@@ -199,7 +251,9 @@ class IslandController extends ChangeNotifier {
           'watchlist': watchlist,
           'calendars': [for (final f in calendarFeeds) f.toJson()],
           'shortcuts': [for (final s in shortcuts) s.toJson()],
-        }));
+        });
+        _lastJson = raw;
+        await f.writeAsString(raw);
       } catch (_) {}
     });
   }
