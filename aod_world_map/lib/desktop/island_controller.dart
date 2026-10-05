@@ -159,6 +159,9 @@ class IslandController extends ChangeNotifier {
   void Function(String)? sendMusic;
   void Function(String)? openUrl;
 
+  /// Opens the screen annotation overlay (set by the island process).
+  void Function()? startAnnotate;
+
   Size get idleSize => Size(idleWidth, (idleWidth * 0.22).roundToDouble());
   bool get visible => state != IslandState.hidden;
   bool get quiet => chromeMode && quietInChrome;

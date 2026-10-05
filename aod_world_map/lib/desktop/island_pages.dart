@@ -163,6 +163,17 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: 6),
           _tab(Icons.event_note_rounded, IslandPage.today),
           const Spacer(),
+          if (c.startAnnotate != null) ...[
+            IslandPressable(
+              onTap: c.startAnnotate!,
+              child: const SizedBox(
+                width: 40,
+                height: 28,
+                child: Icon(Icons.draw_rounded, size: 16, color: Color(0x99FFFFFF)),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
           _tab(Icons.settings_rounded, IslandPage.settings),
         ],
       ),

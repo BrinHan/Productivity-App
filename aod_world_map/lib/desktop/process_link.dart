@@ -17,6 +17,9 @@ import 'package:window_manager/window_manager.dart';
 const kIslandPort = 47811;
 const kAppPort = 47812;
 
+/// The annotation overlay (`--overlay`), started by the island on demand.
+const kOverlayPort = 47813;
+
 typedef LinkHandler = void Function(Map<String, dynamic> msg, LinkPeer from);
 
 class LinkPeer {

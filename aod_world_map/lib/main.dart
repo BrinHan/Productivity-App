@@ -9,18 +9,22 @@ import 'aod/aod_palette.dart';
 import 'aod/liquid_wave_loader.dart';
 import 'aod/map_model.dart';
 import 'aod/settings_menu.dart';
+import 'desktop/annotate/overlay_screen.dart';
+import 'desktop/annotate/overlay_shell.dart';
 import 'desktop/dynamic_island.dart';
 import 'desktop/home_page.dart';
 import 'desktop/island_shell.dart';
 import 'desktop/planner_model.dart';
 import 'desktop/window_shell.dart';
 
-/// One exe, two processes: `--island` runs the always-on-top island on its
-/// own; anything else opens the app window (`--home` for the planner), which
-/// starts the island if it is not running yet.
+/// One exe, three processes: `--island` runs the always-on-top island on its
+/// own; `--overlay` is the screen annotation layer the island starts on
+/// demand; anything else opens the app window (`--home` for the planner),
+/// which starts the island if it is not running yet.
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   if (args.contains('--island')) return _runIsland();
+  if (args.contains('--overlay')) return _runOverlay(ask: args.contains('--ask'));
 
   // Keep decoded images small (album art is the only real image).
   PaintingBinding.instance.imageCache
@@ -50,6 +54,16 @@ Future<void> _runIsland() async {
   await planner.load();
   await shell.init();
   runApp(IslandApp(shell: shell));
+}
+
+Future<void> _runOverlay({required bool ask}) async {
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 4
+    ..maximumSizeBytes = 2 << 20;
+  final shell = OverlayShell();
+  if (!await shell.claim(ask: ask)) exit(0); // one overlay at a time
+  await shell.init(ask: ask);
+  runApp(OverlayApp(shell: shell));
 }
 
 /// The island process: just the island, on a transparent window.
