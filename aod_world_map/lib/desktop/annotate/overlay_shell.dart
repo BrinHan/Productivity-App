@@ -13,7 +13,27 @@ import 'annotation_model.dart';
 import 'overlay_win32.dart';
 import 'vision_agent.dart';
 
-enum Tool { mouse, pen, highlighter, line, arrow, rect, ellipse, stamp, text, eraser, pixelEraser }
+enum Tool { mouse, pen, highlighter, vanish, line, arrow, rect, ellipse, stamp, text, eraser, pixelEraser }
+
+/// Toolbar buttons that hold several tools. Click one to pick its last-used
+/// tool; click it again for a flyout with its types, colour and thickness.
+/// Each group keeps its own colour and thickness.
+enum ToolGroup { pen, shape, stamp, text, eraser }
+
+const kGroupTools = <ToolGroup, List<Tool>>{
+  ToolGroup.pen: [Tool.pen, Tool.highlighter, Tool.vanish],
+  ToolGroup.shape: [Tool.line, Tool.arrow, Tool.rect, Tool.ellipse],
+  ToolGroup.stamp: [Tool.stamp],
+  ToolGroup.text: [Tool.text],
+  ToolGroup.eraser: [Tool.eraser, Tool.pixelEraser],
+};
+
+ToolGroup? groupOf(Tool t) {
+  for (final e in kGroupTools.entries) {
+    if (e.value.contains(t)) return e.key;
+  }
+  return null;
+}
 
 /// The screen edge the toolbar is docked to. Left and right stand it upright.
 enum Dock { top, bottom, left, right }
@@ -52,9 +72,18 @@ class OverlayShell extends ChangeNotifier {
 
   // ---- what the toolbar shows
   Tool tool = Tool.mouse;
-  Color color = kInkColors.first;
-  double width = 3; // one of kInkWidths
   Dock dock = Dock.bottom;
+
+  /// Per group: the tool it picks, its colour and its thickness.
+  final Map<ToolGroup, Tool> lastTool = {for (final e in kGroupTools.entries) e.key: e.value.first};
+  final Map<ToolGroup, Color> colors = {for (final g in ToolGroup.values) g: kInkColors.first};
+  final Map<ToolGroup, double> widths = {for (final g in ToolGroup.values) g: kInkWidths[1]};
+
+  ToolGroup? get group => groupOf(tool);
+
+  /// The colour and thickness the current tool draws with.
+  Color get color => colors[group ?? ToolGroup.pen]!;
+  double get width => widths[group ?? ToolGroup.pen]!;
   StampKind stamp = StampKind.check;
   bool askOpen = false;
   bool shown = true;
@@ -129,24 +158,39 @@ class OverlayShell extends ChangeNotifier {
   // ---- toolbar state
 
   void setTool(Tool t) {
-    if (t == Tool.stamp && tool == Tool.stamp) {
-      // Clicking Stamp again cycles the stamp.
-      stamp = StampKind.values[(stamp.index + 1) % StampKind.values.length];
-    }
     tool = t;
+    final g = groupOf(t);
+    if (g != null && lastTool[g] != t) {
+      lastTool[g] = t;
+      _savePrefs();
+    }
     if (t != Tool.mouse) _try(() => windowManager.focus()); // keys (undo, Esc, text) come to us
     notifyListeners();
   }
 
-  void setColor(Color c) {
-    color = c;
-    if (tool == Tool.mouse || tool == Tool.eraser || tool == Tool.pixelEraser) setTool(Tool.pen);
-    notifyListeners();
+  void setStamp(StampKind k) {
+    stamp = k;
+    setTool(Tool.stamp);
   }
 
-  void setWidth(double w) {
-    width = w;
-    notifyListeners();
+  /// Changing a group's colour or size also picks that group.
+  void setColor(ToolGroup g, Color c) {
+    colors[g] = c;
+    _pick(g);
+  }
+
+  void setWidth(ToolGroup g, double w) {
+    widths[g] = w;
+    _pick(g);
+  }
+
+  void _pick(ToolGroup g) {
+    if (group != g) {
+      setTool(lastTool[g]!);
+    } else {
+      notifyListeners();
+    }
+    _savePrefs();
   }
 
   void setDock(Dock d) {
@@ -163,12 +207,28 @@ class OverlayShell extends ChangeNotifier {
       final j = jsonDecode(await _prefsFile.readAsString());
       if (j is! Map) return;
       dock = Dock.values.where((d) => d.name == j['dock']).firstOrNull ?? dock;
+      final groups = j['groups'];
+      if (groups is! Map) return;
+      for (final g in ToolGroup.values) {
+        final m = groups[g.name];
+        if (m is! Map) continue;
+        final t = Tool.values.where((x) => x.name == m['tool']).firstOrNull;
+        if (t != null && groupOf(t) == g) lastTool[g] = t;
+        if (m['color'] case final int c) colors[g] = Color(c);
+        if (m['width'] case final num w when kInkWidths.contains(w.toDouble())) widths[g] = w.toDouble();
+      }
     } catch (_) {}
   }
 
   void _savePrefs() => _try(() async {
         await _prefsFile.parent.create(recursive: true);
-        await _prefsFile.writeAsString(jsonEncode({'dock': dock.name}));
+        await _prefsFile.writeAsString(jsonEncode({
+          'dock': dock.name,
+          'groups': {
+            for (final g in ToolGroup.values)
+              g.name: {'tool': lastTool[g]!.name, 'color': colors[g]!.toARGB32(), 'width': widths[g]},
+          },
+        }));
       });
 
   void openAsk() {
