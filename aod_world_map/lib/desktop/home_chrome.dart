@@ -34,7 +34,6 @@ class _TitleBar extends StatelessWidget {
             ],
             const Spacer(),
             _WinBtn(t, Icons.public, 'Screensaver map', shell.showMap),
-            _WinBtn(t, Icons.picture_in_picture_alt_outlined, 'Shrink to island', () => shell.enterIsland()),
             const SizedBox(width: 8),
             _CaptionButtons(t: t, shell: shell),
           ]),
