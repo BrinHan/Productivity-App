@@ -255,6 +255,26 @@ class OverlayShell extends ChangeNotifier {
     await _try(() => windowManager.show(inactive: true));
     await _try(() => windowManager.setAlwaysOnTop(true));
     notifyListeners();
+    _repaintAfterShow();
+  }
+
+  /// Frames drawn while the window was hidden never reach the screen, and
+  /// with nothing changed Flutter would not draw again until the pointer
+  /// moved over something. Push a few fresh frames as the window appears.
+  void _repaintAfterShow() {
+    final b = WidgetsBinding.instance;
+    void frame() {
+      if (!shown) return;
+      for (final v in b.renderViews) {
+        v.markNeedsPaint();
+      }
+      b.scheduleForcedFrame();
+    }
+
+    frame();
+    for (final ms in const [16, 50, 120, 250]) {
+      Timer(Duration(milliseconds: ms), frame);
+    }
   }
 
   /// Hides but keeps the drawing; left hidden for a while, it is wiped.
