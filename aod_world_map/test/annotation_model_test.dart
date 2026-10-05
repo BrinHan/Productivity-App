@@ -134,4 +134,33 @@ void main() {
       expect(distToSegment(const Offset(-4, 3), Offset.zero, const Offset(10, 0)), 5);
     });
   });
+
+  group('LiveInk', () {
+    test('grows the same curve smoothPath draws for the finished stroke', () {
+      final pts = [for (var i = 0; i < 40; i++) Offset(i * 7.0, 30 + 20 * (i % 5 - 2.0))];
+      final ink = LiveInk()..begin(pts.first, color: const Color(0xFFFF0000), width: 3);
+      for (final p in pts.skip(1)) {
+        ink.add(p);
+      }
+      final rec = PictureRecorder();
+      ink.paint(Canvas(rec)); // must not throw
+      rec.endRecording().dispose();
+
+      double length(Path p) => p.computeMetrics().fold(0.0, (a, m) => a + m.length);
+      final grown = Path.from(ink.debugPath)..lineTo(pts.last.dx, pts.last.dy);
+      final whole = smoothPath(pts);
+      expect(grown.getBounds(), whole.getBounds());
+      expect(length(grown), closeTo(length(whole), 1e-6));
+    });
+
+    test('end clears the stroke', () {
+      final ink = LiveInk()..begin(Offset.zero, color: const Color(0xFFFF0000), width: 3, pressure: 0.5);
+      for (var i = 1; i < 100; i++) {
+        ink.add(Offset(i.toDouble(), 0), 0.5);
+      }
+      ink.end();
+      expect(ink.active, isFalse);
+      expect(ink.pressures, isNull);
+    });
+  });
 }

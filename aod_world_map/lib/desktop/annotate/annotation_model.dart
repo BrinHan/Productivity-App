@@ -136,6 +136,7 @@ class StrokeShape extends Shape {
 class EraseShape extends Shape {
   EraseShape({required this.points, required double radius}) : super(color: const Color(0xFF000000), width: radius * 2);
   final List<Offset> points;
+  late final Path _path = smoothPath(points);
   @override
   Rect get bounds => StrokeShape.boundsOf(points);
   @override
@@ -147,8 +148,130 @@ class EraseShape extends Shape {
     if (points.length == 1) {
       c.drawCircle(points.first, width / 2, p..style = PaintingStyle.fill);
     } else {
-      c.drawPath(smoothPath(points), p);
+      c.drawPath(_path, p);
     }
+  }
+}
+
+/// The freehand stroke under the pen right now (pen, highlighter or pixel
+/// eraser). Points are appended in place and the smoothed path grows with
+/// them, so a move costs the same at the end of a long stroke as at the
+/// start. Draws exactly what the finished [StrokeShape] / [EraseShape] would.
+class LiveInk extends ChangeNotifier {
+  final List<Offset> points = [];
+  List<double>? pressures;
+  Color color = const Color(0xFF000000);
+  double width = 4;
+  bool highlighter = false, eraser = false;
+  bool get active => points.isNotEmpty;
+
+  Path _path = Path(); // up to the midpoint of the last segment
+  ui.Picture? _frozen; // pressure segments already drawn
+  int _frozenTo = 0;
+
+  @visibleForTesting
+  Path get debugPath => _path;
+
+  void begin(Offset p,
+      {required Color color, required double width, double? pressure, bool highlighter = false, bool eraser = false}) {
+    _reset();
+    this.color = color;
+    this.width = width;
+    this.highlighter = highlighter;
+    this.eraser = eraser;
+    points.add(p);
+    pressures = pressure == null ? null : [pressure];
+    _path = Path()..moveTo(p.dx, p.dy);
+    notifyListeners();
+  }
+
+  void add(Offset p, [double? pressure]) {
+    points.add(p);
+    pressures?.add(pressure ?? 0.5);
+    final n = points.length;
+    if (n >= 3) {
+      // Same curve smoothPath builds: through the midpoint of each segment.
+      final c = points[n - 2], mid = (c + p) / 2;
+      _path.quadraticBezierTo(c.dx, c.dy, mid.dx, mid.dy);
+    }
+    notifyListeners();
+  }
+
+  void end() {
+    _reset();
+    notifyListeners();
+  }
+
+  void _reset() {
+    points.clear();
+    pressures = null;
+    _frozen?.dispose();
+    _frozen = null;
+    _frozenTo = 0;
+  }
+
+  Paint _paint() {
+    final p = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..isAntiAlias = true;
+    if (eraser) p.blendMode = BlendMode.clear;
+    if (highlighter) {
+      p
+        ..strokeCap = StrokeCap.square
+        ..blendMode = BlendMode.multiply;
+    }
+    return p;
+  }
+
+  void paint(Canvas c) {
+    final n = points.length;
+    if (n == 0) return;
+    final paint = _paint();
+    if (n == 1) {
+      c.drawCircle(points.first, width / 2, paint..style = PaintingStyle.fill);
+      return;
+    }
+    final pr = pressures;
+    if (pr != null && !highlighter && !eraser) {
+      // Each segment is its own round-capped line, so finished ones can be
+      // kept in a Picture instead of being redrawn every frame.
+      void seg(Canvas k, int i) {
+        paint.strokeWidth = width * (0.35 + 0.9 * ((pr[i - 1] + pr[i]) / 2).clamp(0.0, 1.0));
+        k.drawLine(points[i - 1], points[i], paint);
+      }
+
+      if (n - 1 - _frozenTo > 64) {
+        final rec = ui.PictureRecorder();
+        final k = Canvas(rec);
+        if (_frozen != null) k.drawPicture(_frozen!);
+        for (var i = math.max(1, _frozenTo + 1); i < n; i++) {
+          seg(k, i);
+        }
+        _frozen?.dispose();
+        _frozen = rec.endRecording();
+        _frozenTo = n - 1;
+      }
+      if (_frozen != null) c.drawPicture(_frozen!);
+      for (var i = math.max(1, _frozenTo + 1); i < n; i++) {
+        seg(c, i);
+      }
+      return;
+    }
+    if (n < 3) {
+      c.drawLine(points[0], points[1], paint);
+      return;
+    }
+    c.drawPath(Path.from(_path)..lineTo(points.last.dx, points.last.dy), paint);
+  }
+
+  @override
+  void dispose() {
+    _frozen?.dispose();
+    super.dispose();
   }
 }
 
@@ -175,10 +298,9 @@ class RectShape extends Shape {
     return !rect.deflate(reach).contains(p);
   }
 
-  Path get _path {
-    if (ellipse) return Path()..addOval(rect);
-    return Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(rounded ? 8 : 2)));
-  }
+  late final Path _path = ellipse
+      ? (Path()..addOval(rect))
+      : (Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(rounded ? 8 : 2))));
 
   @override
   void paint(Canvas c, Size size, double t) {
@@ -660,6 +782,17 @@ class AnnotationStore extends ChangeNotifier {
 
   void _changed(LayerState s) {
     s.dirty = true;
+    notifyListeners();
+  }
+
+  /// Empties both layers, history included (closing the overlay).
+  void reset() {
+    _erased.clear();
+    active.value = null;
+    for (final s in layers.values) {
+      s.reset();
+      s.dirty = true;
+    }
     notifyListeners();
   }
 
