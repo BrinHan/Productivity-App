@@ -198,64 +198,80 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// The board fills whatever width it gets: as many day columns as fit
+  /// comfortably (up to three), sharing the space evenly, so no day is ever
+  /// cut off by the window edge or the schedule panel.
   Widget _boardView(_T t) {
     final today = dayOf(DateTime.now());
-    final count = _board ? 3 : 1;
-    final days = [for (var i = 0; i < count; i++) today.add(Duration(days: _startOffset + i))];
-    final first = days.first;
+    final first = today.add(Duration(days: _startOffset));
     final title = _startOffset == 0 ? 'Today' : '${_monthNames[first.month - 1]} ${first.day}';
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(32, 30, 32, 0),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: _ts(t.text, 30, w: FontWeight.w700, ls: -0.8, h: 1.1)),
-            const SizedBox(height: 4),
-            Text('${_dayNames[first.weekday - 1]}, ${_monthNames[first.month - 1]} ${first.day}',
-                style: _ts(t.sub, 14)),
-          ]),
-          const Spacer(),
-          _IconBtn(t, Icons.chevron_left_rounded, 'Previous day', () => setState(() => _startOffset--), size: 22),
-          _IconBtn(t, Icons.chevron_right_rounded, 'Next day', () => setState(() => _startOffset++), size: 22),
-          const SizedBox(width: 8),
-          _Btn(t, 'Today', _startOffset == 0 ? null : () => setState(() => _startOffset = 0),
-              compact: true, icon: Icons.today_outlined),
-          const SizedBox(width: 8),
-          _FilterButton(
-            t: t,
-            tag: _tag,
-            hideDone: _hideDone,
-            onTag: (v) => setState(() => _tag = v),
-            onHide: () => setState(() => _hideDone = !_hideDone),
-          ),
-          const SizedBox(width: 8),
-          _Seg(t, const ['Board', 'List'], _board ? 0 : 1, (i) => setState(() => _board = i == 0)),
-        ]),
-      ),
-      Expanded(
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(32, 26, 32, 24),
-          itemCount: days.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 24),
-          itemBuilder: (_, i) {
-            var tasks = p.forDay(days[i]);
-            if (_tag != 'all') tasks = tasks.where((x) => x.tag == _tag).toList();
-            if (_hideDone) tasks = tasks.where((x) => !x.done).toList();
-            return SizedBox(
-              width: _board ? 316 : 640,
-              child: _DayColumn(
-                t: t,
-                p: p,
-                g: g,
-                date: days[i],
-                tasks: tasks,
-                isToday: days[i] == today,
-              ),
-            );
-          },
-        ),
-      ),
+    final heading = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+      Text(title, style: _ts(t.text, 30, w: FontWeight.w700, ls: -0.8, h: 1.1)),
+      const SizedBox(height: 4),
+      Text('${_dayNames[first.weekday - 1]}, ${_monthNames[first.month - 1]} ${first.day}', style: _ts(t.sub, 14)),
     ]);
+    final controls = Row(mainAxisSize: MainAxisSize.min, children: [
+      _IconBtn(t, Icons.chevron_left_rounded, 'Previous day', () => setState(() => _startOffset--), size: 22),
+      _IconBtn(t, Icons.chevron_right_rounded, 'Next day', () => setState(() => _startOffset++), size: 22),
+      const SizedBox(width: 8),
+      _Btn(t, 'Today', _startOffset == 0 ? null : () => setState(() => _startOffset = 0),
+          compact: true, icon: Icons.today_outlined),
+      const SizedBox(width: 8),
+      _FilterButton(
+        t: t,
+        tag: _tag,
+        hideDone: _hideDone,
+        onTag: (v) => setState(() => _tag = v),
+        onHide: () => setState(() => _hideDone = !_hideDone),
+      ),
+      const SizedBox(width: 8),
+      _Seg(t, const ['Board', 'List'], _board ? 0 : 1, (i) => setState(() => _board = i == 0)),
+    ]);
+
+    return LayoutBuilder(builder: (context, c) {
+      // Tighter margins on small windows.
+      final pad = c.maxWidth < 700 ? 20.0 : 32.0;
+      const gap = 24.0, minCol = 260.0;
+      final avail = math.max(0.0, c.maxWidth - 2 * pad);
+      final count = _board ? ((avail + gap) / (minCol + gap)).floor().clamp(1, 3) : 1;
+      final days = [for (var i = 0; i < count; i++) first.add(Duration(days: i))];
+
+      Widget column(DateTime d) {
+        var tasks = p.forDay(d);
+        if (_tag != 'all') tasks = tasks.where((x) => x.tag == _tag).toList();
+        if (_hideDone) tasks = tasks.where((x) => !x.done).toList();
+        return _DayColumn(t: t, p: p, g: g, date: d, tasks: tasks, isToday: d == today);
+      }
+
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(pad, 30, pad, 0),
+          // Controls sit beside the title when there is room, under it when not.
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 16,
+            children: [heading, controls],
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(pad, 26, pad, 24),
+            child: _board
+                ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    for (var i = 0; i < days.length; i++) ...[
+                      if (i > 0) const SizedBox(width: gap),
+                      Expanded(child: column(days[i])),
+                    ],
+                  ])
+                : Align(
+                    alignment: Alignment.topLeft,
+                    child: SizedBox(width: math.min(avail, 720), child: column(days.first)),
+                  ),
+          ),
+        ),
+      ]);
+    });
   }
 }
