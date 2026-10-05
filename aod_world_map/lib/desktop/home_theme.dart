@@ -91,6 +91,8 @@ class _Prefs extends ChangeNotifier {
 
   String font = 'Segoe UI Variable Display';
   bool sidebarOpen = true, showSchedule = true;
+  Set<String> calHidden = {};
+  int calMode = 1; // Calendar page: 0 day, 1 week, 2 month
   bool _loaded = false;
 
   File get _file {
@@ -111,6 +113,8 @@ class _Prefs extends ChangeNotifier {
       if (fam is String && _fonts.any((x) => x.family == fam)) font = fam;
       sidebarOpen = (j['sidebar'] as bool?) ?? true;
       showSchedule = (j['schedule'] as bool?) ?? true;
+      calHidden = {for (final x in (j['calHidden'] as List? ?? const [])) '$x'};
+      calMode = (j['calMode'] as int?) ?? 1;
       notifyListeners();
     } catch (_) {}
   }
@@ -119,7 +123,13 @@ class _Prefs extends ChangeNotifier {
     try {
       final f = _file;
       await f.parent.create(recursive: true);
-      await f.writeAsString(jsonEncode({'font': font, 'sidebar': sidebarOpen, 'schedule': showSchedule}));
+      await f.writeAsString(jsonEncode({
+        'font': font,
+        'sidebar': sidebarOpen,
+        'schedule': showSchedule,
+        'calHidden': calHidden.toList(),
+        'calMode': calMode,
+      }));
     } catch (_) {}
   }
 
@@ -138,6 +148,18 @@ class _Prefs extends ChangeNotifier {
   void setSchedule(bool v) {
     showSchedule = v;
     notifyListeners();
+    _save();
+  }
+
+  void toggleCal(String id) {
+    calHidden = {...calHidden};
+    if (!calHidden.remove(id)) calHidden.add(id);
+    notifyListeners();
+    _save();
+  }
+
+  void setCalMode(int v) {
+    calMode = v;
     _save();
   }
 }
