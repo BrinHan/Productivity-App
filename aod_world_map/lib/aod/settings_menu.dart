@@ -197,7 +197,7 @@ class SettingsMenu extends StatelessWidget {
               const SizedBox(height: 8),
               _action(p, Icons.home_outlined, 'Exit to home page', onExit, filled: true),
               const SizedBox(height: 8),
-              _action(p, Icons.picture_in_picture_alt_outlined, 'Minimize to island', onMinimize),
+              _action(p, Icons.picture_in_picture_alt_outlined, 'Close to island', onMinimize),
               const SizedBox(height: 8),
               _action(p, Icons.power_settings_new, 'Quit', onQuit),
             ],
