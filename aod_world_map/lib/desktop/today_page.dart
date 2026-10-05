@@ -341,27 +341,7 @@ class _TodayPageState extends State<TodayPage> {
               child: Text('GOOGLE TASKS',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: Color(0x80FFFFFF))),
             ),
-            for (final t in widget.c.google.todos)
-              IslandPressable(
-                onTap: () => widget.c.google.completeTask(t),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Row(children: [
-                    const Icon(Icons.radio_button_unchecked_rounded, size: 20, color: Color(0x80FFFFFF)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(t.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                    ),
-                    if (t.due != null) ...[
-                      const SizedBox(width: 6),
-                      Text('${_monthShort[t.due!.month - 1]} ${t.due!.day}', style: _dim),
-                    ],
-                  ]),
-                ),
-              ),
+            for (final t in widget.c.google.todos) _IslandGoogleTask(key: ValueKey(t.id), g: widget.c.google, task: t),
           ],
         ],
       ),
@@ -587,6 +567,90 @@ class _TodayPageState extends State<TodayPage> {
             ),
           ),
         ]),
+      ),
+    );
+  }
+}
+
+/// Google task row that checks off like a planner to-do (green fill, strike),
+/// folds away, and only then tells Google. A second tap before that undoes it.
+class _IslandGoogleTask extends StatefulWidget {
+  const _IslandGoogleTask({super.key, required this.g, required this.task});
+  final GoogleService g;
+  final GoogleTask task;
+
+  @override
+  State<_IslandGoogleTask> createState() => _IslandGoogleTaskState();
+}
+
+class _IslandGoogleTaskState extends State<_IslandGoogleTask> with SingleTickerProviderStateMixin {
+  late final AnimationController _fold =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 260), value: 1);
+  bool _done = false;
+  Timer? _commit;
+
+  void _toggle() {
+    _commit?.cancel();
+    setState(() => _done = !_done);
+    if (!_done) return;
+    _commit = Timer(const Duration(milliseconds: 700), () async {
+      if (!mounted) return;
+      await _fold.animateTo(0, curve: Curves.easeOutCubic);
+      if (mounted) widget.g.completeTask(widget.task);
+    });
+  }
+
+  @override
+  void dispose() {
+    _commit?.cancel();
+    _fold.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.task;
+    return SizeTransition(
+      sizeFactor: _fold,
+      alignment: Alignment.topCenter,
+      child: FadeTransition(
+        opacity: _fold,
+        child: IslandPressable(
+          onTap: _toggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _done ? const Color(0xFF30D158) : Colors.transparent,
+                  border: Border.all(color: _done ? const Color(0xFF30D158) : const Color(0x66FFFFFF), width: 1.6),
+                ),
+                child: _done ? const Icon(Icons.check_rounded, size: 14, color: Colors.black) : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(t.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: _done ? const Color(0x73FFFFFF) : Colors.white,
+                      decoration: _done ? TextDecoration.lineThrough : null,
+                      decorationColor: const Color(0x73FFFFFF),
+                    )),
+              ),
+              if (t.due != null) ...[
+                const SizedBox(width: 6),
+                Text('${_monthShort[t.due!.month - 1]} ${t.due!.day}', style: _dim),
+              ],
+            ]),
+          ),
+        ),
       ),
     );
   }
