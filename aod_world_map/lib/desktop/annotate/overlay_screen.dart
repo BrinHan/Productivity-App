@@ -37,12 +37,15 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
 
   final _barKey = GlobalKey(), _panelKey = GlobalKey(), _textKey = GlobalKey();
   final _focus = FocusNode();
-  Offset? _barPos;
+
+  // toolbar drag: where the bar's top-left is while it is being dragged
+  Offset? _drag;
+  Offset _dragFrom = Offset.zero, _dragGrab = Offset.zero, _dragPointer = Offset.zero;
+  Size _dragBar = Size.zero;
 
   // live stroke
   OneEuro? _filter;
-  List<Offset> _pts = [];
-  List<double>? _pressures;
+  final LiveInk _live = LiveInk();
   Offset _start = Offset.zero;
   bool _invertedEraser = false;
 
@@ -73,6 +76,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     store.removeListener(_syncTicker);
     _ticker.dispose();
     _clock.dispose();
+    _live.dispose();
     _focus.dispose();
     _text.dispose();
     _textFocus.dispose();
@@ -99,8 +103,8 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
   bool get _shift => OverlayWin32.keyDown(0x10);
 
   Tool get _tool => _invertedEraser ? Tool.eraser : shell.tool;
-  double get _strokeWidth => shell.tool == Tool.highlighter ? math.max(14, shell.width * 4) : shell.width;
-  double get _eraserRadius => math.max(8, shell.width * 3);
+  double get _strokeWidth => shell.tool == Tool.highlighter ? math.max(12, shell.width * 4) : shell.width;
+  double get _eraserRadius => math.max(7, shell.width * 3);
   Color get _ink => shell.tool == Tool.highlighter ? shell.color.withValues(alpha: 0.4) : shell.color;
 
   void _down(PointerDownEvent e) {
@@ -122,9 +126,15 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
       case Tool.highlighter:
       case Tool.pixelEraser:
         _filter = OneEuro();
-        _pts = [p];
-        _pressures = e.kind == PointerDeviceKind.stylus && shell.tool == Tool.pen ? [e.pressure] : null;
-        _updateLive();
+        final erase = _tool == Tool.pixelEraser;
+        _live.begin(
+          p,
+          color: erase ? const Color(0xFF000000) : _ink,
+          width: erase ? _eraserRadius * 2 : _strokeWidth,
+          pressure: e.kind == PointerDeviceKind.stylus && shell.tool == Tool.pen ? e.pressure : null,
+          highlighter: !erase && shell.tool == Tool.highlighter,
+          eraser: erase,
+        );
       case Tool.line:
       case Tool.arrow:
       case Tool.rect:
@@ -153,11 +163,10 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
       case Tool.pen:
       case Tool.highlighter:
       case Tool.pixelEraser:
+        if (!_live.active) return;
         final f = _filter!.filter(p, e.timeStamp.inMicroseconds / 1e6);
-        if ((f - _pts.last).distance < 0.75) return; // sub-pixel moves add nothing
-        _pts.add(f);
-        _pressures?.add(e.pressure);
-        _updateLive();
+        if ((f - _live.points.last).distance < 0.75) return; // sub-pixel moves add nothing
+        _live.add(f, e.pressure);
       case Tool.line:
       case Tool.arrow:
       case Tool.rect:
@@ -175,22 +184,25 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     shell.busyDrawing = false;
     final live = store.active.value;
     store.active.value = null;
+    final pts = _live.points, pr = _live.pressures;
     switch (_tool) {
       case Tool.pen:
       case Tool.highlighter:
-        final keep = simplify(_pts, 0.4);
+        if (pts.isEmpty) break;
+        final keep = simplify(pts, 0.4);
         store.add(
           Layer.user,
           StrokeShape(
-            color: _ink,
-            width: _strokeWidth,
-            points: [for (final i in keep) _pts[i]],
-            pressures: _pressures == null ? null : [for (final i in keep) _pressures![i]],
-            highlighter: shell.tool == Tool.highlighter,
+            color: _live.color,
+            width: _live.width,
+            points: [for (final i in keep) pts[i]],
+            pressures: pr == null ? null : [for (final i in keep) pr[i]],
+            highlighter: _live.highlighter,
           ),
         );
       case Tool.pixelEraser:
-        store.add(Layer.user, EraseShape(points: [for (final i in simplify(_pts, 0.4)) _pts[i]], radius: _eraserRadius));
+        if (pts.isEmpty) break;
+        store.add(Layer.user, EraseShape(points: [for (final i in simplify(pts, 0.4)) pts[i]], radius: _live.width / 2));
       case Tool.line:
       case Tool.arrow:
       case Tool.rect:
@@ -201,28 +213,19 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
       default:
         break;
     }
-    _pts = [];
-    _pressures = null;
+    _live.end();
     _filter = null;
     _invertedEraser = false;
   }
 
-  /// Rebuilds the in-progress shape. Only the live painter repaints.
-  void _updateLive([Offset? to]) {
+  /// Rebuilds the in-progress line or box. Only the live painter repaints.
+  void _updateLive(Offset to) {
     final c = shell.color, w = _strokeWidth;
     store.active.value = switch (_tool) {
-      Tool.pen || Tool.highlighter => StrokeShape(
-          color: _ink,
-          width: w,
-          points: List.of(_pts),
-          pressures: _pressures == null ? null : List.of(_pressures!),
-          highlighter: shell.tool == Tool.highlighter,
-        ),
-      Tool.pixelEraser => EraseShape(points: List.of(_pts), radius: _eraserRadius),
       Tool.line || Tool.arrow =>
-        LineShape(color: c, width: w, a: _start, b: _shift ? _snap15(_start, to!) : to!, arrow: shell.tool == Tool.arrow),
+        LineShape(color: c, width: w, a: _start, b: _shift ? _snap15(_start, to) : to, arrow: shell.tool == Tool.arrow),
       Tool.rect || Tool.ellipse =>
-        RectShape(color: c, width: w, rect: _box(_start, to!), ellipse: shell.tool == Tool.ellipse),
+        RectShape(color: c, width: w, rect: _box(_start, to), ellipse: shell.tool == Tool.ellipse),
       _ => null,
     };
   }
@@ -296,6 +299,119 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
     return KeyEventResult.handled;
   }
 
+  // ---------------------------------------------------------------- toolbar dock
+
+  static const _margin = EdgeInsets.fromLTRB(16, 16, 16, 84);
+
+  void _dragStart(DragStartDetails d) {
+    final box = _barKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.attached) return;
+    _dragPointer = _dragGrab = d.globalPosition;
+    _dragBar = box.size;
+    _dragFrom = box.localToGlobal(Offset.zero);
+    setState(() => _drag = _dragFrom);
+  }
+
+  void _dragUpdate(DragUpdateDetails d) {
+    if (_drag == null) return;
+    final size = MediaQuery.sizeOf(context);
+    _dragPointer = d.globalPosition;
+    final at = _dragFrom + (_dragPointer - _dragGrab);
+    setState(() => _drag = Offset(
+          at.dx.clamp(0.0, math.max(0.0, size.width - _dragBar.width)),
+          at.dy.clamp(0.0, math.max(0.0, size.height - _dragBar.height)),
+        ));
+  }
+
+  void _dragEnd() {
+    if (_drag == null) return;
+    shell.setDock(_nearestDock(_dragPointer, MediaQuery.sizeOf(context)));
+    setState(() => _drag = null);
+  }
+
+  static Dock _nearestDock(Offset p, Size size) {
+    final d = {
+      Dock.top: p.dy,
+      Dock.bottom: size.height - p.dy,
+      Dock.left: p.dx,
+      Dock.right: size.width - p.dx,
+    };
+    return d.entries.reduce((a, b) => a.value <= b.value ? a : b).key;
+  }
+
+  static Alignment _align(Dock d) => switch (d) {
+        Dock.top => Alignment.topCenter,
+        Dock.bottom => Alignment.bottomCenter,
+        Dock.left => Alignment.centerLeft,
+        Dock.right => Alignment.centerRight,
+      };
+
+  /// Toolbar plus (when open) the Ask panel, laid out for [dock]: the panel
+  /// always sits on the screen side of the bar.
+  Widget _dockedBar(Dock dock) {
+    final bar = _bar(dock);
+    if (!shell.askOpen) return bar;
+    final panel = _panel();
+    return switch (dock) {
+      Dock.top || Dock.bottom => Column(
+          mainAxisSize: MainAxisSize.min,
+          verticalDirection: dock == Dock.top ? VerticalDirection.down : VerticalDirection.up,
+          children: [bar, const SizedBox(height: 8), panel],
+        ),
+      Dock.left || Dock.right => Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          textDirection: dock == Dock.left ? TextDirection.ltr : TextDirection.rtl,
+          children: [bar, const SizedBox(width: 8), panel],
+        ),
+    };
+  }
+
+  /// While dragging: the bar under the cursor, and the Ask panel (same
+  /// state, so nothing typed is lost) held on the same side as when docked.
+  List<Widget> _draggedBar(Dock dock, Offset at, Size size) => [
+        Positioned(left: at.dx, top: at.dy, child: RepaintBoundary(child: _bar(dock))),
+        if (shell.askOpen)
+          switch (dock) {
+            Dock.bottom => Positioned(left: at.dx, bottom: size.height - at.dy + 8, child: _panel()),
+            Dock.top => Positioned(left: at.dx, top: at.dy + _dragBar.height + 8, child: _panel()),
+            Dock.left => Positioned(left: at.dx + _dragBar.width + 8, top: at.dy, child: _panel()),
+            Dock.right => Positioned(right: size.width - at.dx + 8, top: at.dy, child: _panel()),
+          },
+      ];
+
+  Widget _panel() => _AskPanel(key: _panelKey, shell: shell);
+
+  Widget _bar(Dock dock) => _Toolbar(
+      key: _barKey,
+      shell: shell,
+      axis: dock == Dock.left || dock == Dock.right ? Axis.vertical : Axis.horizontal,
+      onDragStart: _dragStart,
+      onDragUpdate: _dragUpdate,
+      onDragEnd: _dragEnd,
+    );
+
+  /// A soft glow on the edge the bar will snap to when you let go.
+  Widget _snapHint(Size size) {
+    final d = _nearestDock(_dragPointer, size);
+    final vertical = d == Dock.left || d == Dock.right;
+    return Align(
+      alignment: _align(d),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Container(
+          width: vertical ? 5 : 220,
+          height: vertical ? 220 : 5,
+          decoration: BoxDecoration(
+            color: const Color(0x99FFFFFF),
+            borderRadius: BorderRadius.circular(3),
+            boxShadow: const [BoxShadow(color: Color(0x66FFFFFF), blurRadius: 12)],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------- build
 
   @override
@@ -308,8 +424,7 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
       child: ListenableBuilder(
         listenable: shell,
         builder: (context, _) {
-          final pos = _barPos ?? Offset((size.width - _Toolbar.width) / 2, size.height - 132);
-          final below = pos.dy < size.height / 2;
+          final drag = _drag;
           return MouseRegion(
             cursor: shell.drawing
                 ? (shell.tool == Tool.text ? SystemMouseCursors.text : SystemMouseCursors.precise)
@@ -328,13 +443,15 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
                 IgnorePointer(
                   child: RepaintBoundary(
                     child: CustomPaint(
-                      painter: _UserLayerPainter(store, erasing: shell.tool == Tool.pixelEraser),
+                      painter: _UserLayerPainter(store, _live, erasing: shell.tool == Tool.pixelEraser),
                       size: Size.infinite,
                     ),
                   ),
                 ),
                 IgnorePointer(
-                  child: RepaintBoundary(child: CustomPaint(painter: _LivePainter(store.active), size: Size.infinite)),
+                  child: RepaintBoundary(
+                    child: CustomPaint(painter: _LivePainter(store.active, _live), size: Size.infinite),
+                  ),
                 ),
                 IgnorePointer(
                   child: RepaintBoundary(child: CustomPaint(painter: _AiPainter(store, _clock), size: Size.infinite)),
@@ -364,27 +481,28 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
                       ),
                     ),
                   ),
-                Positioned(
-                  left: pos.dx.clamp(0, math.max(0, size.width - _Toolbar.width)),
-                  top: below ? pos.dy.clamp(0, math.max(0, size.height - 48)) : null,
-                  bottom: below ? null : (size.height - pos.dy - 48).clamp(0, size.height),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    verticalDirection: below ? VerticalDirection.down : VerticalDirection.up,
-                    children: [
-                      _Toolbar(
-                        key: _barKey,
-                        shell: shell,
-                        onDrag: (d) => setState(() => _barPos = pos + d),
+                if (drag != null) ...[
+                  IgnorePointer(child: _snapHint(size)),
+                  ..._draggedBar(shell.dock, drag, size),
+                ] else
+                  Padding(
+                    padding: _margin,
+                    child: Align(
+                      alignment: _align(shell.dock),
+                      // Settles into place when it snaps to a new edge.
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey(shell.dock),
+                        tween: Tween(begin: 0, end: 1),
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, t, child) => Opacity(
+                          opacity: 0.4 + 0.6 * t,
+                          child: Transform.scale(scale: 0.92 + 0.08 * t, child: child),
+                        ),
+                        child: RepaintBoundary(child: _dockedBar(shell.dock)),
                       ),
-                      if (shell.askOpen) ...[
-                        const SizedBox(height: 8),
-                        _AskPanel(key: _panelKey, shell: shell),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
               ],
             ),
           );
@@ -398,9 +516,10 @@ class _OverlayScreenState extends State<OverlayScreen> with SingleTickerProvider
 
 /// Your layer, recorded into a Picture only when the document changes.
 class _UserLayerPainter extends CustomPainter {
-  _UserLayerPainter(this.store, {required this.erasing})
-      : super(repaint: erasing ? Listenable.merge([store, store.active]) : store);
+  _UserLayerPainter(this.store, this.live, {required this.erasing})
+      : super(repaint: erasing ? Listenable.merge([store, live]) : store);
   final AnnotationStore store;
+  final LiveInk live;
   final bool erasing;
 
   @override
@@ -411,12 +530,11 @@ class _UserLayerPainter extends CustomPainter {
       s.cache = recordShapes(s.shapes, size);
       s.dirty = false;
     }
-    final live = store.active.value;
-    if (erasing && live is EraseShape) {
+    if (erasing && live.active && live.eraser) {
       // Preview the pixel eraser cutting through this layer only.
       canvas.saveLayer(Offset.zero & size, Paint());
       canvas.drawPicture(s.cache!);
-      live.paint(canvas, size, 1);
+      live.paint(canvas);
       canvas.restore();
     } else {
       canvas.drawPicture(s.cache!);
@@ -424,23 +542,25 @@ class _UserLayerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_UserLayerPainter old) => old.erasing != erasing || old.store != store;
+  bool shouldRepaint(_UserLayerPainter old) => old.erasing != erasing || old.store != store || old.live != live;
 }
 
-/// The one shape under the pen right now.
+/// What is under the pen right now: a freehand stroke, or a line or box.
 class _LivePainter extends CustomPainter {
-  _LivePainter(this.active) : super(repaint: active);
+  _LivePainter(this.active, this.live) : super(repaint: Listenable.merge([active, live]));
   final ValueNotifier<Shape?> active;
+  final LiveInk live;
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (live.active && !live.eraser) live.paint(canvas);
     final s = active.value;
     if (s == null || s is EraseShape) return;
     s.paint(canvas, size, 1);
   }
 
   @override
-  bool shouldRepaint(_LivePainter old) => old.active != active;
+  bool shouldRepaint(_LivePainter old) => old.active != active || old.live != live;
 }
 
 /// The AI layer. Few shapes, animated as they arrive.
@@ -451,8 +571,9 @@ class _AiPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final now = DateTime.now().millisecondsSinceEpoch;
     final shapes = store.shapes(Layer.ai);
+    if (shapes.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
     // Spotlights first, so marks sit on top of the dimming.
     for (final s in shapes.whereType<SpotlightShape>()) {
       s.paint(canvas, size, Curves.easeOut.transform(((now - s.born) / 350).clamp(0.0, 1.0)));
@@ -471,11 +592,25 @@ class _AiPainter extends CustomPainter {
 
 const _panelBg = Color(0xF21C1C1E);
 
+/// The tool strip. Horizontal on the top and bottom edges; on the left and
+/// right it stands upright, top to bottom (wrapping into a second column if
+/// the screen is too short for one).
 class _Toolbar extends StatelessWidget {
-  const _Toolbar({super.key, required this.shell, required this.onDrag});
+  const _Toolbar({
+    super.key,
+    required this.shell,
+    required this.axis,
+    required this.onDragStart,
+    required this.onDragUpdate,
+    required this.onDragEnd,
+  });
   final OverlayShell shell;
-  final ValueChanged<Offset> onDrag;
-  static const double width = 812;
+  final Axis axis;
+  final GestureDragStartCallback onDragStart;
+  final GestureDragUpdateCallback onDragUpdate;
+  final VoidCallback onDragEnd;
+
+  static const double thickness = 48;
 
   static IconData stampIcon(StampKind k) => switch (k) {
         StampKind.check => Icons.check_rounded,
@@ -486,32 +621,40 @@ class _Toolbar extends StatelessWidget {
       };
 
   Widget _tool(Tool t, IconData icon, String tip) =>
-      _Btn(icon: icon, tip: tip, on: shell.tool == t, onTap: () => shell.setTool(t));
+      _Btn(icon: icon, tip: tip, axis: axis, on: shell.tool == t, onTap: () => shell.setTool(t));
 
   @override
   Widget build(BuildContext context) {
     final s = shell.store;
+    final vertical = axis == Axis.vertical;
+    final sep = _Sep(axis: axis);
     return ListenableBuilder(
       listenable: s,
       builder: (context, _) => Container(
-        width: width,
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: vertical ? const EdgeInsets.symmetric(vertical: 6) : const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
           color: _panelBg,
           borderRadius: BorderRadius.circular(24),
           boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 18, offset: Offset(0, 6))],
         ),
-        child: Row(
+        child: Wrap(
+          direction: axis,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             MouseRegion(
               cursor: SystemMouseCursors.move,
               child: GestureDetector(
-                onPanUpdate: (d) => onDrag(d.delta),
-                child: const SizedBox(
-                  width: 22,
-                  height: 48,
-                  child: Icon(Icons.drag_indicator_rounded, size: 18, color: Color(0x80FFFFFF)),
+                onPanStart: onDragStart,
+                onPanUpdate: onDragUpdate,
+                onPanEnd: (_) => onDragEnd(),
+                onPanCancel: onDragEnd,
+                child: SizedBox(
+                  width: vertical ? thickness : 22,
+                  height: vertical ? 22 : thickness,
+                  child: RotatedBox(
+                    quarterTurns: vertical ? 1 : 0,
+                    child: const Icon(Icons.drag_indicator_rounded, size: 18, color: Color(0x80FFFFFF)),
+                  ),
                 ),
               ),
             ),
@@ -526,51 +669,60 @@ class _Toolbar extends StatelessWidget {
             _tool(Tool.text, Icons.text_fields_rounded, 'Text (T)'),
             _tool(Tool.eraser, Icons.auto_fix_normal_rounded, 'Eraser: whole marks (E)'),
             _tool(Tool.pixelEraser, Icons.blur_on_rounded, 'Eraser: pixels (X)'),
-            const _Sep(),
+            sep,
             for (final c in kInkColors)
-              _Dot(color: c, on: shell.color.toARGB32() == c.toARGB32(), onTap: () => shell.setColor(c)),
-            const _Sep(),
-            for (final (w, r) in const [(2.0, 3.0), (4.0, 5.0), (8.0, 7.0)])
+              _Dot(color: c, axis: axis, on: shell.color.toARGB32() == c.toARGB32(), onTap: () => shell.setColor(c)),
+            sep,
+            for (final (i, w) in kInkWidths.indexed)
               _Btn(
                 tip: 'Width',
+                axis: axis,
                 on: shell.width == w,
                 onTap: () => shell.setWidth(w),
                 child: Container(
-                  width: r * 2,
-                  height: r * 2,
+                  width: 6.0 + 4 * i,
+                  height: 6.0 + 4 * i,
                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                 ),
               ),
-            const _Sep(),
+            sep,
             _Btn(
                 icon: Icons.undo_rounded,
                 tip: 'Undo (Ctrl+Z)',
+                axis: axis,
                 enabled: s.canUndo(Layer.user),
                 onTap: () => s.undo(Layer.user)),
             _Btn(
                 icon: Icons.redo_rounded,
                 tip: 'Redo (Ctrl+Y)',
+                axis: axis,
                 enabled: s.canRedo(Layer.user),
                 onTap: () => s.redo(Layer.user)),
             _Btn(
               icon: Icons.delete_sweep_rounded,
               tip: 'Clear all',
+              axis: axis,
               enabled: !s.isEmpty,
               onTap: () {
                 s.clear(Layer.user);
                 s.dismissAi();
               },
             ),
-            const _Sep(),
+            sep,
             _Btn(
               icon: Icons.auto_awesome_rounded,
               tip: 'Ask AI about the screen (Ctrl+Shift+Space)',
+              axis: axis,
               on: shell.askOpen,
               accent: true,
               onTap: shell.toggleAsk,
             ),
-            _Btn(icon: Icons.visibility_off_rounded, tip: 'Hide (Ctrl+Shift+A brings it back)', onTap: shell.hide),
-            _Btn(icon: Icons.close_rounded, tip: 'Close annotations', onTap: shell.quit),
+            _Btn(
+                icon: Icons.visibility_off_rounded,
+                tip: 'Hide (Ctrl+Shift+A brings it back)',
+                axis: axis,
+                onTap: shell.hide),
+            _Btn(icon: Icons.close_rounded, tip: 'Close annotations', axis: axis, onTap: shell.close),
           ],
         ),
       ),
@@ -579,10 +731,17 @@ class _Toolbar extends StatelessWidget {
 }
 
 class _Sep extends StatelessWidget {
-  const _Sep();
+  const _Sep({required this.axis});
+  final Axis axis;
   @override
-  Widget build(BuildContext context) => Container(
-      width: 1, height: 22, margin: const EdgeInsets.symmetric(horizontal: 4), color: const Color(0x33FFFFFF));
+  Widget build(BuildContext context) {
+    final h = axis == Axis.horizontal;
+    return SizedBox(
+      width: h ? 9 : _Toolbar.thickness,
+      height: h ? _Toolbar.thickness : 9,
+      child: Center(child: Container(width: h ? 1 : 22, height: h ? 22 : 1, color: const Color(0x33FFFFFF))),
+    );
+  }
 }
 
 class _Btn extends StatelessWidget {
@@ -594,7 +753,9 @@ class _Btn extends StatelessWidget {
     this.on = false,
     this.enabled = true,
     this.accent = false,
+    this.axis = Axis.horizontal,
   });
+  final Axis axis;
   final IconData? icon;
   final Widget? child;
   final String tip;
@@ -615,7 +776,9 @@ class _Btn extends StatelessWidget {
             duration: const Duration(milliseconds: 150),
             width: 32,
             height: 32,
-            margin: const EdgeInsets.symmetric(horizontal: 1),
+            margin: axis == Axis.horizontal
+                ? const EdgeInsets.symmetric(horizontal: 1)
+                : const EdgeInsets.symmetric(vertical: 1),
             decoration: BoxDecoration(
               color: on ? (accent ? kAiColor.withValues(alpha: 0.45) : const Color(0x33FFFFFF)) : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
@@ -630,7 +793,8 @@ class _Btn extends StatelessWidget {
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({required this.color, required this.on, required this.onTap});
+  const _Dot({required this.color, required this.on, required this.onTap, this.axis = Axis.horizontal});
+  final Axis axis;
   final Color color;
   final bool on;
   final VoidCallback onTap;
@@ -643,7 +807,9 @@ class _Dot extends StatelessWidget {
           child: Container(
             width: 22,
             height: 22,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
+            margin: axis == Axis.horizontal
+                ? const EdgeInsets.symmetric(horizontal: 2)
+                : const EdgeInsets.symmetric(vertical: 2),
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
