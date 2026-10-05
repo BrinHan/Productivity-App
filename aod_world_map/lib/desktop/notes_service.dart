@@ -596,9 +596,10 @@ namespace Orbit
         Marshal.WriteInt16(fmt, 14, (short)16);
         Marshal.WriteInt16(fmt, 16, (short)0);
 
-        int loop = 0x00020000, evt = 0x00040000, nop = 0x00080000;
+        // Process loopback rejects NOPERSIST with AUDCLNT_E_INVALID_STREAM_FLAG.
+        int loop = 0x00020000, evt = 0x00040000;
         int auto = unchecked((int)0x80000000) | 0x08000000;
-        int[] flagSets = new int[] { loop | evt | nop, loop | evt | nop | auto };
+        int[] flagSets = new int[] { loop | evt | auto, loop | evt };
 
         AutoResetEvent ev = new AutoResetEvent(false);
         IAudioClient client = null;
