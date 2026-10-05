@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../aod/sky_toggle.dart';
 import 'google_service.dart';
+import 'notes_model.dart';
 import 'notes_service.dart';
 import 'planner_model.dart';
 import 'window_shell.dart';
@@ -27,8 +28,9 @@ part 'home_schedule.dart';
 part 'home_account.dart';
 part 'home_settings.dart';
 part 'home_notes.dart';
+part 'home_calendar.dart';
 
-enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings, notes }
+enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings, notes, calendar }
 
 class HomePage extends StatefulWidget {
   const HomePage({
@@ -115,7 +117,8 @@ class _HomePageState extends State<HomePage> {
                           c.maxWidth > 1080 &&
                           _view != _View.account &&
                           _view != _View.settings &&
-                          _view != _View.notes;
+                          _view != _View.notes &&
+                          _view != _View.calendar;
                       return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 280),
@@ -181,6 +184,8 @@ class _HomePageState extends State<HomePage> {
         return _AccountView(t: t, g: g);
       case _View.notes:
         return _NotesView(t: t, notes: notes);
+      case _View.calendar:
+        return _CalendarView(t: t, g: g, p: p, onAccount: () => setState(() => _view = _View.account));
       case _View.settings:
         return _SettingsView(
           t: t,

@@ -46,6 +46,7 @@ class _Sidebar extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 _nav(Icons.home_outlined, 'Home', _View.home),
+                _nav(Icons.calendar_month_outlined, 'Calendar', _View.calendar),
                 _nav(Icons.timer_outlined, 'Focus', _View.focus),
                 _nav(Icons.graphic_eq_rounded, 'Notes', _View.notes, dot: notes.recording),
                 _group('Day'),
