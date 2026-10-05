@@ -100,26 +100,84 @@ class _DayColumn extends StatelessWidget {
             padding: const EdgeInsets.only(top: 8, bottom: 6),
             child: Text('Google Tasks', style: _ts(t.sub, 12, w: FontWeight.w600)),
           ),
-          for (final gt in gtasks)
-            _Tap(
-              t: t,
-              onTap: () => g.completeTask(gt),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Row(children: [
-                  _Check(t, false, () => g.completeTask(gt), size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(gt.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: _ts(t.text, 13.5))),
-                  if (gt.due != null) ...[
-                    const SizedBox(width: 8),
-                    Text('${_monthNames[gt.due!.month - 1].substring(0, 3)} ${gt.due!.day}',
-                        style: _ts(t.sub, 12, tab: true)),
-                  ],
-                ]),
-              ),
-            ),
+          for (final gt in gtasks) _GoogleTaskRow(key: ValueKey(gt.id), t: t, g: g, task: gt),
         ],
       ]),
+    );
+  }
+}
+
+/// A Google task that completes the way a planner task does: the tick draws,
+/// the strike runs across, the row dims. It then folds away and only then is
+/// sent to Google, so a second click before the fold takes it back.
+class _GoogleTaskRow extends StatefulWidget {
+  const _GoogleTaskRow({super.key, required this.t, required this.g, required this.task});
+  final _T t;
+  final GoogleService g;
+  final GoogleTask task;
+
+  @override
+  State<_GoogleTaskRow> createState() => _GoogleTaskRowState();
+}
+
+class _GoogleTaskRowState extends State<_GoogleTaskRow> with SingleTickerProviderStateMixin {
+  late final AnimationController _fold = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+    value: 1,
+  );
+  bool _done = false;
+  Timer? _commit;
+
+  void _toggle() {
+    _commit?.cancel();
+    setState(() => _done = !_done);
+    if (!_done) return;
+    // Let the tick and strike finish (300 / 400 ms) and sit for a beat.
+    _commit = Timer(const Duration(milliseconds: 750), () async {
+      if (!mounted) return;
+      await _fold.animateTo(0, curve: Curves.easeOutCubic);
+      if (mounted) widget.g.completeTask(widget.task);
+    });
+  }
+
+  @override
+  void dispose() {
+    _commit?.cancel();
+    _fold.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.t, gt = widget.task;
+    return SizeTransition(
+      sizeFactor: _fold,
+      alignment: Alignment.topCenter,
+      child: FadeTransition(
+        opacity: _fold,
+        child: AnimatedOpacity(
+          opacity: _done ? 0.55 : 1,
+          duration: const Duration(milliseconds: 200),
+          child: _Tap(
+            t: t,
+            onTap: _toggle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(children: [
+                _Check(t, _done, _toggle, size: 18),
+                const SizedBox(width: 10),
+                Expanded(child: _StrikeText(t, gt.title, _done, size: 13.5)),
+                if (gt.due != null) ...[
+                  const SizedBox(width: 8),
+                  Text('${_monthNames[gt.due!.month - 1].substring(0, 3)} ${gt.due!.day}',
+                      style: _ts(t.sub, 12, tab: true)),
+                ],
+              ]),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
