@@ -45,7 +45,7 @@ class _Raw {
   Duration? duration;
 }
 
-/// Reads iCal feeds (read-only) and keeps today + tomorrow in memory.
+/// Reads iCal feeds (read-only) and keeps this month's grid in memory.
 /// Nothing is stored on disk except the feed links themselves.
 class AgendaService extends ChangeNotifier {
   List<AgendaEvent> events = const [];
@@ -74,9 +74,12 @@ class AgendaService extends ChangeNotifier {
     loading = true;
     notifyListeners();
 
+    // This month's six-week grid (Sunday start), so the island's month and
+    // week views have it too. It always holds tomorrow.
     final now = DateTime.now();
-    final from = DateTime(now.year, now.month, now.day);
-    final to = DateTime(now.year, now.month, now.day + 2);
+    final first = DateTime(now.year, now.month);
+    final from = DateTime(first.year, first.month, 1 - first.weekday % 7);
+    final to = DateTime(from.year, from.month, from.day + 42);
     final ev = <AgendaEvent>[];
     final td = <AgendaTodo>[];
     final err = <String, String>{};
