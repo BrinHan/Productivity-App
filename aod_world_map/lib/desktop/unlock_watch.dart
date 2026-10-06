@@ -21,6 +21,9 @@ class UnlockWatch {
   Timer? _timer;
   bool _locked = false;
 
+  /// Windows is on its lock screen right now.
+  bool get locked => _locked;
+
   void start() {
     if (!Platform.isWindows || !_init()) return;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _check());

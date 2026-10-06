@@ -14,6 +14,7 @@ import 'island_pages.dart';
 import 'now_playing.dart';
 import 'planner_model.dart';
 import 'process_link.dart';
+import 'hello_screen.dart';
 import 'unlock_watch.dart';
 import 'window_shell.dart' show launchApp, openWeb;
 
@@ -36,6 +37,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   NowPlayingService? _music;
   Timer? _poll, _notesPush, _trim;
   UnlockWatch? _unlock;
+  AwayWatch? _away;
   bool _ticking = false, _captured = false, _pushQueued = false;
   int _n = 0;
 
@@ -94,7 +96,12 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     island.addListener(_onIslandChanged);
     _onIslandChanged();
     _poll = Timer.periodic(const Duration(milliseconds: 60), (_) => _tick());
-    _unlock = UnlockWatch(onLock: island.locked, onUnlock: island.unlocked)..start();
+    _unlock = UnlockWatch(onLock: island.locked, onUnlock: _onUnlock)..start();
+    _away = AwayWatch(
+      after: () => Duration(minutes: island.helloAfter),
+      skip: () => _unlock?.locked ?? false,
+      onAway: _startHello,
+    )..start();
     // Have an overlay waiting so annotating opens instantly. Started a moment
     // after the island so the two don't compete at login.
     Timer(const Duration(seconds: 4), _warmOverlay);
@@ -113,11 +120,44 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
       island.notes.handleCommand(m);
     } else if (t == 'quit') {
       quit();
+    } else if (t == 'hello') {
+      _onHello(m);
     } else if (t == 'preview') {
       // Same as the tray's "Island: ..." items; handy from a script too.
       final s = IslandState.values.where((x) => x.name == m['state']).firstOrNull;
       if (s != null) island.preview(s);
     }
+  }
+
+  /// You were away: put the Hello screen up (the app window shows it).
+  Future<void> _startHello() async {
+    final sent = await LinkServer.sendOnce(kAppPort, const {'t': 'hello'});
+    if (!sent) await spawnSelf(['--hello']);
+  }
+
+  /// The Hello screen reporting on Windows Hello: scanning, done or failed.
+  Future<void> _onHello(Map<String, dynamic> m) async {
+    final method = UnlockMethod.values.where((x) => x.name == m['method']).firstOrNull ?? UnlockMethod.face;
+    switch (m['phase']) {
+      case 'scan':
+        // The Hello screen is full screen and on top; come back above it.
+        await _try(() async {
+          await windowManager.setAlwaysOnTop(false);
+          await windowManager.setAlwaysOnTop(true);
+        });
+        island.verifying(method);
+      case 'done':
+        island.unlocked(method);
+      case 'fail':
+        island.verifyFailed();
+    }
+  }
+
+  /// Back from Windows' own lock: you have just signed in, so the Hello
+  /// screen (if it was up) has nothing left to ask.
+  void _onUnlock(UnlockMethod m) {
+    island.unlocked(m);
+    unawaited(LinkServer.sendOnce(kAppPort, const {'t': 'helloEnd'}));
   }
 
   void _onFile(String name) {
@@ -211,6 +251,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   Future<void> quit() async {
     _poll?.cancel();
     _unlock?.stop();
+    _away?.stop();
     _trim?.cancel();
     await LinkServer.sendOnce(kAppPort, const {'t': 'quit'});
     await LinkServer.sendOnce(kOverlayPort, const {'t': 'quit'});
@@ -278,6 +319,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'face', label: 'Island: Face ID unlock'),
         tray.MenuItem(key: 'finger', label: 'Island: fingerprint unlock'),
         tray.MenuItem(key: 'pin', label: 'Island: PIN unlock'),
+        tray.MenuItem(key: 'hello', label: 'Show the Hello screen'),
         tray.MenuItem.separator(),
         tray.MenuItem(key: 'quit', label: 'Quit'),
       ]));
@@ -391,6 +433,8 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         island.unlocked(UnlockMethod.fingerprint);
       case 'pin':
         island.unlocked(UnlockMethod.pin);
+      case 'hello':
+        _startHello();
       case 'quit':
         quit();
     }

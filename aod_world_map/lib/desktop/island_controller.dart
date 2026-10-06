@@ -14,7 +14,9 @@ import 'planner_model.dart';
 import 'unlock_glyphs.dart' show kUnlockAnimation;
 import 'unlock_watch.dart';
 
-enum IslandState { hidden, notch, idle, open, call, music, success, meeting }
+/// [verify]: Windows Hello is checking you on the Hello screen; the island
+/// scans until it answers, then shows [success].
+enum IslandState { hidden, notch, idle, open, call, music, verify, success, meeting }
 
 enum IslandPage { home, music, stocks, today, settings }
 
@@ -169,6 +171,9 @@ class IslandController extends ChangeNotifier {
   /// Pop the music pill up when the song changes while already playing.
   /// Resuming after a pause always pops it up.
   bool popOnTrackChange = false;
+
+  /// Minutes away before the Hello screen comes up; 0 is off.
+  int helloAfter = 5;
   bool musicHelper = true; // the PowerShell media-session reader
   String stockSymbol = 'AAPL';
   String stockRange = '1d'; // 1d | 5d | 1mo
@@ -252,6 +257,7 @@ class IslandController extends ChangeNotifier {
       openOnHover = (j['openOnHover'] as bool?) ?? false;
       quietInChrome = (j['quietInChrome'] as bool?) ?? true;
       popOnTrackChange = (j['popOnTrackChange'] as bool?) ?? false;
+      helloAfter = (j['helloAfter'] as num?)?.toInt() ?? 5;
       musicHelper = (j['musicHelper'] as bool?) ?? true;
       stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
       stockRange = (j['stockRange'] as String?) ?? '1d';
@@ -288,6 +294,7 @@ class IslandController extends ChangeNotifier {
           'openOnHover': openOnHover,
           'quietInChrome': quietInChrome,
           'popOnTrackChange': popOnTrackChange,
+          'helloAfter': helloAfter,
           'musicHelper': musicHelper,
           'stockSymbol': stockSymbol,
           'stockRange': stockRange,
@@ -324,6 +331,12 @@ class IslandController extends ChangeNotifier {
 
   void setPopOnTrackChange(bool v) {
     popOnTrackChange = v;
+    notifyListeners();
+    _persist();
+  }
+
+  void setHelloAfter(int minutes) {
+    helloAfter = minutes;
     notifyListeners();
     _persist();
   }
@@ -458,6 +471,7 @@ class IslandController extends ChangeNotifier {
     }
     final busy = state == IslandState.call ||
         state == IslandState.success ||
+        state == IslandState.verify ||
         state == IslandState.open;
     // Resuming always shows the pill; a new song (a skip, or the next track
     // starting) only when that's switched on in settings.
@@ -509,7 +523,7 @@ class IslandController extends ChangeNotifier {
   }
 
   void open([IslandPage p = IslandPage.home]) {
-    if (state == IslandState.call || state == IslandState.success) return;
+    if (state == IslandState.call || state == IslandState.success || state == IslandState.verify) return;
     _timer?.cancel();
     page = p;
     if (state == IslandState.open) {
@@ -552,6 +566,8 @@ class IslandController extends ChangeNotifier {
         _later(const Duration(seconds: 15), decline);
       case IslandState.meeting:
         offerMeeting(MeetingInfo.demo());
+      case IslandState.verify:
+        verifying(unlockMethod);
       case IslandState.success:
         _set(IslandState.success);
         _later(kUnlockAnimation + const Duration(milliseconds: 300), _afterSuccess);
@@ -572,10 +588,25 @@ class IslandController extends ChangeNotifier {
     _set(IslandState.hidden);
   }
 
-  /// Back from the lock screen: show how you got in.
+  /// Back from the lock screen, or past the Hello screen: show how you
+  /// got in. After [verifying], the scan carries on into the check.
   void unlocked(UnlockMethod m) {
     unlockMethod = m;
     preview(IslandState.success);
+  }
+
+  /// The Hello screen asked Windows Hello to check you. [likely] is the
+  /// glyph to scan with (how you usually sign in) until it answers.
+  void verifying(UnlockMethod likely) {
+    _timer?.cancel();
+    unlockMethod = likely;
+    _set(IslandState.verify);
+  }
+
+  /// Windows Hello said no (or you cancelled): put the scan away.
+  void verifyFailed() {
+    if (state != IslandState.verify) return;
+    _set(near ? _resting : IslandState.hidden);
   }
 
   void decline() {

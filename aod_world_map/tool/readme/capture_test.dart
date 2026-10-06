@@ -344,9 +344,12 @@ void main() {
         child: Align(alignment: Alignment.topCenter, child: DynamicIsland(controller: c)),
       )),
     );
+    // As on the Hello screen: scan while Windows Hello decides, then the check.
     for (final m in UnlockMethod.values) {
+      c.verifying(m);
+      await cam.clip('unlock_${m.name}', m == UnlockMethod.pin ? 20 : 45);
       c.unlocked(m);
-      await cam.clip('unlock_${m.name}', 78);
+      await cam.clip('unlock_${m.name}', 70);
       await settle(t, ms: 1200);
     }
     c.dispose();

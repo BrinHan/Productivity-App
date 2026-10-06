@@ -464,6 +464,17 @@ class _SettingsPageState extends State<_SettingsPage> {
             _seg('Off', !c.popOnTrackChange, () => c.setPopOnTrackChange(false)),
           ],
         ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text('Hello screen after', style: _label),
+            const Spacer(),
+            for (final (label, m) in const [('Off', 0), ('5 min', 5), ('15 min', 15)]) ...[
+              _seg(label, c.helloAfter == m, () => c.setHelloAfter(m)),
+              if (m != 15) const SizedBox(width: 6),
+            ],
+          ],
+        ),
         const SizedBox(height: 4),
         Row(
           children: [

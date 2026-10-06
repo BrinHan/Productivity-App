@@ -8,35 +8,90 @@ import 'unlock_watch.dart';
 /// How long one unlock animation runs, recognition to checkmark.
 const kUnlockAnimation = Duration(milliseconds: 2400);
 
-/// The square island's welcome-back animation for [method], in the manner
-/// of Apple's: Face ID turns the face as it scans, Touch ID fills the
+/// The square island's unlock animation for [method], in the manner of
+/// Apple's: Face ID turns the face as it scans, Touch ID fills the
 /// fingerprint's ridges, a PIN springs the padlock. Each ends in a check.
+///
+/// While [scanning] (Windows Hello is still deciding) it loops the scan:
+/// the face keeps turning, the fingerprint waits for a touch. When
+/// [scanning] turns false it carries straight on into the check.
 class UnlockGlyph extends StatefulWidget {
-  const UnlockGlyph({super.key, required this.method});
+  const UnlockGlyph({super.key, required this.method, this.scanning = false});
   final UnlockMethod method;
+  final bool scanning;
 
   @override
   State<UnlockGlyph> createState() => _UnlockGlyphState();
 }
 
-class _UnlockGlyphState extends State<UnlockGlyph> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: kUnlockAnimation)..forward();
+class _UnlockGlyphState extends State<UnlockGlyph> with TickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: kUnlockAnimation);
+  late final AnimationController _loop = AnimationController(vsync: this, duration: const Duration(milliseconds: 1700));
+
+  /// Came from a live scan, and the face's turn when it stopped.
+  bool _live = false;
+  double _frozen = 0;
+
+  /// Where each glyph's intro ends, and where its finish begins.
+  static const _introEnd = 0.12;
+  double get _finishFrom => switch (widget.method) {
+        UnlockMethod.face => 0.5,
+        UnlockMethod.fingerprint => 0.08,
+        UnlockMethod.pin => 0.12,
+      };
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.scanning) {
+      _live = true;
+      _c.animateTo(_introEnd);
+      _loop.repeat();
+    } else {
+      _c.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(UnlockGlyph old) {
+    super.didUpdateWidget(old);
+    if (old.scanning && !widget.scanning) {
+      _frozen = _scanTurn(_loop.value);
+      _loop.stop();
+      _c.forward(from: _finishFrom);
+    }
+  }
 
   @override
   void dispose() {
     _c.dispose();
+    _loop.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-        size: Size.infinite,
-        painter: switch (widget.method) {
-          UnlockMethod.face => _FacePainter(_c),
-          UnlockMethod.fingerprint => _FingerPainter(_c),
-          UnlockMethod.pin => _PadlockPainter(_c),
-        },
-      );
+  Widget build(BuildContext context) {
+    final scan = _Scan(_loop, widget.scanning, _live, _frozen);
+    return CustomPaint(
+      size: Size.infinite,
+      painter: switch (widget.method) {
+        UnlockMethod.face => _FacePainter(_c, scan),
+        UnlockMethod.fingerprint => _FingerPainter(_c, scan),
+        UnlockMethod.pin => _PadlockPainter(_c, scan),
+      },
+    );
+  }
+}
+
+/// The face's turn during a live scan: a steady look left and right.
+double _scanTurn(double loop) => 0.9 * math.sin(loop * 2 * math.pi);
+
+/// Live-scan state handed to the painters.
+class _Scan {
+  const _Scan(this.loop, this.scanning, this.live, this.frozen);
+  final Animation<double> loop;
+  final bool scanning, live;
+  final double frozen;
 }
 
 const _green = Color(0xFF30D158);
@@ -53,8 +108,9 @@ Paint _stroke(Color c, double w) => Paint()
   ..color = c;
 
 abstract class _GlyphPainter extends CustomPainter {
-  _GlyphPainter(this.anim) : super(repaint: anim);
+  _GlyphPainter(this.anim, this.scan) : super(repaint: Listenable.merge([anim, scan.loop]));
   final Animation<double> anim;
+  final _Scan scan;
 
   /// When the check starts and finishes drawing.
   double get checkFrom;
@@ -89,7 +145,8 @@ abstract class _GlyphPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _GlyphPainter old) => old.anim != anim;
+  bool shouldRepaint(covariant _GlyphPainter old) =>
+      old.anim != anim || old.scan.scanning != scan.scanning || old.scan.frozen != scan.frozen;
 }
 
 // ------------------------------------------------------------------ Face ID
@@ -98,7 +155,7 @@ abstract class _GlyphPainter extends CustomPainter {
 /// face turns from side to side inside the frame (its features slide and
 /// narrow, like a head turning); on success they fold away into the check.
 class _FacePainter extends _GlyphPainter {
-  _FacePainter(super.anim);
+  _FacePainter(super.anim, super.scan);
 
   @override
   double get checkFrom => 0.56;
@@ -132,8 +189,15 @@ class _FacePainter extends _GlyphPainter {
 
     // The face, turning: one and a half looks left and right, settling.
     if (fold < 1) {
-      final u = _span(t, 0.1, 0.5);
-      final turn = math.sin(u * math.pi * 3) * math.pow(1 - u, 0.7);
+      final double turn;
+      if (scan.scanning) {
+        turn = _scanTurn(scan.loop.value);
+      } else if (scan.live) {
+        turn = scan.frozen * (1 - fold);
+      } else {
+        final u = _span(t, 0.1, 0.5);
+        turn = math.sin(u * math.pi * 3) * math.pow(1 - u, 0.7);
+      }
       final dx = 5.0 * turn, narrow = 1 - 0.18 * turn.abs();
       final k = 1 - fold;
       final face = _stroke(white.withValues(alpha: white.a * k), 3);
@@ -169,7 +233,7 @@ class _FacePainter extends _GlyphPainter {
 /// A fingerprint of open ridges. They light up from the centre outwards in
 /// Touch ID's red-to-pink, then the print gives way to the check.
 class _FingerPainter extends _GlyphPainter {
-  _FingerPainter(super.anim);
+  _FingerPainter(super.anim, super.scan);
 
   @override
   double get checkFrom => 0.6;
@@ -200,14 +264,15 @@ class _FingerPainter extends _GlyphPainter {
   @override
   void glyph(Canvas canvas, double t) {
     final appear = _span(t, 0, 0.1);
-    final fill = _span(t, 0.08, 0.52);
+    final fill = scan.scanning ? 0.0 : _span(t, 0.08, 0.52);
+    final breathe = scan.scanning ? 0.1 * math.sin(scan.loop.value * 2 * math.pi) : 0.0;
     final leave = Curves.easeInCubic.transform(_span(t, 0.54, 0.68));
     if (leave >= 1) return;
 
     canvas.save();
     canvas.translate(0, 4);
     canvas.scale(0.9 + 0.1 * appear - 0.12 * leave);
-    final base = _stroke(Colors.white.withValues(alpha: 0.22 * appear * (1 - leave)), 2.6);
+    final base = _stroke(Colors.white.withValues(alpha: (0.24 + breathe) * appear * (1 - leave)), 2.6);
     final ink = _stroke(Colors.white, 2.6)
       ..shader = _ink
       ..color = Colors.white.withValues(alpha: 1 - leave);
@@ -236,7 +301,7 @@ class _FingerPainter extends _GlyphPainter {
 
 /// A padlock whose shackle lifts and swings open, then the check.
 class _PadlockPainter extends _GlyphPainter {
-  _PadlockPainter(super.anim);
+  _PadlockPainter(super.anim, super.scan);
 
   @override
   double get checkFrom => 0.5;

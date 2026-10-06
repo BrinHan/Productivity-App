@@ -32,7 +32,10 @@ Future<void> main(List<String> args) async {
   PaintingBinding.instance.imageCache
     ..maximumSize = 20
     ..maximumSizeBytes = 8 << 20;
-  final shell = ShellController(mode: args.contains('--home') ? AppMode.home : AppMode.map);
+  final shell = ShellController(
+    mode: args.contains('--home') ? AppMode.home : AppMode.map,
+    helloAtStart: args.contains('--hello'),
+  );
   if (!await shell.claim()) exit(0); // already open; it was brought forward
   final planner = PlannerModel();
   await planner.load();
@@ -132,6 +135,31 @@ class _AodAppState extends State<AodApp> {
       );
 }
 
+/// On the Hello screen, any key press or mouse move means you're back:
+/// ask Windows Hello. Otherwise it does nothing.
+class _HelloInput extends StatelessWidget {
+  const _HelloInput({required this.shell, required this.child});
+  final ShellController shell;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    void back([Object? _]) {
+      if (shell.hello.value) shell.helloInput();
+    }
+
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (_, e) {
+        if (!shell.hello.value) return KeyEventResult.ignored;
+        back();
+        return KeyEventResult.handled;
+      },
+      child: Listener(onPointerHover: back, onPointerMove: back, onPointerDown: back, child: child),
+    );
+  }
+}
+
 class AodScreen extends StatefulWidget {
   const AodScreen({
     super.key,
@@ -173,10 +201,12 @@ class _AodScreenState extends State<AodScreen> {
   Widget build(BuildContext context) {
     final palette = AodPalette.resolve(Theme.of(context).brightness);
     final m = widget.map;
-    return Scaffold(
+    return _HelloInput(
+      shell: widget.shell,
+      child: Scaffold(
       backgroundColor: palette.background,
       body: ListenableBuilder(
-        listenable: m,
+        listenable: Listenable.merge([m, widget.shell.hello]),
         builder: (context, _) => Stack(
           fit: StackFit.expand,
           children: [
@@ -195,27 +225,29 @@ class _AodScreenState extends State<AodScreen> {
                   onTap: () => setState(() => _settingsOpen = false),
                 ),
               ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: SettingsMenu(
-                    palette: palette,
-                    isDark: widget.isDark,
-                    onDarkChanged: widget.onDarkChanged,
-                    island: widget.shell.island,
-                    onExit: widget.shell.showHome,
-                    onMinimize: widget.shell.quit, // the island keeps running
-                    onQuit: widget.shell.quitAll,
-                    onShortcut: widget.shell.runShortcut,
-                    open: _settingsOpen,
-                    onOpenChanged: (v) => setState(() => _settingsOpen = v),
+            // No settings on the Hello screen.
+            if (!widget.shell.hello.value)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: SettingsMenu(
+                      palette: palette,
+                      isDark: widget.isDark,
+                      onDarkChanged: widget.onDarkChanged,
+                      island: widget.shell.island,
+                      onExit: widget.shell.showHome,
+                      onMinimize: widget.shell.quit, // the island keeps running
+                      onQuit: widget.shell.quitAll,
+                      onShortcut: widget.shell.runShortcut,
+                      open: _settingsOpen,
+                      onOpenChanged: (v) => setState(() => _settingsOpen = v),
+                    ),
                   ),
                 ),
               ),
-            ),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 500),
               child: m.loading
@@ -229,6 +261,6 @@ class _AodScreenState extends State<AodScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

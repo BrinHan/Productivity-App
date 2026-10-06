@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -65,6 +66,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
   late final Spring _h = Spring(_sizeFor(_shown).height);
   late final Spring _dy = Spring(_dyFor(_shown));
 
+  /// 0: the notch hanging from the top edge. 1: a floating rounded square.
+  late final Spring _sq = Spring(_isSquare(_shown) ? 1 : 0)..set(170, 26);
+
   /// Bumped every spring step. Only the outline (size + clip) listens, so
   /// the content inside is built once per state, not once per frame.
   final ValueNotifier<int> _frame = ValueNotifier(0);
@@ -87,8 +91,9 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         return Size(math.max(330, idle.width + 40), math.max(68, idle.height + 8));
       case IslandState.meeting:
         return Size(math.max(480, idle.width + 120), math.max(88, idle.height + 20));
+      case IslandState.verify:
       case IslandState.success:
-        return const Size(86, 86);
+        return const Size(92, 92);
       case IslandState.notch:
         return const Size(112, 20);
       case IslandState.idle:
@@ -97,8 +102,10 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     }
   }
 
-  double _dyFor(IslandState s) =>
-      0.0;
+  /// The unlock square floats just below the top edge, like the iPhone's.
+  double _dyFor(IslandState s) => _isSquare(s) ? 10.0 : 0.0;
+
+  static bool _isSquare(IslandState s) => s == IslandState.verify || s == IslandState.success;
 
   PipSpot get _pipSpot {
     if (_shown == IslandState.idle) return PipSpot.idle;
@@ -157,6 +164,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     _w.target = ns.width;
     _h.target = ns.height;
     _dy.target = _dyFor(next);
+    _sq.target = _isSquare(next) ? 1 : 0;
 
     if (next != prev) {
       final ps = _sizeFor(prev);
@@ -175,7 +183,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         _h.velocity += 160;
       }
     }
-    if (!_ticker.isActive && !(_w.settled && _h.settled && _dy.settled)) {
+    if (!_ticker.isActive && !(_w.settled && _h.settled && _dy.settled && _sq.settled)) {
       _last = Duration.zero;
       _ticker.start();
     }
@@ -189,11 +197,15 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     _w.step(dt);
     _h.step(dt);
     _dy.step(dt);
+    _sq.step(dt);
     if (widget.publishGeometry) {
       widget.controller.pillSize = Size(_w.value, _h.value);
       widget.controller.pillDy = _dy.value;
     }
-    if (_w.settled && _h.settled && _dy.settled) _ticker.stop();
+    if (_w.settled && _h.settled && _dy.settled && _sq.settled) {
+      _sq.value = _sq.target; // its "settled" is loose for a 0..1 value
+      _ticker.stop();
+    }
     _frame.value++;
   }
 
@@ -235,8 +247,14 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
           onYes: c.acceptMeeting,
           onNo: c.declineMeeting,
         );
+      case IslandState.verify:
       case IslandState.success:
-        return UnlockGlyph(method: widget.controller.unlockMethod);
+        // Keyed by method: a scan that ends another way starts over.
+        return UnlockGlyph(
+          key: ValueKey(c.unlockMethod),
+          method: c.unlockMethod,
+          scanning: s == IslandState.verify,
+        );
     }
   }
 
@@ -277,7 +295,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
             child: child,
           ),
           child: KeyedSubtree(
-            key: ValueKey(_shown),
+            // The scan and its check are one piece: no crossfade between.
+            key: ValueKey(_shown == IslandState.verify ? IslandState.success : _shown),
             child: SizedBox(
               width: size.width,
               height: size.height,
@@ -295,8 +314,12 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         final w = math.max(_w.value, 0.0), h = math.max(_h.value, 0.0);
         // Hidden = nothing on screen (no minimum-size stub).
         if (_shown == IslandState.hidden && h < 1.0) return const SizedBox.shrink();
-        final f = notchEar(h);
-        final r = math.min(h * 0.5, 34.0);
+        // Towards the square, the ears fold away first, then the top
+        // corners round off and the bottom ones tighten.
+        final sq = _sq.value.clamp(0.0, 1.0);
+        final f = notchEar(h) * (1 - 2 * sq).clamp(0.0, 1.0);
+        final r = ui.lerpDouble(math.min(h * 0.5, 34.0), 26.0, sq)!;
+        final top = 26.0 * (2 * sq - 1).clamp(0.0, 1.0);
 
         return Transform.translate(
           offset: Offset(0, _dy.value),
@@ -304,7 +327,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
             width: w + 2 * f,
             height: h,
             child: ClipPath(
-              clipper: NotchClipper(w, h, f, r),
+              clipper: NotchClipper(w, h, f, r, top: top),
               clipBehavior: Clip.antiAlias,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,

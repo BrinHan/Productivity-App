@@ -56,7 +56,7 @@ def main():
         gif("island_tour", 760, step=2),
         gif("island_music", 640, crop_h=0.56, step=2),
         gif("picker", 640, crop_h=0.92, step=2),
-        gif(["unlock_face", "unlock_fingerprint", "unlock_pin"], 420, crop_h=0.6, step=2, out="unlock"),
+        gif(["unlock_face", "unlock_fingerprint", "unlock_pin"], 420, crop_h=0.65, step=2, out="unlock"),
     ]
     for p in made:
         print(f"{p.name:28} {p.stat().st_size / 1024:8.0f} KB")
