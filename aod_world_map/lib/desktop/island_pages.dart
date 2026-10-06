@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'island_controller.dart';
+import 'island_home.dart';
 import 'island_widgets.dart';
 import 'stocks_home.dart';
 import 'today_page.dart';
@@ -11,9 +12,9 @@ import 'today_page.dart';
 const double kTabBarH = 38, kHomePadL = 12, kHomePadT = 8, kHomePadB = 12;
 const double kCardPad = 10, kSeatW = 78, kCardW = 196;
 
-const Size kOpenHome = Size(500, 156);
+const Size kOpenHome = Size(600, 182);
 const Size kOpenStocks = Size(560, 440);
-const Size kOpenToday = Size(560, 420);
+const Size kOpenToday = Size(600, 456);
 const Size kOpenSettings = Size(500, 340);
 
 Size openSizeFor(IslandPage p) {
@@ -64,25 +65,6 @@ const kShortcutColors = <Color>[
   Color(0xFFFFC857),
 ];
 
-const _dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const _monthShort = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
-
-String _dateLabel(DateTime d) =>
-    '${_dayShort[d.weekday - 1]}, ${_monthShort[d.month - 1]} ${d.day}';
-
 class IslandOpenContent extends StatelessWidget {
   const IslandOpenContent({
     super.key,
@@ -97,7 +79,7 @@ class IslandOpenContent extends StatelessWidget {
     final Widget body;
     switch (c.page) {
       case IslandPage.home:
-        body = _HomePage(c: c, onShortcut: onShortcut);
+        body = IslandHomePage(c: c, onShortcut: onShortcut);
       case IslandPage.music:
         body = _MusicPage(c: c);
       case IslandPage.stocks:
@@ -175,192 +157,6 @@ class _TopBar extends StatelessWidget {
             const SizedBox(width: 6),
           ],
           _tab(Icons.settings_rounded, IslandPage.settings),
-        ],
-      ),
-    ),
-  );
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(kCardPad),
-    decoration: BoxDecoration(
-      color: const Color(0xFF1C1C1E),
-      borderRadius: BorderRadius.circular(18),
-    ),
-    child: child,
-  );
-}
-
-// ------------------------------------------------------------------ home
-
-class _HomePage extends StatelessWidget {
-  const _HomePage({required this.c, required this.onShortcut});
-  final IslandController c;
-  final void Function(IslandShortcut)? onShortcut;
-
-  @override
-  Widget build(BuildContext context) {
-    final np = c.nowPlaying;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(kHomePadL, kHomePadT, 12, kHomePadB),
-      child: Row(
-        children: [
-          SizedBox(
-            width: kCardW,
-            child: _Card(
-              child: Row(
-                children: [
-                  // Pip's seat: the flying Pip lands here (drawn by the island).
-                  const SizedBox(width: kSeatW),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _ClockText(),
-                        const SizedBox(height: 4),
-                        Text(
-                          np != null && np.playing
-                              ? '♪ ${np.title}'
-                              : _dateLabel(DateTime.now()),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0x99FFFFFF),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _Card(
-              child: GridView.builder(
-                padding: EdgeInsets.zero,
-                physics: const ClampingScrollPhysics(),
-                itemCount: c.shortcuts.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  mainAxisExtent: 34,
-                ),
-                itemBuilder: (_, i) => _ShortcutPill(
-                  s: c.shortcuts[i],
-                  onTap: () => onShortcut?.call(c.shortcuts[i]),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ClockText extends StatefulWidget {
-  const _ClockText();
-
-  @override
-  State<_ClockText> createState() => _ClockTextState();
-}
-
-class _ClockTextState extends State<_ClockText> {
-  Timer? _t;
-
-  @override
-  void initState() {
-    super.initState();
-    _t = Timer.periodic(const Duration(seconds: 15), (_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _t?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final n = DateTime.now();
-    final h = n.hour % 12 == 0 ? 12 : n.hour % 12;
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '$h:${n.minute.toString().padLeft(2, '0')}',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          TextSpan(
-            text: n.hour < 12 ? ' AM' : ' PM',
-            style: const TextStyle(fontSize: 11, color: Color(0x99FFFFFF)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ShortcutPill extends StatelessWidget {
-  const _ShortcutPill({required this.s, required this.onTap});
-  final IslandShortcut s;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => IslandPressable(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2D),
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: s.color,
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Icon(
-              kShortcutIcons[s.icon] ?? Icons.bolt,
-              size: 14,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              s.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
         ],
       ),
     ),
