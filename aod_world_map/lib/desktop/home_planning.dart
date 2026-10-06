@@ -63,7 +63,7 @@ class _TaskListView extends StatelessWidget {
             _Check(t, task.done, () => p.toggle(task)),
             const SizedBox(width: 12),
             Expanded(child: _StrikeText(t, task.title, task.done, size: 14)),
-            Text('#${task.tag}', style: _ts(t.sub, 12)),
+            _TagChip(t, task.tag),
             const SizedBox(width: 14),
             Text(_dur(task.minutes), style: _ts(t.sub, 12, w: FontWeight.w600, tab: true)),
             const SizedBox(width: 4),

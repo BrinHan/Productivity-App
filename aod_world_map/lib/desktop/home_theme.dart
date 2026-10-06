@@ -6,9 +6,10 @@ const _monthNames = [
   'September', 'October', 'November', 'December',
 ];
 
-/// Shape rule for the whole planner: controls and inputs use 8, surfaces
-/// use 14, checkboxes use 6, toggles are pills. Nothing else.
-const _rSm = 8.0, _rLg = 14.0;
+/// Shape rule for the whole planner: controls and inputs use 6, surfaces
+/// use 8, checkboxes use 6, toggles are pills. Nothing else. Small radii and
+/// hairline borders instead of shadows keep it flat and document-like.
+const _rSm = 6.0, _rLg = 8.0;
 const _fontFallback = ['Segoe UI', 'Roboto'];
 
 class _FontChoice {
@@ -17,8 +18,8 @@ class _FontChoice {
 }
 
 const _fonts = [
-  _FontChoice('Segoe UI', 'Segoe UI Variable Display', 'Current default, built into Windows'),
-  _FontChoice('Inter', 'Inter', 'Bundled with the app'),
+  _FontChoice('Inter', 'Inter', 'Default, bundled with the app'),
+  _FontChoice('Segoe UI', 'Segoe UI Variable Display', 'Built into Windows'),
   _FontChoice('Geist', 'Geist', 'Bundled with the app'),
   _FontChoice('Plus Jakarta Sans', 'Plus Jakarta Sans', 'Bundled with the app'),
   _FontChoice('Satoshi', 'Satoshi', 'Install it in Windows first, then pick it'),
@@ -52,44 +53,76 @@ TextStyle _ts(
       fontSize: size,
       fontWeight: w,
       letterSpacing: ls,
-      height: h,
+      // Body text gets room to breathe; headings stay tight.
+      height: h ?? (size <= 15 ? 1.45 : null),
       decoration: deco,
       fontFeatures: tab ? const [FontFeature.tabularFigures()] : null,
       // Variable fonts need the weight axis set explicitly. Static fonts ignore it.
       fontVariations: [FontVariation('wght', w.value.toDouble())],
     );
 
-/// One palette: deep slate greys, one emerald accent for progress only.
-/// Buttons and checks use the foreground colour, like shadcn's neutral theme.
+/// One palette in the spirit of Notion: warm neutrals on white (or near
+/// black), hairline dividers, and one calm blue accent for selection,
+/// progress and checks. Text tiers are the main text colour at lower
+/// strength, pre-blended so they stay solid on any surface.
 class _T {
   _T(this.dark)
-      : bg = dark ? const Color(0xFF1B2129) : const Color(0xFFF1F3F6),
-        side = dark ? const Color(0xFF161B22) : const Color(0xFFE6E9EE),
-        surface = dark ? const Color(0xFF222932) : const Color(0xFFFAFBFC),
-        raised = dark ? const Color(0xFF2B333D) : const Color(0xFFEBEEF2),
-        line = dark ? const Color(0xFF353E4A) : const Color(0xFFD8DDE4),
-        text = dark ? const Color(0xFFE6EAF0) : const Color(0xFF1B222B),
-        sub = dark ? const Color(0xFFA3ADBA) : const Color(0xFF5A6573),
-        faint = dark ? const Color(0xFF737E8C) : const Color(0xFF8A94A1),
-        focus = dark ? const Color(0xFF9AA5B3) : const Color(0xFF3C4652),
-        accent = dark ? const Color(0xFF3DD68C) : const Color(0xFF138A55),
-        onAccent = dark ? const Color(0xFF07140D) : const Color(0xFFFBFBFC),
-        warn = dark ? const Color(0xFFF0757D) : const Color(0xFFC0392B),
-        panel = dark ? const Color(0xFF1F2630) : const Color(0xFFE3E7EC),
-        panelLine = dark ? const Color(0xFF323B47) : const Color(0xFFCDD3DB),
-        panelCard = dark ? const Color(0xFF29313C) : const Color(0xFFEFF2F5);
+      : bg = dark ? const Color(0xFF191919) : const Color(0xFFFFFFFF),
+        side = dark ? const Color(0xFF202020) : const Color(0xFFF7F7F5),
+        surface = dark ? const Color(0xFF202020) : const Color(0xFFFFFFFF),
+        raised = dark ? const Color(0xFF37352F) : const Color(0xFFEBECED),
+        line = dark ? const Color(0xFF2F2F2F) : const Color(0xFFE9E9E7), // text at ~9%
+        text = dark ? const Color(0xFFE8E8E8) : const Color(0xFF37352F), // dark: white at 90%
+        sub = dark ? const Color(0xFFA3A3A3) : const Color(0xFF73726D), // text at 60% / 70%
+        faint = dark ? const Color(0xFF818181) : const Color(0xFF9B9A97), // text at 45% / 50%
+        focus = dark ? const Color(0xFFA3A3A3) : const Color(0xFF37352F),
+        accent = const Color(0xFF2383E2),
+        onAccent = const Color(0xFFFFFFFF),
+        warn = dark ? const Color(0xFFFF7369) : const Color(0xFFD44C47),
+        panel = dark ? const Color(0xFF202020) : const Color(0xFFFBFBFA),
+        panelLine = dark ? const Color(0xFF2F2F2F) : const Color(0xFFE9E9E7),
+        panelCard = dark ? const Color(0xFF252525) : const Color(0xFFFFFFFF);
 
   final bool dark;
   final Color bg, side, surface, raised, line, text, sub, faint, focus, accent, onAccent, warn;
   final Color panel, panelLine, panelCard;
-  Color get accentSoft => accent.withValues(alpha: dark ? 0.16 : 0.12);
+  Color get accentSoft => accent.withValues(alpha: dark ? 0.16 : 0.10);
+
+  /// A tag's pastel: a soft tint behind text of the same hue, darker in
+  /// light mode and lighter in dark mode so it reads at small sizes.
+  ({Color bg, Color fg}) tag(String name) {
+    final hue = switch (name) {
+      'work' => 0,
+      'personal' => 1,
+      'health' => 2,
+      _ => 3 + name.codeUnits.fold(0, (a, b) => a + b) % (_tagFg.length - 3),
+    };
+    final fg = (dark ? _tagFgDark : _tagFg)[hue];
+    return dark
+        ? (bg: Color.alphaBlend(fg.withValues(alpha: 0.2), bg), fg: fg)
+        : (bg: _tagBg[hue], fg: fg);
+  }
 }
+
+// Blue, pink, green, then yellow, purple, orange, red, brown for other tags.
+const _tagBg = [
+  Color(0xFFE7F3F8), Color(0xFFFAF1F5), Color(0xFFEDF3EC), Color(0xFFFBF3DB),
+  Color(0xFFF6F3F9), Color(0xFFFBECDD), Color(0xFFFDEBEC), Color(0xFFF4EEEE),
+];
+const _tagFg = [
+  Color(0xFF2B6F99), Color(0xFFA83F77), Color(0xFF3C7556), Color(0xFF8A6214),
+  Color(0xFF7A4FA0), Color(0xFFA4560B), Color(0xFFB53F3A), Color(0xFF80553F),
+];
+const _tagFgDark = [
+  Color(0xFF6FB0DA), Color(0xFFEC7DB8), Color(0xFF4DAB9A), Color(0xFFDFAB01),
+  Color(0xFFB593E6), Color(0xFFFFA344), Color(0xFFFF7369), Color(0xFFC99A86),
+];
 
 /// Planner preferences, saved next to the other app files.
 class _Prefs extends ChangeNotifier {
   static final _Prefs i = _Prefs();
 
-  String font = 'Segoe UI Variable Display';
+  String font = 'Inter';
   bool sidebarOpen = true, showSchedule = true;
   Set<String> calHidden = {};
   int calMode = 1; // Calendar page: 0 day, 1 week, 2 month

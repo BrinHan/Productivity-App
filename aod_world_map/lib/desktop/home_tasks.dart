@@ -271,8 +271,8 @@ class _TaskCard extends StatelessWidget {
                       radius: 6,
                       onTap: () => p.cycleTag(task),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        child: Text('#${task.tag}', style: _ts(t.sub, 12)),
+                        padding: const EdgeInsets.all(2),
+                        child: _TagChip(t, task.tag),
                       ),
                     ),
                   ),

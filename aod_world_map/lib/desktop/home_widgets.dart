@@ -106,9 +106,9 @@ class _BtnState extends State<_Btn> {
     final t = widget.t;
     final on = widget.onTap != null;
     final primary = widget.primary;
-    final fg = primary ? t.bg : t.text;
+    final fg = primary ? t.onAccent : t.text;
     final bg = primary
-        ? (_hover && on ? Color.lerp(t.text, t.bg, 0.12)! : t.text)
+        ? (_hover && on ? Color.lerp(t.accent, Colors.black, 0.1)! : t.accent)
         : (_hover && on ? t.raised : Colors.transparent);
     final border = primary || widget.ghost ? Colors.transparent : t.line;
     return Opacity(
@@ -243,6 +243,23 @@ class _Seg extends StatelessWidget {
 
 /// Animated checkbox: square box, foreground fill when checked, tick drawn
 /// stroke by stroke. Ported from the supplied React component.
+/// A tag as a soft pastel pill, the way Notion shows select options.
+class _TagChip extends StatelessWidget {
+  const _TagChip(this.t, this.tag);
+  final _T t;
+  final String tag;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = t.tag(tag);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(color: c.bg, borderRadius: BorderRadius.circular(4)),
+      child: Text(tag, style: _ts(c.fg, 12, h: 1.35)),
+    );
+  }
+}
+
 class _Check extends StatefulWidget {
   const _Check(this.t, this.done, this.onTap, {this.size = 18});
   final _T t;
@@ -274,7 +291,7 @@ class _CheckState extends State<_Check> {
             width: s,
             height: s,
             decoration: BoxDecoration(
-              color: widget.done ? t.text : Colors.transparent,
+              color: widget.done ? t.accent : Colors.transparent,
               borderRadius: BorderRadius.circular(6 * s / 18),
               border: Border.all(
                 color: widget.done ? Colors.transparent : t.sub.withValues(alpha: _hover ? 0.6 : 0.4),
@@ -285,7 +302,7 @@ class _CheckState extends State<_Check> {
               tween: Tween<double>(end: widget.done ? 1 : 0),
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
-              builder: (_, v, __) => CustomPaint(painter: _TickPainter(v, t.bg)),
+              builder: (_, v, __) => CustomPaint(painter: _TickPainter(v, t.onAccent)),
             ),
           ),
         ),

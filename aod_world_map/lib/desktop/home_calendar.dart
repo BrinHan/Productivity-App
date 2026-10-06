@@ -592,9 +592,17 @@ class _CalendarViewState extends State<_CalendarView> {
             _IconBtn(t, Icons.view_sidebar_outlined, 'Show sidebar  `', () => setState(() => _rail = true), size: 17),
             const SizedBox(width: 6),
           ],
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: Text(_title, key: ValueKey(_title), style: _ts(t.text, 22, w: FontWeight.w700, ls: -0.5)),
+          // The title gives way (with an ellipsis) when the window is narrow.
+          Flexible(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: Text(_title,
+                  key: ValueKey(_title),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  style: _ts(t.text, 22, w: FontWeight.w700, ls: -0.5)),
+            ),
           ),
           const SizedBox(width: 12),
           AnimatedOpacity(
@@ -1437,9 +1445,7 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: t.dark ? 0.45 : 0.15), blurRadius: 12, offset: const Offset(0, 4)),
-                            ],
+                            border: Border.all(color: t.line),
                           ),
                           child: _TimedBlock(
                             t: t,
