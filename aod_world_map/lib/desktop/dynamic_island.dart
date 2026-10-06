@@ -101,7 +101,10 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
 
   PipSpot get _pipSpot {
     if (_shown == IslandState.idle) return PipSpot.idle;
-    if (_shown == IslandState.open && widget.controller.page == IslandPage.home) {
+    // While music plays, his corner of the home page shows it instead.
+    if (_shown == IslandState.open &&
+        widget.controller.page == IslandPage.home &&
+        !widget.controller.musicPlaying) {
       return PipSpot.seat;
     }
     return PipSpot.hidden;
@@ -136,11 +139,16 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     _shown = next;
     final ns = _sizeFor(next);
     final reveal = prev == IslandState.hidden, hiding = next == IslandState.hidden;
+    // Opening, closing and changing page glide without overshoot; the small
+    // states (music, call, success) keep their bounce.
+    final calm = next == IslandState.open || prev == IslandState.open;
     for (final s in [_w, _h]) {
       if (hiding) {
         s.set(240, 31);
       } else if (reveal) {
         s.set(190, 25);
+      } else if (calm) {
+        s.set(170, 26); // critically damped
       } else {
         s.set(120, 14);
       }
@@ -152,7 +160,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
     if (next != prev) {
       final ps = _sizeFor(prev);
       final from = prev != IslandState.hidden && prev != IslandState.notch;
-      if (from && next != IslandState.hidden) {
+      if (from && next != IslandState.hidden && !calm) {
         if (ns.width > ps.width) {
           _h.velocity -= 120;
           _w.velocity += 60;
