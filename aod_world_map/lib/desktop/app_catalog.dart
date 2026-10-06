@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'cs_helper.dart';
 
 /// An app from the Start menu. [target] opens it ('shell:AppsFolder\<id>'
@@ -18,11 +20,17 @@ class AppCatalog {
   AppCatalog._();
 
   static List<InstalledApp>? _cache;
+  static List<InstalledApp>? _fixed;
 
   /// Apps found so far, sorted by name; [onUpdate] fires as more arrive.
   /// A second call while the first is still running shares its results.
   static Future<List<InstalledApp>> load({void Function(List<InstalledApp>)? onUpdate}) async {
     if (!Platform.isWindows) return const [];
+    final fixed = _fixed;
+    if (fixed != null) {
+      onUpdate?.call(fixed);
+      return fixed;
+    }
     final out = <InstalledApp>[];
     final seen = <String>{};
     void add(InstalledApp a) {
@@ -71,6 +79,11 @@ class AppCatalog {
 
   /// What the last [load] found, to show at once while it runs again.
   static List<InstalledApp> get cached => _cache ?? const [];
+
+  /// Makes [load] and [cached] return [apps] instead of the Start menu, so
+  /// screenshots can show a chosen set of apps.
+  @visibleForTesting
+  static set debugCached(List<InstalledApp> apps) => _cache = _fixed = apps;
 
   static Directory get iconDir {
     final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
