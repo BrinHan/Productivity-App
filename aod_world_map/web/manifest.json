@@ -1,6 +1,6 @@
 {
-    "name": "aod_world_map",
-    "short_name": "aod_world_map",
+    "name": "Meridian",
+    "short_name": "Meridian",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

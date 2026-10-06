@@ -75,11 +75,11 @@ class OverlayWin32 {
 
   static int _hwnd = 0;
 
-  /// The overlay's top-level window (main.cpp titles it 'AOD Overlay').
+  /// The overlay's top-level window (main.cpp titles it 'Meridian Overlay').
   static int get hwnd {
     if (_hwnd != 0) return _hwnd;
     _init();
-    final title = 'AOD Overlay'.toNativeUtf16();
+    final title = 'Meridian Overlay'.toNativeUtf16();
     _hwnd = _findWindow(ffi.nullptr, title);
     calloc.free(title);
     return _hwnd;

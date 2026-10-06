@@ -15,7 +15,7 @@ class OverlayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'AOD Overlay',
+        title: 'Meridian Overlay',
         debugShowCheckedModeBanner: false,
         color: Colors.transparent,
         theme: ThemeData(brightness: Brightness.dark, useMaterial3: true, canvasColor: Colors.transparent),

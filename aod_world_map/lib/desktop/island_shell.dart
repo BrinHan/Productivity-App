@@ -69,7 +69,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
       backgroundColor: Colors.transparent,
       skipTaskbar: true,
       alwaysOnTop: true,
-      title: 'AOD Island',
+      title: 'Meridian Island',
     );
     await windowManager.waitUntilReadyToShow(options, () async {
       await windowManager.setAsFrameless();
@@ -260,7 +260,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   Future<void> _initTray() async {
     await _try(() async {
       await tray.trayManager.setIcon('assets/tray_icon.ico');
-      await tray.trayManager.setToolTip('AOD World Map');
+      await tray.trayManager.setToolTip('Meridian');
       await tray.trayManager.setContextMenu(tray.Menu(items: [
         tray.MenuItem(key: 'open', label: 'Open app'),
         tray.MenuItem(key: 'planner', label: 'Open planner'),

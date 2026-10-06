@@ -126,7 +126,7 @@ class OverlayShell extends ChangeNotifier {
       backgroundColor: Colors.transparent,
       skipTaskbar: true,
       alwaysOnTop: true,
-      title: 'AOD Overlay',
+      title: 'Meridian Overlay',
     );
     // main.cpp already sized it to the whole monitor.
     await windowManager.waitUntilReadyToShow(options, () async {

@@ -66,7 +66,7 @@ class ShellController extends ChangeNotifier with WindowListener {
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
-      title: 'AOD World Map',
+      title: 'Meridian',
     );
     await windowManager.waitUntilReadyToShow(options, () async {
       await windowManager.setAsFrameless();

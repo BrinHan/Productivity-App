@@ -75,7 +75,7 @@ class IslandApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'AOD Island',
+        title: 'Meridian Island',
         debugShowCheckedModeBanner: false,
         color: Colors.transparent,
         theme: ThemeData(brightness: Brightness.dark, useMaterial3: true, canvasColor: Colors.transparent),
@@ -101,7 +101,7 @@ class _AodAppState extends State<AodApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'AOD World Map',
+        title: 'Meridian',
         debugShowCheckedModeBanner: false,
         themeMode: _dark ? ThemeMode.dark : ThemeMode.light,
         theme: ThemeData(brightness: Brightness.light, useMaterial3: true),

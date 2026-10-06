@@ -40,7 +40,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   Win32Window::Size size = quiet ? Win32Window::Size(640, 480) : Win32Window::Size(1280, 720);
   window.SetShowWithoutActivating(quiet);
   window.SetStartHidden(overlay && standby);
-  const wchar_t* title = island ? L"AOD Island" : overlay ? L"AOD Overlay" : L"aod_world_map";
+  const wchar_t* title = island ? L"Meridian Island" : overlay ? L"Meridian Overlay" : L"Meridian";
   if (!window.Create(title, origin, size)) {
     return EXIT_FAILURE;
   }
