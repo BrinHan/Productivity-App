@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import 'cs_helper.dart';
 import 'island_controller.dart';
 
 /// Reads the Windows media session (what media keys control) through one
@@ -500,40 +501,12 @@ static class NowPlayingHelper
 
   /// Path to the compiled helper, building it on first use. Null when this
   /// Windows has no .NET Framework compiler; the PowerShell script is used then.
-  static Future<String?> _helperExe() async {
-    try {
-      final s = Platform.pathSeparator;
-      final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-      final bin = Directory('$base${s}AodWorldMap${s}bin');
-      final exe = File('${bin.path}${s}aod_media_$_csVersion.exe');
-      if (await exe.exists()) return exe.path;
-      final win = Platform.environment['WINDIR'] ?? r'C:\Windows';
-      final fw = '$win${s}Microsoft.NET${s}Framework64${s}v4.0.30319';
-      final md = '$win${s}System32${s}WinMetadata';
-      final csc = File('$fw${s}csc.exe');
-      if (!await csc.exists()) return null;
-      await bin.create(recursive: true);
-      final src = File('${bin.path}${s}aod_media.cs');
-      await src.writeAsString(_cs);
-      final r = await Process.run(csc.path, [
-        '-nologo',
-        '-optimize+',
-        '-target:winexe', // no console window; stdout still reaches us through the pipe
-        '-out:${exe.path}',
-        '-r:$fw${s}System.Runtime.dll',
-        '-r:$md${s}Windows.Foundation.winmd',
-        '-r:$md${s}Windows.Media.winmd',
-        '-r:$md${s}Windows.Storage.winmd',
-        src.path,
+  static Future<String?> _helperExe() => buildCsHelper('aod_media_$_csVersion', _cs, refs: const [
+        r'{fw}\System.Runtime.dll',
+        r'{md}\Windows.Foundation.winmd',
+        r'{md}\Windows.Media.winmd',
+        r'{md}\Windows.Storage.winmd',
       ]);
-      try {
-        await src.delete();
-      } catch (_) {}
-      return r.exitCode == 0 && await exe.exists() ? exe.path : null;
-    } catch (_) {
-      return null;
-    }
-  }
 
   Future<void> start() async {
     if (!Platform.isWindows) return;
