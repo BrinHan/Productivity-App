@@ -85,13 +85,13 @@ class _AccountViewState extends State<_AccountView> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Sign in with Google', style: _ts(t.text, 16, w: FontWeight.w700)),
         const SizedBox(height: 6),
-        Text('One click. You approve access in your browser and Orbit never sees your password.',
+        Text('One click. You approve access in your browser and Meridian never sees your password.',
             style: _ts(t.sub, 13, h: 1.45)),
         const SizedBox(height: 18),
         _Btn(t, g.busy ? 'Waiting for Google' : 'Continue with Google', g.busy ? null : g.signIn,
             primary: true, icon: Icons.login_rounded),
         const SizedBox(height: 22),
-        Text('Orbit asks for', style: _ts(t.text, 13, w: FontWeight.w600)),
+        Text('Meridian asks for', style: _ts(t.text, 13, w: FontWeight.w600)),
         _perm(Icons.calendar_month_outlined, 'Calendar', 'Read your events.'),
         _perm(Icons.checklist_rounded, 'Tasks', 'Read your tasks and tick them off.'),
         if (kGoogleReadMail) _perm(Icons.mail_outline_rounded, 'Gmail', 'Read your inbox. Nothing is sent or deleted.'),
@@ -348,7 +348,7 @@ class _AccountViewState extends State<_AccountView> {
     return _Page(
       t: t,
       title: 'Google account',
-      subtitle: 'Sign in once. Calendar, tasks, mail and birthdays appear in Orbit, and your planner backs up to your own Drive.',
+      subtitle: 'Sign in once. Calendar, tasks, mail and birthdays appear in Meridian, and your planner backs up to your own Drive.',
       child: LayoutBuilder(
         builder: (context, c) => SingleChildScrollView(
           child: c.maxWidth > 860

@@ -289,7 +289,7 @@ class GoogleService extends ChangeNotifier {
   }
 
   static String _doneHtml(bool ok, String text) => '''<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Meridian</title>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0f0f11;color:#ededef;
 font:16px/1.5 "Segoe UI",system-ui,sans-serif}main{max-width:380px;padding:32px;text-align:center}
 h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}</style></head>
@@ -306,8 +306,8 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       final good = q['state'] == state && q.containsKey('code');
       req.response.headers.contentType = ContentType.html;
       req.response.write(good
-          ? _doneHtml(true, 'You can close this tab and go back to Orbit.')
-          : _doneHtml(false, 'You can close this tab and try again from Orbit.'));
+          ? _doneHtml(true, 'You can close this tab and go back to Meridian.')
+          : _doneHtml(false, 'You can close this tab and try again from Meridian.'));
       await req.response.close();
       if (q['state'] != state) throw _ApiError('The sign-in response did not match. Try again.');
       if (q.containsKey('error')) {
@@ -1155,7 +1155,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       }
       lastSync = DateTime.now();
       await _save();
-      status = 'Restored. Quit and reopen Orbit to load it.';
+      status = 'Restored. Quit and reopen Meridian to load it.';
     } catch (e) {
       _actionError = e is _ApiError ? e.message : 'Restore failed. Check your connection.';
       status = null;

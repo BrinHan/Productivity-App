@@ -343,7 +343,7 @@ class _NotesViewState extends State<_NotesView> {
             _banner(
               t,
               title: 'Set up transcription',
-              body: 'Orbit transcribes on this computer. Install the speech model once and recordings will work.',
+              body: 'Meridian transcribes on this computer. Install the speech model once and recordings will work.',
               action: _Btn(t, 'Open setup folder', _openSetup, compact: true, icon: Icons.folder_open_rounded),
             ),
           if (n.detected != null && !n.recording && n.ready)
@@ -358,7 +358,7 @@ class _NotesViewState extends State<_NotesView> {
                 ? Padding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                     child: Text(
-                      'No meeting notes yet. Orbit offers to take notes when it detects Zoom, Google Meet or Teams.',
+                      'No meeting notes yet. Meridian offers to take notes when it detects Zoom, Google Meet or Teams.',
                       style: _ts(t.sub, 13, h: 1.5),
                     ),
                   )
@@ -553,7 +553,7 @@ class _NotesViewState extends State<_NotesView> {
         child: cur == null
             ? Center(
                 child: _Empty(t, Icons.graphic_eq_rounded, 'No note selected',
-                    'Join a Zoom, Meet or Teams call and Orbit will offer to take notes.'),
+                    'Join a Zoom, Meet or Teams call and Meridian will offer to take notes.'),
               )
             : _detail(t, n, cur),
       ),

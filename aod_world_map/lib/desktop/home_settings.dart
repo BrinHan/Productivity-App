@@ -66,7 +66,7 @@ class _SettingsView extends StatelessWidget {
   Widget build(BuildContext context) => _Page(
         t: t,
         title: 'Settings',
-        subtitle: 'Make Orbit look and feel the way you work.',
+        subtitle: 'Make Meridian look and feel the way you work.',
         child: SingleChildScrollView(
           child: Align(
             alignment: Alignment.topLeft,

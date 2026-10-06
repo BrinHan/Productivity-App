@@ -40,7 +40,7 @@ class _Sidebar extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 0, 16),
-            child: Text('Orbit', style: _ts(t.text, 18, w: FontWeight.w700, ls: -0.5)),
+            child: Text('Meridian', style: _ts(t.text, 18, w: FontWeight.w700, ls: -0.5)),
           ),
           Expanded(
             child: SingleChildScrollView(
