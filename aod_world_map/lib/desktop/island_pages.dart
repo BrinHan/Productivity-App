@@ -395,6 +395,16 @@ class _SettingsPageState extends State<_SettingsPage> {
             _seg('Off', !c.quietInChrome, () => c.setQuietInChrome(false)),
           ],
         ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text('Pop up on song change', style: _label),
+            const Spacer(),
+            _seg('On', c.popOnTrackChange, () => c.setPopOnTrackChange(true)),
+            const SizedBox(width: 6),
+            _seg('Off', !c.popOnTrackChange, () => c.setPopOnTrackChange(false)),
+          ],
+        ),
         const SizedBox(height: 4),
         Row(
           children: [

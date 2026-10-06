@@ -155,6 +155,10 @@ class IslandController extends ChangeNotifier {
   Color pipColor = const Color(0xFFF4EFE6);
   bool openOnHover = false;
   bool quietInChrome = true;
+
+  /// Pop the music pill up when the song changes while already playing.
+  /// Resuming after a pause always pops it up.
+  bool popOnTrackChange = false;
   bool musicHelper = true; // the PowerShell media-session reader
   String stockSymbol = 'AAPL';
   String stockRange = '1d'; // 1d | 5d | 1mo
@@ -234,6 +238,7 @@ class IslandController extends ChangeNotifier {
       pipColor = Color((j['pipColor'] as int?) ?? pipColor.toARGB32());
       openOnHover = (j['openOnHover'] as bool?) ?? false;
       quietInChrome = (j['quietInChrome'] as bool?) ?? true;
+      popOnTrackChange = (j['popOnTrackChange'] as bool?) ?? false;
       musicHelper = (j['musicHelper'] as bool?) ?? true;
       stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
       stockRange = (j['stockRange'] as String?) ?? '1d';
@@ -269,6 +274,7 @@ class IslandController extends ChangeNotifier {
           'pipColor': pipColor.toARGB32(),
           'openOnHover': openOnHover,
           'quietInChrome': quietInChrome,
+          'popOnTrackChange': popOnTrackChange,
           'musicHelper': musicHelper,
           'stockSymbol': stockSymbol,
           'stockRange': stockRange,
@@ -299,6 +305,12 @@ class IslandController extends ChangeNotifier {
 
   void setOpenOnHover(bool v) {
     openOnHover = v;
+    notifyListeners();
+    _persist();
+  }
+
+  void setPopOnTrackChange(bool v) {
+    popOnTrackChange = v;
     notifyListeners();
     _persist();
   }
@@ -405,15 +417,35 @@ class IslandController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // When playback last stopped, and on which song: a skip can report a
+  // split-second pause, which must not count as resuming.
+  DateTime? _stoppedAt;
+  String? _stoppedKey;
+
   void setNowPlaying(NowPlaying? n) {
     final oldKey = nowPlaying?.key;
     final wasPlaying = nowPlaying?.playing ?? false;
     nowPlaying = n;
     final isPlaying = n?.playing ?? false;
+    if (wasPlaying && !isPlaying) {
+      _stoppedAt = DateTime.now();
+      _stoppedKey = oldKey;
+    }
     final busy = state == IslandState.call ||
         state == IslandState.success ||
         state == IslandState.open;
-    if (isPlaying && (!wasPlaying || n!.key != oldKey) && !busy && !quiet) {
+    // Resuming always shows the pill; a new song (a skip, or the next track
+    // starting) only when that's switched on in settings.
+    var pop = false;
+    if (isPlaying && !wasPlaying) {
+      final blip = _stoppedAt != null &&
+          n!.key != _stoppedKey &&
+          DateTime.now().difference(_stoppedAt!) < const Duration(seconds: 3);
+      pop = !blip || popOnTrackChange;
+    } else if (isPlaying && n!.key != oldKey) {
+      pop = popOnTrackChange;
+    }
+    if (pop && !busy && !quiet) {
       preview(IslandState.music);
     } else if (!isPlaying && wasPlaying && !_demoMusic && state == IslandState.music) {
       _timer?.cancel();
