@@ -26,8 +26,10 @@ def still(name, width, crop_h=None, out=None):
 
 
 def gif(clip, width, crop_h=None, step=1, ms=40, out=None):
-    """Every [step]th frame, [ms] apart on screen."""
-    files = sorted((FRAMES / clip).glob("*.png"))[::step]
+    """Every [step]th frame, [ms] apart on screen. [clip] may be a list of
+    clips to play one after another."""
+    clips = clip if isinstance(clip, list) else [clip]
+    files = [f for c in clips for f in sorted((FRAMES / c).glob("*.png"))[::step]]
     frames = []
     for f in files:
         im = Image.open(f).convert("RGB")
@@ -54,6 +56,7 @@ def main():
         gif("island_tour", 760, step=2),
         gif("island_music", 640, crop_h=0.56, step=2),
         gif("picker", 640, crop_h=0.92, step=2),
+        gif(["unlock_face", "unlock_fingerprint", "unlock_pin"], 420, crop_h=0.6, step=2, out="unlock"),
     ]
     for p in made:
         print(f"{p.name:28} {p.stat().st_size / 1024:8.0f} KB")

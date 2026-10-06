@@ -58,6 +58,17 @@ at the top of your screen. Click it (or hover, if you prefer) and it opens.
 When music starts, the pill pops up with the song for a moment. It stays
 quiet when Chrome is in front, so it never covers a tab strip.
 
+### Welcome back
+
+The island steps aside while Windows is locked. When you sign back in, it
+shows how you got in: a Face ID-style scan for Windows Hello face, a
+fingerprint that fills with colour for a fingerprint reader, or a padlock
+that springs open for a PIN or password.
+
+<div align="center">
+<img src="docs/media/unlock.gif" width="420" alt="The island's face, fingerprint and PIN unlock animations">
+</div>
+
 ## App shortcuts
 
 Click **Add app** in the island's settings, type a few letters and press

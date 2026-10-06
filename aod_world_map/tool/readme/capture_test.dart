@@ -19,6 +19,7 @@ import 'package:aod_world_map/desktop/dynamic_island.dart';
 import 'package:aod_world_map/desktop/home_page.dart';
 import 'package:aod_world_map/desktop/island_controller.dart';
 import 'package:aod_world_map/desktop/planner_model.dart';
+import 'package:aod_world_map/desktop/unlock_watch.dart';
 import 'package:aod_world_map/desktop/window_shell.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -328,6 +329,26 @@ void main() {
     c.close();
     await cam.clip('island_music', 20);
 
+    c.dispose();
+    await t.pumpWidget(const SizedBox());
+    await t.pump(const Duration(seconds: 30));
+  });
+
+  capture('unlock', (t) async {
+    final c = IslandController();
+    final cam = await stage(
+      t,
+      const Size(420, 200),
+      backdrop(Material(
+        type: MaterialType.transparency,
+        child: Align(alignment: Alignment.topCenter, child: DynamicIsland(controller: c)),
+      )),
+    );
+    for (final m in UnlockMethod.values) {
+      c.unlocked(m);
+      await cam.clip('unlock_${m.name}', 78);
+      await settle(t, ms: 1200);
+    }
     c.dispose();
     await t.pumpWidget(const SizedBox());
     await t.pump(const Duration(seconds: 30));

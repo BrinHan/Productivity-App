@@ -12,6 +12,7 @@ import 'notch_shape.dart';
 import 'height_fade.dart';
 import 'pip.dart';
 import 'spring.dart';
+import 'unlock_glyphs.dart';
 
 /// Transparent screen used while the app is in island mode.
 class IslandScreen extends StatelessWidget {
@@ -235,7 +236,7 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
           onNo: c.declineMeeting,
         );
       case IslandState.success:
-        return const _SuccessContent();
+        return UnlockGlyph(method: widget.controller.unlockMethod);
     }
   }
 
@@ -458,94 +459,6 @@ class _MusicContent extends StatelessWidget {
           ],
         ),
       );
-}
-
-class _SuccessContent extends StatefulWidget {
-  const _SuccessContent();
-
-  @override
-  State<_SuccessContent> createState() => _SuccessContentState();
-}
-
-class _SuccessContentState extends State<_SuccessContent> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))..forward();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _FaceCheckPainter(_c), size: Size.infinite);
-}
-
-class _FaceCheckPainter extends CustomPainter {
-  _FaceCheckPainter(this.anim) : super(repaint: anim);
-  final Animation<double> anim;
-  static const _green = Color(0xFF30D158);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final t = anim.value;
-    final c = size.center(Offset.zero);
-    final q = Curves.easeOutCubic.transform(((t - 0.42) / 0.28).clamp(0.0, 1.0));
-    const half = 19.0, arm = 9.0;
-
-    if (q < 1) {
-      final frame = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..strokeCap = StrokeCap.round
-        ..isAntiAlias = true
-        ..color = Colors.white.withValues(alpha: 1 - q);
-      for (final s in const [
-        [-1.0, -1.0],
-        [1.0, -1.0],
-        [1.0, 1.0],
-        [-1.0, 1.0],
-      ]) {
-        canvas.drawPath(
-          Path()
-            ..moveTo(c.dx + s[0] * half, c.dy + s[1] * (half - arm))
-            ..lineTo(c.dx + s[0] * half, c.dy + s[1] * half)
-            ..lineTo(c.dx + s[0] * (half - arm), c.dy + s[1] * half),
-          frame,
-        );
-      }
-      final y = c.dy + (half - 5) * math.sin(t / 0.42 * 2 * math.pi * 1.25);
-      canvas.drawLine(
-        Offset(c.dx - 13, y),
-        Offset(c.dx + 13, y),
-        frame
-          ..strokeWidth = 2
-          ..color = _green.withValues(alpha: 1 - q),
-      );
-    }
-
-    if (q > 0) {
-      final tick = Path()
-        ..moveTo(c.dx - 13, c.dy + 1)
-        ..lineTo(c.dx - 4, c.dy + 10)
-        ..lineTo(c.dx + 14, c.dy - 10);
-      final m = tick.computeMetrics().first;
-      canvas.drawPath(
-        m.extractPath(0, m.length * q),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 5
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..isAntiAlias = true
-          ..color = _green,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_FaceCheckPainter old) => false;
 }
 
 class _MeetingContent extends StatelessWidget {

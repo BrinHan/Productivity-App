@@ -14,6 +14,7 @@ import 'island_pages.dart';
 import 'now_playing.dart';
 import 'planner_model.dart';
 import 'process_link.dart';
+import 'unlock_watch.dart';
 import 'window_shell.dart' show launchApp, openWeb;
 
 const Size kIslandWindowSize = Size(640, 480);
@@ -34,6 +35,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   DataWatch? _watch;
   NowPlayingService? _music;
   Timer? _poll, _notesPush, _trim;
+  UnlockWatch? _unlock;
   bool _ticking = false, _captured = false, _pushQueued = false;
   int _n = 0;
 
@@ -92,6 +94,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     island.addListener(_onIslandChanged);
     _onIslandChanged();
     _poll = Timer.periodic(const Duration(milliseconds: 60), (_) => _tick());
+    _unlock = UnlockWatch(onLock: island.locked, onUnlock: island.unlocked)..start();
     // Have an overlay waiting so annotating opens instantly. Started a moment
     // after the island so the two don't compete at login.
     Timer(const Duration(seconds: 4), _warmOverlay);
@@ -207,6 +210,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   /// Quits everything: the app window too.
   Future<void> quit() async {
     _poll?.cancel();
+    _unlock?.stop();
     _trim?.cancel();
     await LinkServer.sendOnce(kAppPort, const {'t': 'quit'});
     await LinkServer.sendOnce(kOverlayPort, const {'t': 'quit'});
@@ -271,7 +275,9 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'idle', label: 'Island: idle'),
         tray.MenuItem(key: 'call', label: 'Island: incoming call'),
         tray.MenuItem(key: 'music', label: 'Island: music'),
-        tray.MenuItem(key: 'success', label: 'Island: Face ID success'),
+        tray.MenuItem(key: 'face', label: 'Island: Face ID unlock'),
+        tray.MenuItem(key: 'finger', label: 'Island: fingerprint unlock'),
+        tray.MenuItem(key: 'pin', label: 'Island: PIN unlock'),
         tray.MenuItem.separator(),
         tray.MenuItem(key: 'quit', label: 'Quit'),
       ]));
@@ -379,8 +385,12 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         island.preview(IslandState.call);
       case 'music':
         island.preview(IslandState.music);
-      case 'success':
-        island.preview(IslandState.success);
+      case 'face':
+        island.unlocked(UnlockMethod.face);
+      case 'finger':
+        island.unlocked(UnlockMethod.fingerprint);
+      case 'pin':
+        island.unlocked(UnlockMethod.pin);
       case 'quit':
         quit();
     }

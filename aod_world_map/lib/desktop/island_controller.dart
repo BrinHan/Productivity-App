@@ -11,6 +11,8 @@ import 'google_service.dart';
 import 'meeting_detector.dart';
 import 'notes_service.dart';
 import 'planner_model.dart';
+import 'unlock_glyphs.dart' show kUnlockAnimation;
+import 'unlock_watch.dart';
 
 enum IslandState { hidden, notch, idle, open, call, music, success, meeting }
 
@@ -197,6 +199,9 @@ class IslandController extends ChangeNotifier {
   void Function()? startAnnotate;
 
   Size get idleSize => Size(idleWidth, (idleWidth * 0.22).roundToDouble());
+  /// What the success animation shows: how Windows was last unlocked.
+  UnlockMethod unlockMethod = UnlockMethod.face;
+
   bool get visible => state != IslandState.hidden;
   bool get quiet => chromeMode && quietInChrome;
   bool get musicPlaying => (nowPlaying?.playing ?? false) || _demoMusic;
@@ -549,12 +554,28 @@ class IslandController extends ChangeNotifier {
         offerMeeting(MeetingInfo.demo());
       case IslandState.success:
         _set(IslandState.success);
-        _later(const Duration(milliseconds: 2300), _afterSuccess);
+        _later(kUnlockAnimation + const Duration(milliseconds: 300), _afterSuccess);
     }
   }
 
   void accept() {
-    if (state == IslandState.call) preview(IslandState.success);
+    if (state == IslandState.call) {
+      unlockMethod = UnlockMethod.face;
+      preview(IslandState.success);
+    }
+  }
+
+  /// Windows locked: put the island away. (The lock screen is a secure
+  /// desktop no app can draw on, so it is out of reach until you are back.)
+  void locked() {
+    _timer?.cancel();
+    _set(IslandState.hidden);
+  }
+
+  /// Back from the lock screen: show how you got in.
+  void unlocked(UnlockMethod m) {
+    unlockMethod = m;
+    preview(IslandState.success);
   }
 
   void decline() {
