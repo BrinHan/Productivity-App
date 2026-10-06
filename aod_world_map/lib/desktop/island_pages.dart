@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,7 @@ const double kCardPad = 10, kSeatW = 78, kCardW = 196;
 const Size kOpenHome = Size(600, 182);
 const Size kOpenStocks = Size(560, 440);
 const Size kOpenToday = Size(600, 456);
+const Size kOpenMusic = Size(560, 214);
 const Size kOpenSettings = Size(500, 340);
 
 Size openSizeFor(IslandPage p) {
@@ -25,8 +27,9 @@ Size openSizeFor(IslandPage p) {
       return kOpenToday;
     case IslandPage.settings:
       return kOpenSettings;
-    case IslandPage.home:
     case IslandPage.music:
+      return kOpenMusic;
+    case IslandPage.home:
       return kOpenHome;
   }
 }
@@ -169,91 +172,150 @@ class _MusicPage extends StatelessWidget {
   const _MusicPage({required this.c});
   final IslandController c;
 
-  Widget _ctl(IconData icon, String cmd) => IslandPressable(
-    onTap: () => c.sendMusic?.call(cmd),
-    child: SizedBox(
-      width: 34,
-      height: 34,
-      child: Icon(icon, size: 26, color: Colors.white),
-    ),
-  );
+  static const _accent = Color(0xFF8FB3C9);
+
+  Widget _ctl(IconData icon, VoidCallback onTap, {double size = 32, Color color = Colors.white}) => IslandPressable(
+        onTap: onTap,
+        child: SizedBox(width: 46, height: 42, child: Icon(icon, size: size, color: color)),
+      );
+
+  /// Windows' sound settings, where the output device is picked.
+  static void _soundSettings() =>
+      Process.start('explorer.exe', ['ms-settings:sound'], mode: ProcessStartMode.detached).ignore();
 
   @override
   Widget build(BuildContext context) {
     final np = c.nowPlaying;
     final playing = np?.playing ?? false;
-    final title = np == null
-        ? 'Nothing playing'
-        : (np.title.isEmpty ? 'Unknown track' : np.title);
-    final artist = np == null
-        ? 'Play something in any app'
-        : (np.artist.isEmpty ? 'Unknown artist' : np.artist);
+    final title = np == null ? 'Nothing playing' : (np.title.isEmpty ? 'Unknown track' : np.title);
+    final artist = np == null ? 'Play something in any app' : (np.artist.isEmpty ? 'Unknown artist' : np.artist);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(18, 6, 18, 10),
+      child: Column(
         children: [
-          IslandArt(path: np?.art, size: 98, radius: 16),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 2),
-                IslandMarquee(
-                  text: title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: -0.2,
-                    fontFamilyFallback: islandFontFallback,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  artist,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0x99FFFFFF),
-                  ),
-                ),
-                const Spacer(),
-                Row(
+          Row(
+            children: [
+              IslandArt(path: np?.art, size: 58, radius: 12),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ctl(Icons.skip_previous_rounded, 'prev'),
-                    const SizedBox(width: 8),
-                    IslandPressable(
-                      onTap: () => c.sendMusic?.call('toggle'),
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          playing
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          color: Colors.black,
-                          size: 26,
-                        ),
+                    IslandMarquee(
+                      text: title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                        fontFamilyFallback: islandFontFallback,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    _ctl(Icons.skip_next_rounded, 'next'),
-                    const Spacer(),
-                    IslandWaveform(active: playing, bands: c.bands),
+                    const SizedBox(height: 2),
+                    Text(
+                      artist,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14, color: Color(0x8CFFFFFF)),
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              // Live levels of what is playing: sub-bass, bass, low-mid,
+              // high-mid and treble, left to right.
+              IslandWaveform(active: playing, bands: c.bands, color: _accent),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _Progress(np: np, color: _accent),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SizedBox(width: 46, child: Center(child: IslandAppBadge(app: np?.app ?? '', size: 24))),
+              _ctl(Icons.fast_rewind_rounded, () => c.sendMusic?.call('prev'), size: 34),
+              _ctl(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, () => c.sendMusic?.call('toggle'), size: 42),
+              _ctl(Icons.fast_forward_rounded, () => c.sendMusic?.call('next'), size: 34),
+              _ctl(Icons.laptop_rounded, _soundSettings, size: 24, color: const Color(0x8CFFFFFF)),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Elapsed time, a thin progress track and the time left. Ticks while the
+/// track plays; a player that gives no length shows an empty track.
+class _Progress extends StatefulWidget {
+  const _Progress({required this.np, required this.color});
+  final NowPlaying? np;
+  final Color color;
+
+  @override
+  State<_Progress> createState() => _ProgressState();
+}
+
+class _ProgressState extends State<_Progress> {
+  Timer? _t;
+
+  @override
+  void initState() {
+    super.initState();
+    _t = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (mounted && (widget.np?.playing ?? false)) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _t?.cancel();
+    super.dispose();
+  }
+
+  static String _fmt(Duration d) {
+    final s = d.inSeconds;
+    final h = s ~/ 3600, m = (s % 3600) ~/ 60, sec = (s % 60).toString().padLeft(2, '0');
+    return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$sec' : '$m:$sec';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final np = widget.np;
+    final len = np?.length ?? Duration.zero;
+    final known = len > Duration.zero;
+    final pos = known ? np!.positionNow : Duration.zero;
+    final f = known ? pos.inMilliseconds / len.inMilliseconds : 0.0;
+    const time = TextStyle(fontSize: 11.5, color: Color(0x8CFFFFFF), fontFeatures: [FontFeature.tabularFigures()]);
+    return Row(
+      children: [
+        SizedBox(width: 40, child: Text(known ? _fmt(pos) : '', style: time)),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: SizedBox(
+              height: 5,
+              child: Stack(
+                children: [
+                  const Positioned.fill(child: ColoredBox(color: Color(0x24FFFFFF))),
+                  FractionallySizedBox(
+                    widthFactor: f.clamp(0.0, 1.0),
+                    heightFactor: 1,
+                    alignment: Alignment.centerLeft,
+                    child: ColoredBox(color: widget.color),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 46,
+          child: Text(known ? '-${_fmt(len - pos)}' : '', textAlign: TextAlign.right, style: time),
+        ),
+      ],
     );
   }
 }
