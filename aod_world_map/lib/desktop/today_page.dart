@@ -1,26 +1,34 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'agenda_service.dart';
 import 'google_service.dart';
 import 'island_controller.dart';
 import 'island_widgets.dart';
+import 'today_calendar.dart';
 
 const _card = Color(0xFF1C1C1E);
 const _dim = TextStyle(fontSize: 11, color: Color(0x99FFFFFF));
-const _feedColors = <Color>[
-  Color(0xFF0A84FF),
-  Color(0xFF30D158),
-  Color(0xFFFF9F0A),
-  Color(0xFFBF5AF2),
-  Color(0xFFFF375F),
-  Color(0xFF64D2FF),
-];
-Color _feedColor(int i) => _feedColors[i % _feedColors.length];
 
 const _dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const _monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const _monthLong = [
+  'January', 'February', 'March', 'April', 'May', 'June', //
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/// The Schedule card's views, swiped through in a loop.
+enum _View { list, month, week }
+
+/// Drag with the mouse or swipe on a trackpad to change view, not just touch.
+class _SwipeAnywhere extends MaterialScrollBehavior {
+  const _SwipeAnywhere();
+  @override
+  Set<PointerDeviceKind> get dragDevices => PointerDeviceKind.values.toSet();
+}
 
 String _clock(DateTime d) {
   final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
@@ -40,8 +48,15 @@ class TodayPage extends StatefulWidget {
 }
 
 class _TodayPageState extends State<TodayPage> {
+  /// The view last shown, so reopening the island comes back to it.
+  static _View _lastView = _View.list;
+
   Timer? _tick, _refresh;
   bool _manage = false;
+  _View _view = _lastView;
+  // Far from zero so it can page left forever; index % 3 is the view.
+  late final PageController _pages = PageController(initialPage: 3000 + _lastView.index);
+  DateTime _wheelAt = DateTime(0);
   String? _feedError;
   final _task = TextEditingController();
   final _taskFocus = FocusNode();
@@ -64,6 +79,7 @@ class _TodayPageState extends State<TodayPage> {
   void dispose() {
     _tick?.cancel();
     _refresh?.cancel();
+    _pages.dispose();
     _task.dispose();
     _taskFocus.dispose();
     _name.dispose();
@@ -143,7 +159,8 @@ class _TodayPageState extends State<TodayPage> {
     ]);
   }
 
-  Widget _section(String title, {String? trailing, required Widget child, Widget? footer}) => Container(
+  Widget _section(String title, {String? trailing, Widget? extra, required Widget child, Widget? footer}) =>
+      Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(color: _card, borderRadius: BorderRadius.circular(18)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -151,6 +168,7 @@ class _TodayPageState extends State<TodayPage> {
             Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: -0.1)),
             const Spacer(),
             if (trailing != null) Text(trailing, style: _dim),
+            if (extra != null) ...[const SizedBox(width: 8), extra],
           ]),
           const SizedBox(height: 6),
           Expanded(child: child),
@@ -222,7 +240,7 @@ class _TodayPageState extends State<TodayPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: _feedColor(e.feed).withValues(alpha: 0.25),
+                    color: feedColor(e.feed).withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -235,10 +253,7 @@ class _TodayPageState extends State<TodayPage> {
     }
 
     final empty = todayEv.isEmpty && tomEv.isEmpty;
-    return _section(
-      'Schedule',
-      trailing: todayEv.isEmpty ? null : '${todayEv.length} today',
-      child: ListView(
+    final list = ListView(
         padding: EdgeInsets.zero,
         physics: const ClampingScrollPhysics(),
         children: [
@@ -258,9 +273,79 @@ class _TodayPageState extends State<TodayPage> {
           if (todayEv.isNotEmpty) group(null, todayEv),
           if (tomEv.isNotEmpty) group('Tomorrow', tomEv),
         ],
+    );
+
+    final grid = calendarEvents(widget.c);
+    return _section(
+      switch (_view) {
+        _View.list => 'Schedule',
+        _View.month => _monthLong[now.month - 1],
+        _View.week => 'This week',
+      },
+      trailing: _view == _View.list && todayEv.isNotEmpty ? '${todayEv.length} today' : null,
+      extra: _dots(),
+      child: Listener(
+        onPointerSignal: _onWheel,
+        child: ScrollConfiguration(
+          behavior: const _SwipeAnywhere(),
+          child: PageView.builder(
+            controller: _pages,
+            onPageChanged: (i) => setState(() => _view = _lastView = _View.values[i % 3]),
+            itemBuilder: (context, i) => switch (_View.values[i % 3]) {
+              _View.list => list,
+              _View.month => IslandMonthView(events: grid),
+              _View.week => IslandWeekView(events: grid),
+            },
+          ),
+        ),
       ),
     );
   }
+
+  int get _page => _pages.hasClients ? (_pages.page ?? 0).round() : _pages.initialPage;
+
+  void _flip(int to) => _pages.animateToPage(to, duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+
+  /// Jumps to [v] the short way round.
+  void _goTo(_View v) {
+    var d = (v.index - _page % 3) % 3;
+    if (d == 2) d = -1;
+    _flip(_page + d);
+  }
+
+  /// Sideways scroll (tilt wheel, Shift+wheel) flips one view.
+  void _onWheel(PointerSignalEvent e) {
+    if (e is! PointerScrollEvent) return;
+    final dx = e.scrollDelta.dx != 0
+        ? e.scrollDelta.dx
+        : (HardwareKeyboard.instance.isShiftPressed ? e.scrollDelta.dy : 0.0);
+    if (dx.abs() < 1 || DateTime.now().difference(_wheelAt).inMilliseconds < 350) return;
+    _wheelAt = DateTime.now();
+    _flip(_page + (dx > 0 ? 1 : -1));
+  }
+
+  /// One dot per view; the current one is a pill. Click to jump.
+  Widget _dots() => Row(mainAxisSize: MainAxisSize.min, children: [
+        for (final v in _View.values)
+          GestureDetector(
+            onTap: () => _goTo(v),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: v == _view ? 14 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: v == _view ? Colors.white : const Color(0x4DFFFFFF),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ]);
 
   // -------------------------------------------------------------- to do
 
@@ -328,7 +413,7 @@ class _TodayPageState extends State<TodayPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(children: [
-                  Icon(Icons.notifications_none_rounded, size: 18, color: _feedColor(r.feed)),
+                  Icon(Icons.notifications_none_rounded, size: 18, color: feedColor(r.feed)),
                   const SizedBox(width: 10),
                   Expanded(child: Text(r.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600))),
                   if (r.due != null) Text(_clock(r.due!), style: _dim),
@@ -493,7 +578,7 @@ class _TodayPageState extends State<TodayPage> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(children: [
-                Container(width: 10, height: 10, decoration: BoxDecoration(color: _feedColor(i), shape: BoxShape.circle)),
+                Container(width: 10, height: 10, decoration: BoxDecoration(color: feedColor(i), shape: BoxShape.circle)),
                 const SizedBox(width: 10),
                 Expanded(child: Text(c.calendarFeeds[i].label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600))),
                 IslandPressable(
@@ -559,9 +644,9 @@ class _TodayPageState extends State<TodayPage> {
                   : KeyedSubtree(
                       key: const ValueKey('t'),
                       child: Row(children: [
-                        Expanded(flex: 11, child: _schedule()),
+                        Expanded(flex: 14, child: _schedule()),
                         const SizedBox(width: 10),
-                        Expanded(flex: 10, child: _todo()),
+                        Expanded(flex: 8, child: _todo()),
                       ]),
                     ),
             ),
@@ -682,7 +767,7 @@ class _EventRow extends StatelessWidget {
             Container(
               width: 3,
               margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(color: _feedColor(e.feed), borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: feedColor(e.feed), borderRadius: BorderRadius.circular(2)),
             ),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
