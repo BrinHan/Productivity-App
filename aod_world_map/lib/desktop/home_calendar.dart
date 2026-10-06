@@ -636,7 +636,7 @@ class _CalendarViewState extends State<_CalendarView> {
     if (!g.canEditCalendar) {
       return bar(
         g.canCalendar
-            ? 'Orbit can only read your calendar. Reconnect Google once to add and edit events.'
+            ? 'Meridian can only read your calendar. Reconnect Google once to add and edit events.'
             : 'Calendar access was not granted. Reconnect Google to see your events.',
         g.busy ? 'Waiting for browser' : 'Reconnect',
         g.busy ? null : g.signIn,
@@ -1792,8 +1792,10 @@ class _TaskChipState extends State<_TaskChip> {
             Expanded(
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
-                style: _ts(done ? t.sub : t.text, 11, w: FontWeight.w600, deco: done ? TextDecoration.lineThrough : null)
-                    .copyWith(decorationColor: t.sub),
+                // Merged so the planner's chosen font carries through.
+                style: DefaultTextStyle.of(context).style.merge(
+                    _ts(done ? t.sub : t.text, 11, w: FontWeight.w600, deco: done ? TextDecoration.lineThrough : null)
+                        .copyWith(decorationColor: t.sub)),
                 child: Text(x.title, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ),
@@ -2312,7 +2314,7 @@ class _CalEventPanelState extends State<_CalEventPanel> {
     final readOnlyWhy = ed
         ? null
         : (!g.canEditCalendar
-            ? 'Orbit can only read your calendar.'
+            ? 'Meridian can only read your calendar.'
             : '${cal?.name ?? 'This calendar'} is read-only.');
 
     return Container(

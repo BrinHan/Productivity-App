@@ -396,12 +396,13 @@ class _DayScrollerState extends State<_DayScroller> {
             const SizedBox(height: 1),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 120),
-              style: TextStyle(
+              // Merged so the island's Inter carries through.
+              style: DefaultTextStyle.of(context).style.merge(TextStyle(
                 fontSize: picked ? 17 : 14,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3,
                 color: num,
-              ),
+              )),
               child: Text(d.day.toString().padLeft(2, '0')),
             ),
             const SizedBox(height: 2),

@@ -228,7 +228,7 @@ class _Seg extends StatelessWidget {
                       child: Center(
                         child: AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 200),
-                          style: _ts(i == index ? t.text : t.sub, 13, w: FontWeight.w600),
+                          style: DefaultTextStyle.of(context).style.merge(_ts(i == index ? t.text : t.sub, 13, w: FontWeight.w600)),
                           child: Text(labels[i], softWrap: false),
                         ),
                       ),
@@ -346,7 +346,7 @@ class _StrikeText extends StatelessWidget {
           foregroundPainter: _StrikePainter(text, measure, c.maxWidth, p, t.sub),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
-            style: style,
+            style: DefaultTextStyle.of(context).style.merge(style),
             child: Text(text),
           ),
         ),
