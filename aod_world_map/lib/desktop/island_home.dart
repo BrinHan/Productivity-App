@@ -273,7 +273,7 @@ class _MiniMusic extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _AppBadge(app: np?.app ?? ''),
+                    IslandAppBadge(app: np?.app ?? ''),
                     const SizedBox(width: 4),
                     _ctl(Icons.skip_previous_rounded, 'prev'),
                     _ctl(np?.playing ?? false ? Icons.pause_rounded : Icons.play_arrow_rounded, 'toggle', size: 23),
@@ -285,47 +285,6 @@ class _MiniMusic extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// A small tile in the colours of the app that is playing. Windows gives
-/// only the app's id, so it is a coloured icon rather than the real logo.
-class _AppBadge extends StatelessWidget {
-  const _AppBadge({required this.app});
-  final String app;
-
-  (Color, Color, IconData) get _look {
-    final a = app.toLowerCase();
-    if (a.contains('spotify')) return (const Color(0xFF1ED760), const Color(0xFF169C46), Icons.graphic_eq_rounded);
-    if (a.contains('applemusic') || a.contains('itunes')) {
-      return (const Color(0xFFFF5E73), const Color(0xFFFA233B), Icons.music_note_rounded);
-    }
-    if (a.contains('zunemusic') || a.contains('mediaplayer')) {
-      return (const Color(0xFFFF7A45), const Color(0xFFE0451F), Icons.play_arrow_rounded);
-    }
-    if (a.contains('vlc')) return (const Color(0xFFFFA033), const Color(0xFFE07000), Icons.play_arrow_rounded);
-    if (a.contains('chrome') ||
-        a.contains('msedge') ||
-        a.contains('firefox') ||
-        a.contains('brave') ||
-        a.contains('opera')) {
-      return (const Color(0xFF5AA0FF), const Color(0xFF2A6FDB), Icons.language_rounded);
-    }
-    return (const Color(0xFF5A5A5E), const Color(0xFF3A3A3C), Icons.music_note_rounded);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final (top, bottom, icon) = _look;
-    return Container(
-      width: 22,
-      height: 22,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [top, bottom]),
-      ),
-      child: Icon(icon, size: 14, color: Colors.white),
     );
   }
 }
