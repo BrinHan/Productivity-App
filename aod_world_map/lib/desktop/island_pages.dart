@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'app_catalog.dart';
 import 'island_controller.dart';
 import 'island_home.dart';
 import 'island_widgets.dart';
@@ -67,6 +68,33 @@ const kShortcutColors = <Color>[
   Color(0xFF22C3D6),
   Color(0xFFFFC857),
 ];
+
+/// A shortcut's face: the app's own icon when it has one, else its icon
+/// on its colour.
+class ShortcutGlyph extends StatelessWidget {
+  const ShortcutGlyph(this.s, {super.key, required this.size, required this.radius, required this.iconSize});
+  final IslandShortcut s;
+  final double size, radius, iconSize;
+
+  Widget _tile() => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: s.color, borderRadius: BorderRadius.circular(radius)),
+    child: Icon(kShortcutIcons[s.icon] ?? Icons.bolt, size: iconSize, color: Colors.white),
+  );
+
+  @override
+  Widget build(BuildContext context) => s.image.isEmpty
+      ? _tile()
+      : Image.file(
+          File(s.image),
+          width: size,
+          height: size,
+          filterQuality: FilterQuality.medium,
+          gaplessPlayback: true,
+          errorBuilder: (_, _, _) => _tile(),
+        );
+}
 
 class IslandOpenContent extends StatelessWidget {
   const IslandOpenContent({
@@ -336,6 +364,9 @@ class _SettingsPageState extends State<_SettingsPage> {
   );
   Timer? _debounce;
 
+  /// Showing the app picker in place of the settings.
+  bool _picking = false;
+
   static const _label = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w600,
@@ -369,9 +400,37 @@ class _SettingsPageState extends State<_SettingsPage> {
     ),
   );
 
+  Widget _addButton(IconData icon, String text, VoidCallback onTap) => IslandPressable(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x14FFFFFF),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 13, color: const Color(0x99FFFFFF)),
+          const SizedBox(width: 5),
+          Text(text, style: _dim),
+        ],
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final c = widget.c;
+    if (_picking) {
+      return _AppPicker(
+        onPick: (app) {
+          c.addAppShortcut(app);
+          setState(() => _picking = false);
+        },
+        onClose: () => setState(() => _picking = false),
+      );
+    }
     final picked = c.pipColor.toARGB32();
     return ListView(
       padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
@@ -504,17 +563,12 @@ class _SettingsPageState extends State<_SettingsPage> {
         for (final s in c.shortcuts)
           _ShortcutEditor(key: ObjectKey(s), s: s, c: c),
         if (c.shortcuts.length < 6)
-          IslandPressable(
-            onTap: c.addShortcut,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: const Color(0x14FFFFFF),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Text('+ Add shortcut', style: _dim),
-            ),
+          Row(
+            children: [
+              Expanded(child: _addButton(Icons.apps_rounded, 'Add app', () => setState(() => _picking = true))),
+              const SizedBox(width: 6),
+              Expanded(child: _addButton(Icons.language_rounded, 'Add website', c.addShortcut)),
+            ],
           ),
       ],
     );
@@ -604,41 +658,33 @@ class _ShortcutEditorState extends State<_ShortcutEditor> {
   @override
   Widget build(BuildContext context) {
     final s = widget.s;
+    // Picked from the Start menu: it wears the app's icon and opens by id,
+    // so there is no icon, colour or path to set.
+    final picked = s.image.isNotEmpty && s.kind == ShortcutKind.app;
     final needsTarget =
-        s.kind == ShortcutKind.web || s.kind == ShortcutKind.app;
+        !picked && (s.kind == ShortcutKind.web || s.kind == ShortcutKind.app);
+    final glyph = ShortcutGlyph(s, size: 30, radius: 9, iconSize: 16);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          IslandPressable(
-            onTap: _cycleIcon,
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: s.color,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Icon(
-                kShortcutIcons[s.icon] ?? Icons.bolt,
-                size: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
+          picked ? glyph : IslandPressable(onTap: _cycleIcon, child: glyph),
           const SizedBox(width: 6),
-          IslandPressable(
-            onTap: _cycleColor,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: s.color,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+          if (picked)
+            const SizedBox(width: 14)
+          else
+            IslandPressable(
+              onTap: _cycleColor,
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: s.color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
               ),
             ),
-          ),
           const SizedBox(width: 6),
           Expanded(
             flex: 3,
@@ -682,6 +728,17 @@ class _ShortcutEditorState extends State<_ShortcutEditor> {
                       widget.c.shortcutsChanged();
                     },
                   )
+                : picked
+                ? const SizedBox(
+                    height: 30,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Text('Start menu app', style: TextStyle(fontSize: 11, color: Color(0x66FFFFFF))),
+                      ),
+                    ),
+                  )
                 : const SizedBox(height: 30),
           ),
           const SizedBox(width: 4),
@@ -695,6 +752,163 @@ class _ShortcutEditorState extends State<_ShortcutEditor> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Searchable list of the Start menu's apps; tap one (or press Enter for
+/// the top match) to add it as a shortcut.
+class _AppPicker extends StatefulWidget {
+  const _AppPicker({required this.onPick, required this.onClose});
+  final ValueChanged<InstalledApp> onPick;
+  final VoidCallback onClose;
+
+  @override
+  State<_AppPicker> createState() => _AppPickerState();
+}
+
+class _AppPickerState extends State<_AppPicker> {
+  final _query = TextEditingController();
+  List<InstalledApp> _apps = AppCatalog.cached;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    AppCatalog.load(onUpdate: (a) {
+      if (mounted) setState(() => _apps = a);
+    }).whenComplete(() {
+      if (mounted) setState(() => _loading = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  /// Names that start with the query first, then ones that contain it.
+  List<InstalledApp> get _matches {
+    final q = _query.text.trim().toLowerCase();
+    if (q.isEmpty) return _apps;
+    final starts = <InstalledApp>[], contains = <InstalledApp>[];
+    for (final a in _apps) {
+      final n = a.name.toLowerCase();
+      if (n.startsWith(q)) {
+        starts.add(a);
+      } else if (n.contains(q)) {
+        contains.add(a);
+      }
+    }
+    return [...starts, ...contains];
+  }
+
+  Widget _icon(InstalledApp a) {
+    const fallback = Icon(Icons.apps_rounded, size: 18, color: Color(0x66FFFFFF));
+    if (a.icon.isEmpty) return fallback;
+    return Image.file(
+      File(a.icon),
+      width: 22,
+      height: 22,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, _, _) => fallback,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shown = _matches;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 6, 14, 8),
+          child: Row(
+            children: [
+              IslandPressable(
+                onTap: widget.onClose,
+                child: const SizedBox(
+                  width: 28,
+                  height: 30,
+                  child: Icon(Icons.arrow_back_rounded, size: 16, color: Color(0xCCFFFFFF)),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: SizedBox(
+                  height: 30,
+                  child: TextField(
+                    controller: _query,
+                    autofocus: true,
+                    onChanged: (_) => setState(() {}),
+                    onSubmitted: (_) {
+                      if (shown.isNotEmpty) widget.onPick(shown.first);
+                    },
+                    style: const TextStyle(fontSize: 12, color: Colors.white),
+                    cursorColor: Colors.white,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: const Color(0x14FFFFFF),
+                      hintText: 'Search apps',
+                      hintStyle: const TextStyle(fontSize: 12, color: Color(0x66FFFFFF)),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 15, color: Color(0x66FFFFFF)),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 30),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: shown.isEmpty
+              ? Center(
+                  child: Text(
+                    _loading ? 'Finding your apps\u2026' : 'No apps match',
+                    style: const TextStyle(fontSize: 11, color: Color(0x99FFFFFF)),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 14, 10),
+                  itemCount: shown.length,
+                  itemExtent: 34,
+                  itemBuilder: (_, i) {
+                    final a = shown[i];
+                    return IslandPressable(
+                      onTap: () => widget.onPick(a),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        decoration: BoxDecoration(
+                          // Enter picks the top match; mark it.
+                          color: i == 0 && _query.text.isNotEmpty ? const Color(0x14FFFFFF) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(width: 22, height: 22, child: Center(child: _icon(a))),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                a.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

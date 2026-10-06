@@ -6,6 +6,7 @@ import 'dart:ui' show Color, Offset, Size;
 import 'package:flutter/foundation.dart';
 
 import 'agenda_service.dart';
+import 'app_catalog.dart' show InstalledApp;
 import 'google_service.dart';
 import 'meeting_detector.dart';
 import 'notes_service.dart';
@@ -76,6 +77,7 @@ class IslandShortcut {
     this.target = '',
     required this.color,
     required this.icon,
+    this.image = '',
   });
   String label;
   ShortcutKind kind;
@@ -83,12 +85,17 @@ class IslandShortcut {
   Color color;
   String icon;
 
+  /// The app's own icon (a PNG picked from the Start menu); when set it is
+  /// shown instead of [icon] on [color].
+  String image;
+
   Map<String, dynamic> toJson() => {
         'label': label,
         'kind': kind.name,
         'target': target,
         'color': color.toARGB32(),
         'icon': icon,
+        if (image.isNotEmpty) 'image': image,
       };
 
   static IslandShortcut fromJson(Map<String, dynamic> j) => IslandShortcut(
@@ -98,6 +105,7 @@ class IslandShortcut {
         target: (j['target'] as String?) ?? '',
         color: Color((j['color'] as int?) ?? 0xFF3B8BFF),
         icon: (j['icon'] as String?) ?? 'bolt',
+        image: (j['image'] as String?) ?? '',
       );
 }
 
@@ -381,6 +389,18 @@ class IslandController extends ChangeNotifier {
   void shortcutsChanged() {
     notifyListeners();
     _persist();
+  }
+
+  void addAppShortcut(InstalledApp app) {
+    shortcuts.add(IslandShortcut(
+      label: app.name,
+      kind: ShortcutKind.app,
+      target: app.target,
+      color: const Color(0xFF3B8BFF),
+      icon: 'bolt',
+      image: app.icon,
+    ));
+    shortcutsChanged();
   }
 
   void addShortcut() {

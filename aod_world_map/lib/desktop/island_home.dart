@@ -647,12 +647,7 @@ class _Launcher extends StatelessWidget {
                         preferBelow: false,
                         child: IslandPressable(
                           onTap: () => onTap?.call(s),
-                          child: Container(
-                            width: 23,
-                            height: 23,
-                            decoration: BoxDecoration(color: s.color, borderRadius: BorderRadius.circular(7)),
-                            child: Icon(kShortcutIcons[s.icon] ?? Icons.bolt, size: 14, color: Colors.white),
-                          ),
+                          child: ShortcutGlyph(s, size: 23, radius: 7, iconSize: 14),
                         ),
                       ),
                     ),
