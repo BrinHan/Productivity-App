@@ -111,7 +111,8 @@ while ($true) {
             if ($n -gt 2) { Remove-Item "__DIR__\aod_art_$($n-2).img" -Force }
           }
         }
-        $out = @{ title = "$($p.Title)"; artist = "$($p.Artist)"; album = "$($p.AlbumTitle)"; app = "$($s.SourceAppUserModelId)"; status = $st; art = $artPath } | ConvertTo-Json -Compress
+        $tl = $s.GetTimelineProperties()
+        $out = @{ title = "$($p.Title)"; artist = "$($p.Artist)"; album = "$($p.AlbumTitle)"; app = "$($s.SourceAppUserModelId)"; status = $st; art = $artPath; posMs = [long]$tl.Position.TotalMilliseconds; durMs = [long]($tl.EndTime - $tl.StartTime).TotalMilliseconds; at = $tl.LastUpdatedTime.ToUnixTimeMilliseconds() } | ConvertTo-Json -Compress
       }
     } catch { }
     [Console]::Out.WriteLine($out)
@@ -128,7 +129,7 @@ while ($true) {
   /// prints five band levels ("V ..."). Compiled once with the C# compiler
   /// that ships with Windows; it runs in about 14 MB where the PowerShell
   /// host needs about 70. Bump the version when this changes.
-  static const _csVersion = 'v3';
+  static const _csVersion = 'v4';
   static const _cs = r'''
 using System;
 using System.Diagnostics;
@@ -475,9 +476,14 @@ static class NowPlayingHelper
                                 if (n > 2) { try { File.Delete(Path.Combine(dir, "aod_art_" + (n - 2) + ".img")); } catch { } }
                             }
                         }
+                        var tl = s.GetTimelineProperties();
+                        long posMs = (long)tl.Position.TotalMilliseconds;
+                        long durMs = (long)(tl.EndTime - tl.StartTime).TotalMilliseconds;
+                        long at = tl.LastUpdatedTime.ToUnixTimeMilliseconds();
                         line = "{\"title\":\"" + Esc(p.Title) + "\",\"artist\":\"" + Esc(p.Artist) +
                                "\",\"album\":\"" + Esc(p.AlbumTitle) + "\",\"app\":\"" + Esc(s.SourceAppUserModelId) +
-                               "\",\"status\":\"" + st + "\",\"art\":\"" + Esc(artPath) + "\"}";
+                               "\",\"status\":\"" + st + "\",\"art\":\"" + Esc(artPath) +
+                               "\",\"posMs\":" + posMs + ",\"durMs\":" + durMs + ",\"at\":" + at + "}";
                     }
                 }
                 catch { }
@@ -588,13 +594,18 @@ static class NowPlayingHelper
       final art = (m['art'] as String?) ?? '';
       final album = (m['album'] as String?) ?? '';
       final app = (m['app'] as String?) ?? '';
+      final posMs = (m['posMs'] as num?)?.toInt() ?? 0;
+      final durMs = (m['durMs'] as num?)?.toInt() ?? 0;
+      final at = (m['at'] as num?)?.toInt() ?? 0;
+      final pos = Duration(milliseconds: posMs), len = Duration(milliseconds: durMs);
+      final posAt = at > 0 ? DateTime.fromMillisecondsSinceEpoch(at) : null;
       if (title.isEmpty && artist.isEmpty) {
         _emit(null);
       } else {
         final k = '$title|$artist';
         var path = art.isEmpty ? null : art;
         if (path == null && _fbKey == k) path = _fbPath;
-        _emit(NowPlaying(title, artist, status == 'Playing', path, album, app));
+        _emit(NowPlaying(title, artist, status == 'Playing', path, album, app, pos, len, posAt));
         if (path == null && _fbKey != k && title.isNotEmpty) _lookupArt(title, artist, k);
       }
     } catch (_) {}
@@ -654,7 +665,8 @@ static class NowPlayingHelper
       }
       final cur = _cur;
       if (cur != null && cur.key == key && cur.art == null) {
-        _emit(NowPlaying(cur.title, cur.artist, cur.playing, f.path, cur.album, cur.app));
+        _emit(NowPlaying(
+            cur.title, cur.artist, cur.playing, f.path, cur.album, cur.app, cur.position, cur.length, cur.positionAt));
       }
     } catch (_) {}
   }

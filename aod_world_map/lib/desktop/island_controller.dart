@@ -18,7 +18,8 @@ enum IslandPage { home, music, stocks, today, settings }
 enum ShortcutKind { web, app, screensaver, planner }
 
 class NowPlaying {
-  const NowPlaying(this.title, this.artist, this.playing, [this.art, this.album = '', this.app = '']);
+  const NowPlaying(this.title, this.artist, this.playing,
+      [this.art, this.album = '', this.app = '', this.position = Duration.zero, this.length = Duration.zero, this.positionAt]);
   final String title, artist;
   final bool playing;
   final String? art;
@@ -28,6 +29,21 @@ class NowPlaying {
 
   /// The playing app's id from Windows (e.g. 'Spotify.exe', 'chrome').
   final String app;
+
+  /// Where the track was at [positionAt], and how long it is (zero when the
+  /// player doesn't say).
+  final Duration position, length;
+  final DateTime? positionAt;
+
+  /// Where the track is now: the player only reports on changes, so this
+  /// runs the clock on from its last report while playing.
+  Duration get positionNow {
+    if (length <= Duration.zero) return Duration.zero;
+    var p = position;
+    if (playing && positionAt != null) p += DateTime.now().difference(positionAt!);
+    if (p < Duration.zero) return Duration.zero;
+    return p > length ? length : p;
+  }
   String get key => '$title|$artist';
 }
 
