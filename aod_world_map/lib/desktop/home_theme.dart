@@ -59,25 +59,25 @@ TextStyle _ts(
       fontVariations: [FontVariation('wght', w.value.toDouble())],
     );
 
-/// One palette: cool neutrals, one emerald accent for progress only.
+/// One palette: deep slate greys, one emerald accent for progress only.
 /// Buttons and checks use the foreground colour, like shadcn's neutral theme.
 class _T {
   _T(this.dark)
-      : bg = dark ? const Color(0xFF0F0F11) : const Color(0xFFF4F4F5),
-        side = dark ? const Color(0xFF0B0B0D) : const Color(0xFFEBEBED),
-        surface = dark ? const Color(0xFF17171A) : const Color(0xFFFBFBFC),
-        raised = dark ? const Color(0xFF212125) : const Color(0xFFEEEEF0),
-        line = dark ? const Color(0xFF2B2B31) : const Color(0xFFDEDEE2),
-        text = dark ? const Color(0xFFEDEDEF) : const Color(0xFF18181B),
-        sub = dark ? const Color(0xFFA1A1AA) : const Color(0xFF5F5F68),
-        faint = dark ? const Color(0xFF71717A) : const Color(0xFF8E8E96),
-        focus = dark ? const Color(0xFF9A9AA3) : const Color(0xFF3F3F46),
+      : bg = dark ? const Color(0xFF1B2129) : const Color(0xFFF1F3F6),
+        side = dark ? const Color(0xFF161B22) : const Color(0xFFE6E9EE),
+        surface = dark ? const Color(0xFF222932) : const Color(0xFFFAFBFC),
+        raised = dark ? const Color(0xFF2B333D) : const Color(0xFFEBEEF2),
+        line = dark ? const Color(0xFF353E4A) : const Color(0xFFD8DDE4),
+        text = dark ? const Color(0xFFE6EAF0) : const Color(0xFF1B222B),
+        sub = dark ? const Color(0xFFA3ADBA) : const Color(0xFF5A6573),
+        faint = dark ? const Color(0xFF737E8C) : const Color(0xFF8A94A1),
+        focus = dark ? const Color(0xFF9AA5B3) : const Color(0xFF3C4652),
         accent = dark ? const Color(0xFF3DD68C) : const Color(0xFF138A55),
         onAccent = dark ? const Color(0xFF07140D) : const Color(0xFFFBFBFC),
         warn = dark ? const Color(0xFFF0757D) : const Color(0xFFC0392B),
-        panel = dark ? const Color(0xFF181D25) : const Color(0xFFE7E8EB),
-        panelLine = dark ? const Color(0xFF283039) : const Color(0xFFD2D4D9),
-        panelCard = dark ? const Color(0xFF222934) : const Color(0xFFF2F3F5);
+        panel = dark ? const Color(0xFF1F2630) : const Color(0xFFE3E7EC),
+        panelLine = dark ? const Color(0xFF323B47) : const Color(0xFFCDD3DB),
+        panelCard = dark ? const Color(0xFF29313C) : const Color(0xFFEFF2F5);
 
   final bool dark;
   final Color bg, side, surface, raised, line, text, sub, faint, focus, accent, onAccent, warn;
