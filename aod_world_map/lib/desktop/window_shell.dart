@@ -226,6 +226,11 @@ Future<void> openWeb(String url) async {
 Future<void> launchApp(String target) async {
   final t = target.trim();
   if (t.isEmpty || !Platform.isWindows) return;
+  // Start menu apps ('shell:AppsFolder\<id>'), Store apps included.
+  if (t.toLowerCase().startsWith('shell:')) {
+    await Process.start('explorer.exe', [t], mode: ProcessStartMode.detached);
+    return;
+  }
   final env = Platform.environment;
   final candidates = <String>[];
   if (t.toLowerCase() == 'code' || t.toLowerCase() == 'vscode') {
