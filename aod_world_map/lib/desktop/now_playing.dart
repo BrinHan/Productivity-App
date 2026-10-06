@@ -111,7 +111,7 @@ while ($true) {
             if ($n -gt 2) { Remove-Item "__DIR__\aod_art_$($n-2).img" -Force }
           }
         }
-        $out = @{ title = "$($p.Title)"; artist = "$($p.Artist)"; status = $st; art = $artPath } | ConvertTo-Json -Compress
+        $out = @{ title = "$($p.Title)"; artist = "$($p.Artist)"; album = "$($p.AlbumTitle)"; app = "$($s.SourceAppUserModelId)"; status = $st; art = $artPath } | ConvertTo-Json -Compress
       }
     } catch { }
     [Console]::Out.WriteLine($out)
@@ -128,7 +128,7 @@ while ($true) {
   /// prints five band levels ("V ..."). Compiled once with the C# compiler
   /// that ships with Windows; it runs in about 14 MB where the PowerShell
   /// host needs about 70. Bump the version when this changes.
-  static const _csVersion = 'v2';
+  static const _csVersion = 'v3';
   static const _cs = r'''
 using System;
 using System.Diagnostics;
@@ -476,6 +476,7 @@ static class NowPlayingHelper
                             }
                         }
                         line = "{\"title\":\"" + Esc(p.Title) + "\",\"artist\":\"" + Esc(p.Artist) +
+                               "\",\"album\":\"" + Esc(p.AlbumTitle) + "\",\"app\":\"" + Esc(s.SourceAppUserModelId) +
                                "\",\"status\":\"" + st + "\",\"art\":\"" + Esc(artPath) + "\"}";
                     }
                 }
@@ -585,13 +586,15 @@ static class NowPlayingHelper
       final artist = (m['artist'] as String?) ?? '';
       final status = (m['status'] as String?) ?? '';
       final art = (m['art'] as String?) ?? '';
+      final album = (m['album'] as String?) ?? '';
+      final app = (m['app'] as String?) ?? '';
       if (title.isEmpty && artist.isEmpty) {
         _emit(null);
       } else {
         final k = '$title|$artist';
         var path = art.isEmpty ? null : art;
         if (path == null && _fbKey == k) path = _fbPath;
-        _emit(NowPlaying(title, artist, status == 'Playing', path));
+        _emit(NowPlaying(title, artist, status == 'Playing', path, album, app));
         if (path == null && _fbKey != k && title.isNotEmpty) _lookupArt(title, artist, k);
       }
     } catch (_) {}
@@ -651,7 +654,7 @@ static class NowPlayingHelper
       }
       final cur = _cur;
       if (cur != null && cur.key == key && cur.art == null) {
-        _emit(NowPlaying(cur.title, cur.artist, cur.playing, f.path));
+        _emit(NowPlaying(cur.title, cur.artist, cur.playing, f.path, cur.album, cur.app));
       }
     } catch (_) {}
   }

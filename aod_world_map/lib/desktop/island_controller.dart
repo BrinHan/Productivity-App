@@ -18,10 +18,16 @@ enum IslandPage { home, music, stocks, today, settings }
 enum ShortcutKind { web, app, screensaver, planner }
 
 class NowPlaying {
-  const NowPlaying(this.title, this.artist, this.playing, [this.art]);
+  const NowPlaying(this.title, this.artist, this.playing, [this.art, this.album = '', this.app = '']);
   final String title, artist;
   final bool playing;
   final String? art;
+
+  /// Album title, when the player gives one.
+  final String album;
+
+  /// The playing app's id from Windows (e.g. 'Spotify.exe', 'chrome').
+  final String app;
   String get key => '$title|$artist';
 }
 
