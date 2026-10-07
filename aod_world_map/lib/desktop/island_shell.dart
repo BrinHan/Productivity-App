@@ -90,6 +90,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     await _initTray();
     island.sendMusic = (cmd) => _music?.send(cmd);
     island.openUrl = (u) => _try(() => openWeb(u));
+    island.openNotes = () => openApp('home', 'notes');
     island.startAnnotate = () {
       island.close();
       openOverlay();
@@ -218,11 +219,12 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
 
   // ---- the app window ---------------------------------------------------
 
-  /// Brings the app window forward, starting it if it is closed.
-  Future<void> openApp([String? mode]) async {
+  /// Brings the app window forward, starting it if it is closed. [view] is
+  /// a planner page to show ('notes').
+  Future<void> openApp([String? mode, String? view]) async {
     island.close();
-    final sent = await LinkServer.sendOnce(kAppPort, {'t': 'open', 'mode': mode});
-    if (!sent) await spawnSelf([if (mode != null) '--$mode']);
+    final sent = await LinkServer.sendOnce(kAppPort, {'t': 'open', 'mode': mode, 'view': view});
+    if (!sent) await spawnSelf([if (mode != null) '--$mode', if (view != null) '--$view']);
   }
 
   /// Shows the annotation overlay, starting it if it is not running.
@@ -317,6 +319,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'idle', label: 'Island: idle'),
         tray.MenuItem(key: 'call', label: 'Island: incoming call'),
         tray.MenuItem(key: 'music', label: 'Island: music'),
+        tray.MenuItem(key: 'actions', label: 'Island: meeting to-dos'),
         tray.MenuItem(key: 'face', label: 'Island: Face ID unlock'),
         tray.MenuItem(key: 'finger', label: 'Island: fingerprint unlock'),
         tray.MenuItem(key: 'pin', label: 'Island: PIN unlock'),
@@ -428,6 +431,8 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         island.preview(IslandState.call);
       case 'music':
         island.preview(IslandState.music);
+      case 'actions':
+        island.preview(IslandState.actions);
       case 'face':
         island.unlocked(UnlockMethod.face);
       case 'finger':

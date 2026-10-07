@@ -5,19 +5,23 @@ import 'dart:ui' show Color, Offset, Size;
 
 import 'package:flutter/foundation.dart';
 
+import 'action_items.dart';
 import 'agenda_service.dart';
 import 'app_catalog.dart' show InstalledApp;
 import 'app_files.dart';
 import 'google_service.dart';
 import 'meeting_detector.dart';
+import 'notes_model.dart';
 import 'notes_service.dart';
 import 'planner_model.dart';
 import 'unlock_glyphs.dart' show kUnlockAnimation;
 import 'unlock_watch.dart';
 
 /// [verify]: Windows Hello is checking you on the Hello screen; the island
-/// scans until it answers, then shows [success].
-enum IslandState { hidden, notch, idle, open, call, music, verify, success, meeting }
+/// scans until it answers, then shows [success]. [focus]: a focus session
+/// from the planner, shown until it is reset or completed. [actions]: a
+/// finished meeting's suggested to-dos.
+enum IslandState { hidden, notch, idle, open, call, music, verify, success, meeting, focus, actions }
 
 enum IslandPage { home, music, stocks, today, settings }
 
@@ -187,12 +191,28 @@ class IslandController extends ChangeNotifier {
   List<String> watchlist = ['AAPL', 'NVDA', 'TSLA', 'SNOW'];
   List<CalendarFeed> calendarFeeds = [];
 
-  /// Set by main(): the same planner the Home page edits.
-  PlannerModel? planner;
+  /// Set by main(): the same planner the Home page edits. The island
+  /// follows its focus session.
+  PlannerModel? get planner => _planner;
+  PlannerModel? _planner;
+  set planner(PlannerModel? p) {
+    if (!inApp) {
+      _planner?.removeListener(_onPlanner);
+      p?.addListener(_onPlanner);
+    }
+    _planner = p;
+    if (!inApp) _onPlanner();
+  }
   final AgendaService agenda = AgendaService();
   final GoogleService google;
   final NotesService notes;
   MeetingInfo? offer;
+
+  /// A finished meeting and the to-dos found in it, while [IslandState.actions] asks.
+  ({MeetingNote note, List<String> items})? actionOffer;
+
+  /// Opens the planner on its Notes page (set by the island process).
+  void Function()? openNotes;
   Timer? _gTimer;
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
@@ -215,8 +235,14 @@ class IslandController extends ChangeNotifier {
   bool get visible => state != IslandState.hidden;
   bool get quiet => chromeMode && quietInChrome;
   bool get musicPlaying => (nowPlaying?.playing ?? false) || _demoMusic;
-  IslandState get _resting =>
-      quiet ? IslandState.notch : (musicPlaying ? IslandState.music : IslandState.idle);
+  bool get focusActive => planner?.focusActive ?? false;
+  IslandState get _resting => quiet
+      ? IslandState.notch
+      : (focusActive ? IslandState.focus : (musicPlaying ? IslandState.music : IslandState.idle));
+
+  /// Where the island goes when the cursor is away: hidden, unless a focus
+  /// session is on, which stays on screen like a live activity.
+  IslandState get _away => focusActive && !quiet ? IslandState.focus : IslandState.hidden;
 
   // ---------------------------------------------------------- persistence
 
@@ -232,6 +258,7 @@ class IslandController extends ChangeNotifier {
       return;
     }
     notes.onOffer = offerMeeting;
+    notes.onFinished = offerActions;
     notes.startWatching();
     _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
   }
@@ -449,9 +476,11 @@ class IslandController extends ChangeNotifier {
   /// In Chrome (quiet mode) the island is only a tiny notch until clicked.
   void _applyQuiet() {
     if (quiet) {
-      if (state == IslandState.idle || state == IslandState.music) _set(IslandState.notch);
+      if (state == IslandState.idle || state == IslandState.music || state == IslandState.focus) {
+        _set(IslandState.notch);
+      }
     } else if (state == IslandState.notch) {
-      _set(near ? _resting : IslandState.hidden);
+      _set(near ? _resting : _away);
     }
     notifyListeners();
   }
@@ -473,7 +502,8 @@ class IslandController extends ChangeNotifier {
     final busy = state == IslandState.call ||
         state == IslandState.success ||
         state == IslandState.verify ||
-        state == IslandState.open;
+        state == IslandState.open ||
+        state == IslandState.actions;
     // Resuming always shows the pill; a new song (a skip, or the next track
     // starting) only when that's switched on in settings.
     var pop = false;
@@ -489,7 +519,7 @@ class IslandController extends ChangeNotifier {
       preview(IslandState.music);
     } else if (!isPlaying && wasPlaying && !_demoMusic && state == IslandState.music) {
       _timer?.cancel();
-      _set(near ? IslandState.idle : IslandState.hidden);
+      _set(near ? _resting : _away);
     } else {
       notifyListeners();
     }
@@ -509,7 +539,7 @@ class IslandController extends ChangeNotifier {
     } else if (state == IslandState.idle ||
         state == IslandState.music ||
         state == IslandState.notch) {
-      _later(const Duration(milliseconds: 700), () => _set(IslandState.hidden));
+      _later(const Duration(milliseconds: 700), () => _set(_away));
     } else if (state == IslandState.open && openOnHover) {
       _later(const Duration(milliseconds: 500), close);
     }
@@ -519,14 +549,20 @@ class IslandController extends ChangeNotifier {
     if (v == _over) return;
     _over = v;
     _overTimer?.cancel();
-    if (v && openOnHover && !quiet && (state == IslandState.idle || state == IslandState.music)) {
+    bool resting() => state == IslandState.idle || state == IslandState.music || state == IslandState.focus;
+    if (v && openOnHover && !quiet && resting()) {
       _overTimer = Timer(const Duration(milliseconds: 350), () {
-        if (_over && (state == IslandState.idle || state == IslandState.music)) {
-          open(state == IslandState.music ? IslandPage.music : IslandPage.home);
-        }
+        if (_over && resting()) open(restingPage);
       });
     }
   }
+
+  /// The page a tap on the resting pill opens.
+  IslandPage get restingPage => switch (state) {
+        IslandState.music => IslandPage.music,
+        IslandState.focus => IslandPage.today,
+        _ => IslandPage.home,
+      };
 
   void open([IslandPage p = IslandPage.home]) {
     if (state == IslandState.call || state == IslandState.success || state == IslandState.verify) return;
@@ -547,7 +583,7 @@ class IslandController extends ChangeNotifier {
   void close() {
     if (state != IslandState.open) return;
     _timer?.cancel();
-    _set(near ? _resting : IslandState.hidden);
+    _set(near ? _resting : _away);
   }
 
   void preview(IslandState s) {
@@ -572,6 +608,20 @@ class IslandController extends ChangeNotifier {
         _later(const Duration(seconds: 15), decline);
       case IslandState.meeting:
         offerMeeting(MeetingInfo.demo());
+      case IslandState.focus:
+        _set(IslandState.focus);
+        if (!focusActive) _hideSoon(4);
+      case IslandState.actions:
+        offerActions(
+          MeetingNote(
+            id: 'demo',
+            title: 'Zoom meeting',
+            app: 'Zoom',
+            startedAt: DateTime.now(),
+            segments: [NoteSegment(0, "I'll send the deck to Sarah by Friday. We need to update the pricing page.")],
+          ),
+          demo: true,
+        );
       case IslandState.verify:
         verifying(unlockMethod);
       case IslandState.success:
@@ -612,7 +662,7 @@ class IslandController extends ChangeNotifier {
   /// Windows Hello said no (or you cancelled): put the scan away.
   void verifyFailed() {
     if (state != IslandState.verify) return;
-    _set(near ? _resting : IslandState.hidden);
+    _set(near ? _resting : _away);
   }
 
   void decline() {
@@ -636,7 +686,7 @@ class IslandController extends ChangeNotifier {
     if (state != IslandState.meeting || m == null) return;
     _timer?.cancel();
     offer = null;
-    _set(near ? _resting : IslandState.hidden);
+    _set(near ? _resting : _away);
     notes.start(m);
   }
 
@@ -644,7 +694,76 @@ class IslandController extends ChangeNotifier {
     if (state != IslandState.meeting) return;
     _timer?.cancel();
     offer = null;
-    _set(near ? _resting : IslandState.hidden);
+    _set(near ? _resting : _away);
+  }
+
+  /// A recording ended: offer to put the to-dos it found on today's list.
+  void offerActions(MeetingNote n, {bool demo = false}) {
+    final items = [for (final x in extractActionItems(n)) if (!n.taken.contains(x)) x];
+    const busy = {IslandState.open, IslandState.call, IslandState.success, IslandState.verify, IslandState.meeting};
+    if (items.isEmpty || busy.contains(state)) return;
+    actionOffer = (note: n, items: items);
+    _demoActions = demo;
+    _set(IslandState.actions);
+    notifyListeners();
+    _later(const Duration(seconds: 30), dismissActions);
+  }
+
+  bool _demoActions = false;
+
+  void acceptActions() {
+    final o = actionOffer;
+    if (state != IslandState.actions || o == null) return;
+    if (!_demoActions) {
+      final today = DateTime.now();
+      for (final x in o.items) {
+        planner?.add(today, x);
+      }
+      notes.markTaken(o.note, o.items);
+    }
+    dismissActions();
+  }
+
+  /// Opens the note in the planner to pick which ones to keep.
+  void reviewActions() {
+    if (state != IslandState.actions) return;
+    dismissActions();
+    openNotes?.call();
+  }
+
+  void dismissActions() {
+    if (state != IslandState.actions) return;
+    _timer?.cancel();
+    actionOffer = null;
+    _set(near ? _resting : _away);
+  }
+
+  // Whether the planner's focus session was on, and had run out, last time.
+  bool _focusWas = false, _finishedWas = false;
+
+  /// The planner changed (it ticks every second while focusing): follow its
+  /// focus session in and out of the pill.
+  void _onPlanner() {
+    final active = focusActive, finished = planner?.focusFinished ?? false;
+    if (active == _focusWas && finished == _finishedWas) return;
+    _focusWas = active;
+    _finishedWas = finished;
+    const busy = {
+      IslandState.open,
+      IslandState.call,
+      IslandState.success,
+      IslandState.verify,
+      IslandState.meeting,
+      IslandState.actions,
+    };
+    if (busy.contains(state) || quiet) {
+      notifyListeners();
+    } else if (active) {
+      _timer?.cancel(); // e.g. a music preview counting down to hide
+      _set(IslandState.focus);
+    } else if (state == IslandState.focus) {
+      _set(near ? _resting : _away);
+    }
   }
 
   void reset() {
@@ -659,10 +778,10 @@ class IslandController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _afterSuccess() => _set(near ? _resting : IslandState.hidden);
+  void _afterSuccess() => _set(near ? _resting : _away);
 
   void _hideSoon(int seconds) => _later(Duration(seconds: seconds), () {
-        if (!near) _set(IslandState.hidden);
+        if (!near) _set(_away);
       });
 
   void _later(Duration d, VoidCallback f) {
@@ -679,6 +798,7 @@ class IslandController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _planner?.removeListener(_onPlanner);
     _timer?.cancel();
     _overTimer?.cancel();
     _saveTimer?.cancel();

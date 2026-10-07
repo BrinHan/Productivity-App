@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import 'island_controller.dart';
+import 'island_live.dart';
 import 'island_pages.dart';
 import 'island_widgets.dart';
 import 'meeting_detector.dart';
@@ -91,6 +92,10 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         return Size(math.max(330, idle.width + 40), math.max(68, idle.height + 8));
       case IslandState.meeting:
         return Size(math.max(480, idle.width + 120), math.max(88, idle.height + 20));
+      case IslandState.actions:
+        return Size(math.max(520, idle.width + 160), math.max(88, idle.height + 20));
+      case IslandState.focus:
+        return Size(math.max(340, idle.width + 60), math.max(60, idle.height + 4));
       case IslandState.verify:
       case IslandState.success:
         return const Size(92, 92);
@@ -215,6 +220,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
       c.open(IslandPage.home);
     } else if (_shown == IslandState.music) {
       c.open(IslandPage.music);
+    } else if (_shown == IslandState.focus) {
+      c.open(IslandPage.today);
     }
   }
 
@@ -247,6 +254,11 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
           onYes: c.acceptMeeting,
           onNo: c.declineMeeting,
         );
+      case IslandState.focus:
+        final p = c.planner;
+        return p == null ? const SizedBox.shrink() : IslandFocusContent(planner: p);
+      case IslandState.actions:
+        return IslandActionsContent(c: c);
       case IslandState.verify:
       case IslandState.success:
         // Keyed by method: a scan that ends another way starts over.
