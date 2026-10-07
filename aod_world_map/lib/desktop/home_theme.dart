@@ -28,6 +28,9 @@ String _dur(int m) {
   return '${h}h ${r}m';
 }
 
+/// A whole hour as the clock shows it: 9 AM, 12 PM, midnight.
+String _hourLabel(int h) => h % 24 == 0 ? 'midnight' : _clock(DateTime(2000, 1, 1, h)).replaceFirst(':00', '');
+
 String _clock(DateTime d) {
   final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
   final mm = d.minute.toString().padLeft(2, '0');
@@ -121,6 +124,9 @@ class _Prefs extends ChangeNotifier {
   bool sidebarOpen = true, showSchedule = true;
   Set<String> calHidden = {};
   int calMode = 1; // Calendar page: 0 day, 1 week, 2 month
+
+  /// The workday, in whole hours, that daily planning fits tasks into.
+  int dayStart = 9, dayEnd = 17;
   bool _loaded = false;
 
   File get _file => appDataFile('ui.json');
@@ -139,6 +145,8 @@ class _Prefs extends ChangeNotifier {
       showSchedule = (j['schedule'] as bool?) ?? true;
       calHidden = {for (final x in (j['calHidden'] as List? ?? const [])) '$x'};
       calMode = (j['calMode'] as int?) ?? 1;
+      dayStart = ((j['dayStart'] as num?)?.toInt() ?? 9).clamp(0, 23).toInt();
+      dayEnd = ((j['dayEnd'] as num?)?.toInt() ?? 17).clamp(dayStart + 1, 24).toInt();
       notifyListeners();
     } catch (_) {}
   }
@@ -153,6 +161,8 @@ class _Prefs extends ChangeNotifier {
         'schedule': showSchedule,
         'calHidden': calHidden.toList(),
         'calMode': calMode,
+        'dayStart': dayStart,
+        'dayEnd': dayEnd,
       }));
     } catch (_) {}
   }
@@ -178,6 +188,16 @@ class _Prefs extends ChangeNotifier {
   void toggleCal(String id) {
     calHidden = {...calHidden};
     if (!calHidden.remove(id)) calHidden.add(id);
+    notifyListeners();
+    _save();
+  }
+
+  /// Moves the start or end of the workday by an hour, keeping at least an
+  /// hour between them.
+  void setWorkday(int start, int end) {
+    if (start < 0 || end > 24 || end - start < 1) return;
+    dayStart = start;
+    dayEnd = end;
     notifyListeners();
     _save();
   }
