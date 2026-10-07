@@ -293,7 +293,7 @@ class PipPainter extends CustomPainter {
 
   /// Squircle bean. Wherever the pointer presses, nearby outline points are
   /// pushed toward the centre (so it dents on any side, not just the top).
-  Path _body(
+  Path _bodyPath(
     double bw,
     double bh,
     double top,
@@ -326,50 +326,92 @@ class PipPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final t = m.t;
-    final bs = size.height * 0.66;
-    final cx = size.width / 2;
-    final baseY = size.height / 2 + bs * 0.62;
-    final sleep = m.sleep;
-    final breathe = math.sin(t * 2 * math.pi / (3.4 + 2.2 * sleep));
-    final sq = m.squish.clamp(-0.3, 0.5).toDouble();
-    final bw = bs * 0.80, bh = bs * 0.78;
-    final bottom = -bs * 0.10, top = bottom - bh;
-    final cyB = (top + bottom) / 2;
-
-    // One mood at a time: annoyed / dizzy cancel the happy look completely.
-    final calm = m.annoyed <= 0 && m.dizzy <= 0;
-    final pet = calm ? m.pet : 0.0;
-    final hearts = m.annoyed > 0 ? 0.0 : m.hearts;
-
-    // Soft press: strongest where the pointer is, on any part of the body.
-    var press = 0.0, depth = 0.0;
-    var pp = Offset.zero;
-    final sigma = bw * 0.34;
-    if (m.ptrOn > 0.01) {
-      pp = Offset(m.lastPtr.dx * size.width - cx, m.lastPtr.dy * size.height - baseY);
-      final nx = pp.dx / (bw * 0.575), ny = (pp.dy - cyB) / (bh * 0.575);
-      final nd = math.sqrt(nx * nx + ny * ny);
-      final near = ((1.4 - nd) / 0.5).clamp(0.0, 1.0).toDouble();
-      press = m.ptrOn * near;
-      depth = press * bh * 0.11;
-    }
-    final dr = depth / bh;
-
-    /// Interior features shift slightly away from the pointer.
-    Offset push(Offset q) {
-      if (depth <= 0.01) return Offset.zero;
-      final dx = q.dx - pp.dx, dy = q.dy - pp.dy;
-      final d2 = dx * dx + dy * dy;
-      final g = math.exp(-d2 / (sigma * sigma));
-      final d = math.sqrt(d2) + 1e-6;
-      return Offset(dx / d, dy / d) * (depth * 0.3 * g);
-    }
-
-    final ink = Paint()
-      ..color = _ink
+    final f = _PipFrame.of(m, size);
+    final parts = Paint()
+      ..color = Color.lerp(color, Colors.black, 0.18)!
       ..isAntiAlias = true;
-    final bodyPaint = Paint()
+    // Shared by the eyes, brows and mouth. The eyes tint it while fading
+    // between looks and hand it back as plain ink.
+    final line = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = f.bs * 0.03
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true
+      ..color = _ink;
+
+    canvas.save();
+    _pose(canvas, f);
+    _feet(canvas, f, parts);
+    _arms(canvas, f, parts);
+    _body(canvas, f);
+    _sprout(canvas, f);
+    _eyes(canvas, f, line);
+    _blush(canvas, f);
+    _mouth(canvas, f, line);
+    _sleepAndStartle(canvas, f);
+    canvas.restore();
+
+    // Hearts float up outside the squish and the flip.
+    _hearts(canvas, f);
+  }
+
+  /// Whole-body motion: an optional backflip, then lean, squash and breath.
+  void _pose(Canvas canvas, _PipFrame f) {
+    final t = f.t, bs = f.bs, bw = f.bw;
+    if (m.flip > 0) {
+      final pivot = Offset(f.cx, f.baseY - bs * 0.45);
+      final hop = math.sin(math.pi * m.flip) * bs * 0.55;
+      canvas.translate(pivot.dx, pivot.dy - hop);
+      canvas.rotate(Curves.easeInOut.transform(m.flip) * 2 * math.pi);
+      canvas.translate(-pivot.dx, -pivot.dy);
+    }
+    final sq = m.squish.clamp(-0.3, 0.5).toDouble();
+    final dr = f.depth / f.bh;
+    final rot =
+        (m.dizzy > 0 ? math.sin(t * 9) * 0.12 : 0.0) +
+        m.gaze.dx * 0.05 +
+        math.sin(t * 17) * 0.05 * f.pet -
+        (f.pp.dx / bw).clamp(-0.6, 0.6).toDouble() * 0.08 * f.press;
+    final sx = 1 + 0.16 * sq - 0.015 * f.breathe + 0.4 * dr + 0.03 * f.pet * math.sin(t * 19);
+    final sy = 1 - 0.20 * sq + 0.03 * f.breathe - 0.3 * dr;
+    canvas.translate(f.cx + m.gaze.dx * bs * 0.03, f.baseY);
+    canvas.rotate(rot);
+    canvas.scale(sx, sy);
+  }
+
+  void _feet(Canvas canvas, _PipFrame f, Paint parts) {
+    for (final sgn in const [-1.0, 1.0]) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(sgn * f.bw * 0.22, f.bottom + f.bs * 0.02),
+          width: f.bs * 0.24,
+          height: f.bs * 0.12,
+        ),
+        parts,
+      );
+    }
+  }
+
+  /// Relaxed by default; up when petted, wobbly when dizzy, one waving,
+  /// both flapping when he flies.
+  void _arms(Canvas canvas, _PipFrame f, Paint parts) {
+    final t = f.t, bs = f.bs, bw = f.bw, pet = f.pet;
+    var la = 0.35 + 0.75 * pet, ra = -(0.35 + 0.75 * pet);
+    if (m.dizzy > 0) la += math.sin(t * 9) * 0.3;
+    if (m.wave > 0) ra = -2.3 + math.sin(t * 16) * 0.35;
+    if (m.fly > 0.02) {
+      final fl = math.sin(t * 26) * 0.4;
+      la += (2.4 + fl - la) * m.fly;
+      ra += (-2.4 - fl - ra) * m.fly;
+    }
+    _arm(canvas, Offset(-bw / 2 + bs * 0.02, f.top + f.bh * 0.52), la, bs, parts);
+    _arm(canvas, Offset(bw / 2 - bs * 0.02, f.top + f.bh * 0.52), ra, bs, parts);
+  }
+
+  /// The bean itself, its soft rim, the belly and a highlight.
+  void _body(Canvas canvas, _PipFrame f) {
+    final bs = f.bs, bw = f.bw, bh = f.bh, top = f.top, bottom = f.bottom;
+    final fill = Paint()
       ..isAntiAlias = true
       ..shader = ui.Gradient.linear(
         Offset(0, top),
@@ -381,56 +423,8 @@ class PipPainter extends CustomPainter {
         ],
         const [0.0, 0.45, 1.0],
       );
-    final partPaint = Paint()
-      ..color = Color.lerp(color, Colors.black, 0.18)!
-      ..isAntiAlias = true;
-
-    canvas.save();
-    if (m.flip > 0) {
-      final pivot = Offset(cx, baseY - bs * 0.45);
-      final hop = math.sin(math.pi * m.flip) * bs * 0.55;
-      canvas.translate(pivot.dx, pivot.dy - hop);
-      canvas.rotate(Curves.easeInOut.transform(m.flip) * 2 * math.pi);
-      canvas.translate(-pivot.dx, -pivot.dy);
-    }
-    final rot =
-        (m.dizzy > 0 ? math.sin(t * 9) * 0.12 : 0.0) +
-        m.gaze.dx * 0.05 +
-        math.sin(t * 17) * 0.05 * pet -
-        (pp.dx / bw).clamp(-0.6, 0.6).toDouble() * 0.08 * press;
-    final sx = 1 + 0.16 * sq - 0.015 * breathe + 0.4 * dr + 0.03 * pet * math.sin(t * 19);
-    final sy = 1 - 0.20 * sq + 0.03 * breathe - 0.3 * dr;
-    canvas.translate(cx + m.gaze.dx * bs * 0.03, baseY);
-    canvas.rotate(rot);
-    canvas.scale(sx, sy);
-
-    // feet
-    for (final sgn in const [-1.0, 1.0]) {
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(sgn * bw * 0.22, bottom + bs * 0.02),
-          width: bs * 0.24,
-          height: bs * 0.12,
-        ),
-        partPaint,
-      );
-    }
-
-    // arms: relaxed, waving, happy, dizzy or flying
-    var la = 0.35 + 0.75 * pet, ra = -(0.35 + 0.75 * pet);
-    if (m.dizzy > 0) la += math.sin(t * 9) * 0.3;
-    if (m.wave > 0) ra = -2.3 + math.sin(t * 16) * 0.35;
-    if (m.fly > 0.02) {
-      final fl = math.sin(t * 26) * 0.4;
-      la += (2.4 + fl - la) * m.fly;
-      ra += (-2.4 - fl - ra) * m.fly;
-    }
-    _arm(canvas, Offset(-bw / 2 + bs * 0.02, top + bh * 0.52), la, bs, partPaint);
-    _arm(canvas, Offset(bw / 2 - bs * 0.02, top + bh * 0.52), ra, bs, partPaint);
-
-    // body, soft rim, belly, highlight
-    final body = _body(bw, bh, top, bottom, pp, depth, sigma);
-    canvas.drawPath(body, bodyPaint);
+    final body = _bodyPath(bw, bh, top, bottom, f.pp, f.depth, f.sigma);
+    canvas.drawPath(body, fill);
     canvas.drawPath(
       body,
       Paint()
@@ -441,22 +435,26 @@ class PipPainter extends CustomPainter {
     );
     final bellyC = Offset(0, bottom - bh * 0.27);
     canvas.drawOval(
-      Rect.fromCenter(center: bellyC + push(bellyC), width: bw * 0.52, height: bh * 0.36),
+      Rect.fromCenter(center: bellyC + f.push(bellyC), width: bw * 0.52, height: bh * 0.36),
       Paint()..color = Colors.white.withValues(alpha: 0.22),
     );
     final hiC = Offset(-bw * 0.18, top + bh * 0.16);
     canvas.drawOval(
-      Rect.fromCenter(center: hiC + push(hiC), width: bw * 0.28, height: bh * 0.12),
+      Rect.fromCenter(center: hiC + f.push(hiC), width: bw * 0.28, height: bh * 0.12),
       Paint()..color = Colors.white.withValues(alpha: 0.4),
     );
+  }
 
-    // sprout
+  /// Sways on its own, leans where he looks, perks up with attention and
+  /// droops when he's grumpy or sleepy.
+  void _sprout(Canvas canvas, _PipFrame f) {
+    final t = f.t, bs = f.bs, pet = f.pet;
     final sway = math.sin(t * 1.7) * 0.12 + m.gaze.dx * 0.2 + math.sin(t * 22) * 0.10 * pet;
-    final perk = 1 + 0.25 * m.hover + 0.35 * pet - 0.5 * sleep;
+    final perk = 1 + 0.25 * m.hover + 0.35 * pet - 0.5 * f.sleep;
     final len = bs * 0.16 * perk;
-    final sproutBase = Offset(0, top + bh * 0.02);
+    final sproutBase = Offset(0, f.top + f.bh * 0.02);
     canvas.save();
-    canvas.translate(0, sproutBase.dy + push(sproutBase).dy);
+    canvas.translate(0, sproutBase.dy + f.push(sproutBase).dy);
     canvas.rotate(sway);
     canvas.drawLine(
       Offset.zero,
@@ -466,7 +464,7 @@ class PipPainter extends CustomPainter {
         ..strokeWidth = bs * 0.035
         ..strokeCap = StrokeCap.round,
     );
-    final droop = (m.annoyed > 0 ? 0.6 : 0.0) + sleep * 0.6;
+    final droop = (m.annoyed > 0 ? 0.6 : 0.0) + f.sleep * 0.6;
     final leafPaint = Paint()..color = _leaf;
     final vein = Paint()
       ..color = _stem.withValues(alpha: 0.7)
@@ -480,101 +478,106 @@ class PipPainter extends CustomPainter {
       canvas.restore();
     }
     canvas.restore();
+  }
 
-    // face
-    final ey0 = top + bh * 0.46;
-    final ex = bw * 0.20;
-    final r = bs * 0.062 * (1 + 0.30 * m.hover + (m.startle > 0 ? 0.35 : 0.0));
+  /// Spirals when dizzy. Otherwise round eyes that blink, follow his gaze
+  /// and cross-fade into ^ ^ (petted) or closed curves (asleep), plus
+  /// slanted brows when annoyed.
+  void _eyes(Canvas canvas, _PipFrame f, Paint line) {
+    final t = f.t, bs = f.bs, pet = f.pet, sleep = f.sleep;
+    final ey0 = f.eyeY, ex = f.eyeX, r = f.eyeR;
+    if (m.dizzy > 0) {
+      for (final sgn in const [-1.0, 1.0]) {
+        final base = Offset(sgn * ex, ey0);
+        _spiral(canvas, base + f.push(base), r * 1.5, sgn * t * 8, line);
+      }
+      return;
+    }
+
     final blink = _blink(t) * (1 - sleep);
     final hf = (1 - 0.9 * blink) * (m.annoyed > 0 ? 0.62 : 1.0);
     final gx = m.gaze.dx * bs * 0.055, gy = m.gaze.dy * bs * 0.04;
     final openEye = (1 - math.max(pet, sleep)).clamp(0.0, 1.0).toDouble();
-    final line = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = bs * 0.03
-      ..strokeCap = StrokeCap.round
-      ..isAntiAlias = true
-      ..color = _ink;
-
-    if (m.dizzy > 0) {
-      for (final sgn in const [-1.0, 1.0]) {
-        final base = Offset(sgn * ex, ey0);
-        _spiral(canvas, base + push(base), r * 1.5, sgn * t * 8, line);
+    for (final sgn in const [-1.0, 1.0]) {
+      final base = Offset(sgn * ex, ey0);
+      final c0 = base + f.push(base) + Offset(gx, gy);
+      if (openEye > 0.02) {
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: c0,
+            width: r * 2,
+            height: math.max(1.0, r * 2 * hf),
+          ),
+          Paint()..color = _ink.withValues(alpha: openEye),
+        );
+        if (blink < 0.5) {
+          canvas.drawCircle(
+            c0 + Offset(-r * 0.3, -r * 0.3 * hf),
+            r * 0.30,
+            Paint()..color = Colors.white.withValues(alpha: 0.92 * openEye),
+          );
+          canvas.drawCircle(
+            c0 + Offset(r * 0.32, r * 0.34 * hf),
+            r * 0.14,
+            Paint()..color = Colors.white.withValues(alpha: 0.6 * openEye),
+          );
+        }
       }
-    } else {
-      for (final sgn in const [-1.0, 1.0]) {
-        final base = Offset(sgn * ex, ey0);
-        final c0 = base + push(base) + Offset(gx, gy);
-        if (openEye > 0.02) {
-          canvas.drawOval(
-            Rect.fromCenter(
-              center: c0,
-              width: r * 2,
-              height: math.max(1.0, r * 2 * hf),
-            ),
-            Paint()..color = _ink.withValues(alpha: openEye),
-          );
-          if (blink < 0.5) {
-            canvas.drawCircle(
-              c0 + Offset(-r * 0.3, -r * 0.3 * hf),
-              r * 0.30,
-              Paint()..color = Colors.white.withValues(alpha: 0.92 * openEye),
-            );
-            canvas.drawCircle(
-              c0 + Offset(r * 0.32, r * 0.34 * hf),
-              r * 0.14,
-              Paint()..color = Colors.white.withValues(alpha: 0.6 * openEye),
-            );
-          }
-        }
-        if (pet > 0.02) {
-          // happy ^ eyes while being petted
-          canvas.drawPath(
-            Path()
-              ..moveTo(c0.dx - r * 1.2, c0.dy + r * 0.5)
-              ..quadraticBezierTo(c0.dx, c0.dy - r * 1.5, c0.dx + r * 1.2, c0.dy + r * 0.5),
-            line..color = _ink.withValues(alpha: pet),
-          );
-        }
-        if (sleep > 0.02) {
-          canvas.drawPath(
-            Path()
-              ..moveTo(c0.dx - r, c0.dy)
-              ..quadraticBezierTo(c0.dx, c0.dy + r * 0.7, c0.dx + r, c0.dy),
-            line..color = _ink.withValues(alpha: sleep),
-          );
-        }
-        line.color = _ink;
+      if (pet > 0.02) {
+        canvas.drawPath(
+          Path()
+            ..moveTo(c0.dx - r * 1.2, c0.dy + r * 0.5)
+            ..quadraticBezierTo(c0.dx, c0.dy - r * 1.5, c0.dx + r * 1.2, c0.dy + r * 0.5),
+          line..color = _ink.withValues(alpha: pet),
+        );
       }
-      if (m.annoyed > 0) {
-        for (final sgn in const [-1.0, 1.0]) {
-          final c0 = sgn * ex + gx;
-          canvas.drawLine(
-            Offset(c0 - sgn * r * 1.5, ey0 - r * 1.0),
-            Offset(c0 + sgn * r * 1.4, ey0 - r * 1.9),
-            line,
-          );
-        }
+      if (sleep > 0.02) {
+        canvas.drawPath(
+          Path()
+            ..moveTo(c0.dx - r, c0.dy)
+            ..quadraticBezierTo(c0.dx, c0.dy + r * 0.7, c0.dx + r, c0.dy),
+          line..color = _ink.withValues(alpha: sleep),
+        );
+      }
+      line.color = _ink;
+    }
+    if (m.annoyed > 0) {
+      for (final sgn in const [-1.0, 1.0]) {
+        final c0 = sgn * ex + gx;
+        canvas.drawLine(
+          Offset(c0 - sgn * r * 1.5, ey0 - r * 1.0),
+          Offset(c0 + sgn * r * 1.4, ey0 - r * 1.9),
+          line,
+        );
       }
     }
+  }
 
-    // blush (always a hint; stronger when happy)
+  /// Always a hint of pink; stronger when he's happy, muted when annoyed.
+  void _blush(Canvas canvas, _PipFrame f) {
     final blush = math.max(
-      math.max(pet * 0.55, hearts > 0 ? 0.35 : 0.0),
+      math.max(f.pet * 0.55, f.hearts > 0 ? 0.35 : 0.0),
       math.max(m.hover * 0.2, 0.14),
     );
-    final blushA = m.annoyed > 0 ? blush * 0.4 : blush;
+    final alpha = m.annoyed > 0 ? blush * 0.4 : blush;
     for (final sgn in const [-1.0, 1.0]) {
-      final bc = Offset(sgn * ex * 1.5, ey0 + r * 2.3);
+      final bc = Offset(sgn * f.eyeX * 1.5, f.eyeY + f.eyeR * 2.3);
       canvas.drawOval(
-        Rect.fromCenter(center: bc + push(bc), width: bs * 0.13, height: bs * 0.075),
-        Paint()..color = _pink.withValues(alpha: blushA),
+        Rect.fromCenter(center: bc + f.push(bc), width: f.bs * 0.13, height: f.bs * 0.075),
+        Paint()..color = _pink.withValues(alpha: alpha),
       );
     }
+  }
 
-    // mouth
-    var my = ey0 + bw * 0.24;
-    my += push(Offset(0, my)).dy;
+  /// The strongest mood wins: dizzy, annoyed, happy, asleep, startled,
+  /// then the default little smile.
+  void _mouth(Canvas canvas, _PipFrame f, Paint line) {
+    final t = f.t, bs = f.bs, pet = f.pet;
+    final ink = Paint()
+      ..color = _ink
+      ..isAntiAlias = true;
+    var my = f.eyeY + f.bw * 0.24;
+    my += f.push(Offset(0, my)).dy;
     if (m.dizzy > 0) {
       final path = Path();
       for (var i = 0; i <= 12; i++) {
@@ -585,7 +588,7 @@ class PipPainter extends CustomPainter {
       canvas.drawPath(path, line);
     } else if (m.annoyed > 0) {
       canvas.drawLine(Offset(-bs * 0.07, my + bs * 0.01), Offset(bs * 0.07, my - bs * 0.01), line);
-    } else if (pet > 0.3 || hearts > 0) {
+    } else if (pet > 0.3 || f.hearts > 0) {
       canvas.drawPath(
         Path()
           ..moveTo(-bs * 0.09, my - bs * 0.01)
@@ -593,12 +596,12 @@ class PipPainter extends CustomPainter {
           ..close(),
         ink,
       );
-    } else if (sleep > 0.4) {
+    } else if (f.sleep > 0.4) {
       canvas.drawOval(
         Rect.fromCenter(
           center: Offset(0, my + bs * 0.02),
           width: bs * 0.06,
-          height: bs * 0.05 * (1 + 0.4 * breathe),
+          height: bs * 0.05 * (1 + 0.4 * f.breathe),
         ),
         ink,
       );
@@ -615,11 +618,14 @@ class PipPainter extends CustomPainter {
         line,
       );
     }
+  }
 
-    // sleeping Z's and the startle "!"
+  /// Drifting Z's while he sleeps, a pink "!" when something wakes him.
+  void _sleepAndStartle(Canvas canvas, _PipFrame f) {
+    final bs = f.bs, bw = f.bw, top = f.top, sleep = f.sleep;
     if (sleep > 0.3) {
       for (var i = 0; i < 2; i++) {
-        final ph = ((t * 0.5 + i * 0.5) % 1.0);
+        final ph = ((f.t * 0.5 + i * 0.5) % 1.0);
         _z(
           canvas,
           Offset(bw * (0.38 + ph * 0.18), top - bs * (0.02 + ph * 0.28)),
@@ -641,16 +647,16 @@ class PipPainter extends CustomPainter {
       canvas.drawLine(Offset(bw * 0.58, top - bs * 0.14), Offset(bw * 0.58, top - bs * 0.02), p);
       canvas.drawCircle(Offset(bw * 0.58, top + bs * 0.04), bs * 0.03, p);
     }
-    canvas.restore();
+  }
 
-    // hearts float up (not affected by the squish / flip)
+  void _hearts(Canvas canvas, _PipFrame f) {
     for (final p in m.particles) {
       if (p.age < 0) continue;
       final a = (1 - p.age / 1.1).clamp(0.0, 1.0);
       _heart(
         canvas,
-        Offset(cx + p.x * bs, baseY - bs * 0.95 + p.y * bs),
-        bs * 0.085 * (0.7 + 0.3 * a),
+        Offset(f.cx + p.x * f.bs, f.baseY - f.bs * 0.95 + p.y * f.bs),
+        f.bs * 0.085 * (0.7 + 0.3 * a),
         Paint()..color = _pink.withValues(alpha: a),
       );
     }
@@ -658,6 +664,101 @@ class PipPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(PipPainter old) => true;
+}
+
+/// One frame's worth of Pip's measurements and mood, worked out once in
+/// [PipPainter.paint] and shared by every drawing step. Body coordinates
+/// are relative to his feet, inside the pose transform.
+class _PipFrame {
+  _PipFrame._({
+    required this.m,
+    required this.bs,
+    required this.cx,
+    required this.baseY,
+    required this.bw,
+    required this.bh,
+    required this.top,
+    required this.bottom,
+    required this.pet,
+    required this.hearts,
+    required this.press,
+    required this.depth,
+    required this.pp,
+    required this.sigma,
+  })  : t = m.t,
+        sleep = m.sleep,
+        breathe = math.sin(m.t * 2 * math.pi / (3.4 + 2.2 * m.sleep));
+
+  factory _PipFrame.of(PipModel m, Size size) {
+    final bs = size.height * 0.66;
+    final cx = size.width / 2;
+    final baseY = size.height / 2 + bs * 0.62;
+    final bw = bs * 0.80, bh = bs * 0.78;
+    final bottom = -bs * 0.10, top = bottom - bh;
+    final cyB = (top + bottom) / 2;
+
+    // One mood at a time: annoyed / dizzy cancel the happy look completely.
+    final calm = m.annoyed <= 0 && m.dizzy <= 0;
+
+    // Soft press: strongest where the pointer is, on any part of the body.
+    var press = 0.0, depth = 0.0;
+    var pp = Offset.zero;
+    if (m.ptrOn > 0.01) {
+      pp = Offset(m.lastPtr.dx * size.width - cx, m.lastPtr.dy * size.height - baseY);
+      final nx = pp.dx / (bw * 0.575), ny = (pp.dy - cyB) / (bh * 0.575);
+      final nd = math.sqrt(nx * nx + ny * ny);
+      final near = ((1.4 - nd) / 0.5).clamp(0.0, 1.0).toDouble();
+      press = m.ptrOn * near;
+      depth = press * bh * 0.11;
+    }
+
+    return _PipFrame._(
+      m: m,
+      bs: bs,
+      cx: cx,
+      baseY: baseY,
+      bw: bw,
+      bh: bh,
+      top: top,
+      bottom: bottom,
+      pet: calm ? m.pet : 0.0,
+      hearts: m.annoyed > 0 ? 0.0 : m.hearts,
+      press: press,
+      depth: depth,
+      pp: pp,
+      sigma: bw * 0.34,
+    );
+  }
+
+  final PipModel m;
+  final double t, sleep, breathe;
+
+  /// Body size, and the body's width and height derived from it.
+  final double bs, bw, bh;
+
+  /// Where his feet sit on the canvas.
+  final double cx, baseY;
+  final double top, bottom;
+  final double pet, hearts;
+
+  /// How hard the pointer presses in, how deep the dent is, where it is
+  /// and how wide it spreads.
+  final double press, depth, sigma;
+  final Offset pp;
+
+  double get eyeY => top + bh * 0.46;
+  double get eyeX => bw * 0.20;
+  double get eyeR => bs * 0.062 * (1 + 0.30 * m.hover + (m.startle > 0 ? 0.35 : 0.0));
+
+  /// Interior features shift slightly away from the pointer.
+  Offset push(Offset q) {
+    if (depth <= 0.01) return Offset.zero;
+    final dx = q.dx - pp.dx, dy = q.dy - pp.dy;
+    final d2 = dx * dx + dy * dy;
+    final g = math.exp(-d2 / (sigma * sigma));
+    final d = math.sqrt(d2) + 1e-6;
+    return Offset(dx / d, dy / d) * (depth * 0.3 * g);
+  }
 }
 
 enum PipSpot { hidden, idle, seat }
