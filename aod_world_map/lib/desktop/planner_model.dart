@@ -57,6 +57,10 @@ class Task {
 }
 
 class PlannerModel extends ChangeNotifier {
+  /// A brand new install: there was no planner file to load. The planner
+  /// starts empty and the app window shows its welcome until [finishWelcome].
+  bool isNew = false;
+
   final List<Task> tasks = [];
   String? _shutdownDay;
   int _seq = 0;
@@ -73,9 +77,19 @@ class PlannerModel extends ChangeNotifier {
   Future<void> load() async {
     try {
       final f = _file;
-      if (await f.exists()) _apply(await f.readAsString());
+      if (await f.exists()) {
+        _apply(await f.readAsString());
+      } else {
+        isNew = true;
+      }
     } catch (_) {}
-    if (tasks.isEmpty) _seed();
+  }
+
+  /// The welcome is done (or skipped). Saving creates the planner file, so
+  /// it will not show again.
+  void finishWelcome() {
+    isNew = false;
+    _changed();
   }
 
   bool _apply(String raw) {
@@ -102,20 +116,6 @@ class PlannerModel extends ChangeNotifier {
       if (raw == _lastJson || _saveTimer?.isActive == true) return;
       if (_apply(raw)) notifyListeners();
     } catch (_) {}
-  }
-
-  void _seed() {
-    final today = dayOf(DateTime.now());
-    final tomorrow = today.add(const Duration(days: 1));
-    tasks.addAll([
-      Task(id: _id(), title: 'Blog post research', day: today, minutes: 120, subs: [
-        Sub('Make a list of productivity apps'),
-        Sub('Check what apps people are using'),
-      ]),
-      Task(id: _id(), title: 'Team meeting', day: today, minutes: 30),
-      Task(id: _id(), title: 'Weekly meeting', day: tomorrow, minutes: 60),
-      Task(id: _id(), title: 'Daily planning', day: tomorrow, minutes: 15, done: true),
-    ]);
   }
 
   String _id() => '${DateTime.now().microsecondsSinceEpoch}-${_seq++}';
