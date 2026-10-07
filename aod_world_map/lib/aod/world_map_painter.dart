@@ -32,6 +32,22 @@ class _Scratch {
       bins = List.generate(_levels, (_) => Float32List(dots * 2));
     }
   }
+
+  /// Each dot's brightness level for one sun position. The cursor repaints
+  /// every frame but the sun moves once a minute, so this is reused until
+  /// the grid or the sun changes.
+  static Uint8List levels = Uint8List(0);
+  static DotGrid? _grid;
+  static double _decl = double.nan, _lon = double.nan;
+
+  static bool fresh(DotGrid g, SolarPosition s) =>
+      identical(g, _grid) && s.declination == _decl && s.subsolarLongitude == _lon;
+
+  static void keep(DotGrid g, SolarPosition s) {
+    _grid = g;
+    _decl = s.declination;
+    _lon = s.subsolarLongitude;
+  }
 }
 
 class WorldMapPainter extends CustomPainter {
@@ -141,12 +157,22 @@ class WorldMapPainter extends CustomPainter {
     final r = _radius(pitch), r2 = r * r;
     final kPush = r * _pushFactor * strength;
 
+    if (!_Scratch.fresh(grid, solar) || _Scratch.levels.length != n) {
+      final levels = _Scratch.levels.length == n ? _Scratch.levels : Uint8List(n);
+      for (var i = 0; i < n; i++) {
+        final sinAlt = solar.sinAltitude(sLat[i], cLat[i], sLon[i], cLon[i]);
+        var t = (sinAlt - _nightSin) * _invRange;
+        t = t < 0 ? 0 : (t > 1 ? 1 : t);
+        t = t * t * (3 - 2 * t); // smoothstep
+        levels[i] = (t * (_levels - 1) + 0.5).toInt();
+      }
+      _Scratch.levels = levels;
+      _Scratch.keep(grid, solar);
+    }
+    final levels = _Scratch.levels;
+
     for (var i = 0; i < n; i++) {
-      final sinAlt = solar.sinAltitude(sLat[i], cLat[i], sLon[i], cLon[i]);
-      var t = (sinAlt - _nightSin) * _invRange;
-      t = t < 0 ? 0 : (t > 1 ? 1 : t);
-      t = t * t * (3 - 2 * t); // smoothstep
-      final lvl = (t * (_levels - 1) + 0.5).toInt();
+      final lvl = levels[i];
 
       var x = ox + dotX[i] * w, y = oy + dotY[i] * h;
       if (pushing) {
