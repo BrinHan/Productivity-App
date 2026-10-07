@@ -1,0 +1,4 @@
+# Store text files with LF line endings; each checkout gets its own
+# platform's endings. Keeps diffs and pulls clean whatever a machine's
+# core.autocrlf is set to.
+* text=auto
