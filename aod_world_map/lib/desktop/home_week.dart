@@ -67,69 +67,99 @@ class _ReviewView extends StatelessWidget {
   final _T t;
   final PlannerModel p;
 
+  Widget _card(Widget child) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(_rLg),
+          border: Border.all(color: t.line),
+        ),
+        child: child,
+      );
+
+  Widget _stat(String value, String label, {bool accent = false}) => Container(
+        width: 200,
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(_rLg),
+          border: Border.all(color: t.line),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(value, style: _ts(accent ? t.accent : t.text, 28, w: FontWeight.w700, ls: -0.6, tab: true)),
+          const SizedBox(height: 2),
+          Text(label, style: _ts(t.sub, 12.5)),
+        ]),
+      );
+
   @override
   Widget build(BuildContext context) {
     final today = dayOf(DateTime.now());
     final monday = today.subtract(Duration(days: today.weekday - 1));
     final days = [for (var i = 0; i < 7; i++) monday.add(Duration(days: i))];
-    final done = [for (final d in days) p.forDay(d).where((x) => x.done).length];
-    final total = [for (final d in days) p.forDay(d).length];
+    final perDay = [for (final d in days) p.forDay(d)];
+    final done = [for (final x in perDay) x.where((t) => t.done).length];
+    final total = [for (final x in perDay) x.length];
     final sumDone = done.fold<int>(0, (a, b) => a + b);
     final sumTotal = total.fold<int>(0, (a, b) => a + b);
+    final all = perDay.expand((x) => x);
+    final minsTotal = all.fold<int>(0, (a, x) => a + x.minutes);
+    final minsDone = all.where((x) => x.done).fold<int>(0, (a, x) => a + x.minutes);
     final maxV = total.fold<int>(1, (a, b) => a > b ? a : b);
     final rate = sumTotal == 0 ? 0 : (sumDone / sumTotal * 100).round();
-    const chartH = 200.0;
+    const chartH = 160.0;
+
+    // Each day: a faint full-height track, planned tasks in soft blue, done in solid blue.
+    Widget bar(int i) {
+      final isToday = days[i] == today;
+      Widget fill(int n, Color c) => AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+            height: chartH * n / maxV,
+            decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(_rSm)),
+          );
+      return Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(total[i] == 0 ? '' : '${done[i]}/${total[i]}', style: _ts(t.sub, 11.5, tab: true)),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 28,
+          height: chartH,
+          child: Stack(alignment: Alignment.bottomCenter, children: [
+            Container(
+              decoration: BoxDecoration(color: t.line.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(_rSm)),
+            ),
+            fill(total[i], t.accentSoft),
+            fill(done[i], t.accent),
+          ]),
+        ),
+        const SizedBox(height: 8),
+        Text(_dayNames[i].substring(0, 3),
+            style: _ts(isToday ? t.text : t.sub, 12, w: isToday ? FontWeight.w700 : FontWeight.w500)),
+      ]);
+    }
+
     return _Page(
       t: t,
       title: 'Weekly review',
-      subtitle: 'How this week went.',
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(
-          width: 220,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('$rate%', style: _ts(t.accent, 64, w: FontWeight.w300, ls: -2.5, tab: true)),
-            const SizedBox(height: 4),
-            Text('$sumDone of $sumTotal tasks done this week.', style: _ts(t.sub, 13.5, h: 1.45)),
-          ]),
-        ),
-        const SizedBox(width: 40),
-        Expanded(
-          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            for (var i = 0; i < 7; i++)
-              Expanded(
-                child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  Text('${done[i]}/${total[i]}', style: _ts(t.sub, 11.5, tab: true)),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: 34,
-                    height: chartH,
-                    child: Stack(alignment: Alignment.bottomCenter, children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeOutCubic,
-                        height: chartH * total[i] / maxV,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: t.line),
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeOutCubic,
-                        height: chartH * done[i] / maxV,
-                        decoration: BoxDecoration(color: t.accent, borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ]),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_dayNames[i].substring(0, 3),
-                      style: _ts(days[i] == today ? t.text : t.sub, 12,
-                          w: days[i] == today ? FontWeight.w700 : FontWeight.w500)),
+      subtitle: 'How this week went, Monday to Sunday.',
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: sumTotal == 0
+              ? _card(_Empty(t, Icons.insights_outlined, 'Nothing to review yet',
+                  'Plan a few tasks this week, then come back at the end of it to see how it went.'))
+              : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Wrap(spacing: 12, runSpacing: 12, children: [
+                    _stat('$rate%', 'of tasks done', accent: true),
+                    _stat('$sumDone of $sumTotal', sumTotal == 1 ? 'task finished' : 'tasks finished'),
+                    _stat(_dur(minsDone), 'of ${_dur(minsTotal)} planned'),
+                  ]),
+                  const SizedBox(height: 16),
+                  _card(Row(children: [for (var i = 0; i < 7; i++) Expanded(child: bar(i))])),
                 ]),
-              ),
-          ]),
         ),
-      ]),
+      ),
     );
   }
 }
