@@ -161,7 +161,11 @@ class IslandController extends ChangeNotifier {
 
   /// Runtime: Chrome is the foreground app.
   bool chromeMode = false;
-  Timer? _timer, _overTimer, _saveTimer;
+  Timer? _timer, _overTimer, _saveTimer, _dwellTimer;
+
+  /// How long the cursor has to rest at the top middle before the hidden
+  /// island (or Chrome notch) shows, so passing by doesn't pop it up.
+  static const kRevealDwell = Duration(milliseconds: 1200);
 
   // ---- user settings (saved) ----
   double idleWidth = 260;
@@ -494,9 +498,14 @@ class IslandController extends ChangeNotifier {
   void setNear(bool v) {
     if (v == near) return;
     near = v;
+    _dwellTimer?.cancel();
     if (v) {
       _timer?.cancel();
-      if (state == IslandState.hidden) _set(_resting);
+      if (state == IslandState.hidden) {
+        _dwellTimer = Timer(kRevealDwell, () {
+          if (near && state == IslandState.hidden) _set(_resting);
+        });
+      }
     } else if (state == IslandState.idle ||
         state == IslandState.music ||
         state == IslandState.notch) {
@@ -641,6 +650,7 @@ class IslandController extends ChangeNotifier {
   void reset() {
     _timer?.cancel();
     _overTimer?.cancel();
+    _dwellTimer?.cancel();
     near = false;
     _over = false;
     _demoMusic = false;
@@ -672,6 +682,7 @@ class IslandController extends ChangeNotifier {
     _timer?.cancel();
     _overTimer?.cancel();
     _saveTimer?.cancel();
+    _dwellTimer?.cancel();
     gaze.dispose();
     agenda.dispose();
     _gTimer?.cancel();
