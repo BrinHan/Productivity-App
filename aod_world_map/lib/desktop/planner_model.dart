@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import 'app_files.dart';
+
 DateTime dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
 String _dayKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 
@@ -66,11 +68,7 @@ class PlannerModel extends ChangeNotifier {
   int _seq = 0;
   Timer? _saveTimer;
 
-  File get _file {
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    final s = Platform.pathSeparator;
-    return File('$base${s}AodWorldMap${s}planner.json');
-  }
+  File get _file => appDataFile('planner.json');
 
   String? _lastJson; // what this process last read or wrote
 

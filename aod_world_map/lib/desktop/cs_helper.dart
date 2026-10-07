@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'app_files.dart';
+
 /// Compiles a small C# helper with the .NET Framework compiler that ships
 /// with Windows, once, into %APPDATA%\AodWorldMap\bin\<name>.exe. Returns its
 /// path, or null when this Windows has no compiler or the build fails.
@@ -11,8 +13,7 @@ import 'dart:io';
 Future<String?> buildCsHelper(String name, String source, {List<String> refs = const []}) async {
   try {
     final s = Platform.pathSeparator;
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    final bin = Directory('$base${s}AodWorldMap${s}bin');
+    final bin = appDataFolder('bin');
     final exe = File('${bin.path}$s$name.exe');
     if (await exe.exists()) return exe.path;
     final win = Platform.environment['WINDIR'] ?? r'C:\Windows';

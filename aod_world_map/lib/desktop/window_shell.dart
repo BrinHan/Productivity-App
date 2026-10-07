@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'app_files.dart';
 import 'hello_screen.dart';
 import 'island_controller.dart';
 import 'planner_model.dart';

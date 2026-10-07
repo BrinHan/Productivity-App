@@ -6,7 +6,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import '../process_link.dart' show appDataDir;
+import '../app_files.dart';
 import 'annotation_model.dart';
 
 /// One screen grab ready to send: the monitor with your annotations drawn
@@ -161,7 +161,7 @@ class VisionAgent extends ChangeNotifier {
 
   /// The key lives in %APPDATA%\AodWorldMap\anthropic.key (one line), unless
   /// ANTHROPIC_API_KEY is set.
-  static File get _keyFile => File('${appDataDir.path}${Platform.pathSeparator}anthropic.key');
+  static File get _keyFile => appDataFile('anthropic.key');
 
   Future<void> loadKey() async {
     final env = Platform.environment['ANTHROPIC_API_KEY'];

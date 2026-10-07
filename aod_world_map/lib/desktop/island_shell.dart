@@ -8,6 +8,7 @@ import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/legacy.dart' as tray;
 import 'package:window_manager/window_manager.dart';
 
+import 'app_files.dart';
 import 'foreground_app.dart';
 import 'island_controller.dart';
 import 'island_pages.dart';

@@ -211,11 +211,6 @@ class DataWatch {
   }
 }
 
-Directory get appDataDir {
-  final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-  return Directory('$base${Platform.pathSeparator}AodWorldMap');
-}
-
 int Function(int, int, int)? _setWs;
 int Function()? _curProc;
 

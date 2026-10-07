@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import 'app_files.dart';
 import 'meeting_detector.dart';
 import 'notes_model.dart';
 import 'window_scan.dart';
@@ -67,13 +68,8 @@ class NotesService extends ChangeNotifier {
 
   static String get _s => Platform.pathSeparator;
 
-  static Directory get appDir {
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    return Directory('$base${Platform.pathSeparator}AodWorldMap');
-  }
-
-  static Directory get whisperDir => Directory('${appDir.path}${_s}whisper');
-  static Directory get notesDir => Directory('${appDir.path}${_s}notes');
+  static Directory get whisperDir => appDataFolder('whisper');
+  static Directory get notesDir => appDataFolder('notes');
 
   String get _exe => '${whisperDir.path}${_s}whisper-cli.exe';
   String get _model => '${whisperDir.path}${_s}ggml-base.en.bin';

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import 'app_files.dart';
 import 'cs_helper.dart';
 
 /// An app from the Start menu. [target] opens it ('shell:AppsFolder\<id>'
@@ -85,10 +86,7 @@ class AppCatalog {
   @visibleForTesting
   static set debugCached(List<InstalledApp> apps) => _cache = _fixed = apps;
 
-  static Directory get iconDir {
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    return Directory('$base${Platform.pathSeparator}AodWorldMap${Platform.pathSeparator}icons');
-  }
+  static Directory get iconDir => appDataFolder('icons');
 
   static InstalledApp? _parse(String line) {
     try {

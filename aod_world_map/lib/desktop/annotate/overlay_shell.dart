@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../app_files.dart';
 import '../foreground_app.dart';
 import '../process_link.dart';
 import 'annotation_model.dart';
@@ -210,7 +211,7 @@ class OverlayShell extends ChangeNotifier {
     _savePrefs();
   }
 
-  File get _prefsFile => File('${appDataDir.path}${Platform.pathSeparator}overlay.json');
+  File get _prefsFile => appDataFile('overlay.json');
 
   Future<void> _loadPrefs() async {
     try {

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'agenda_service.dart';
 import 'app_catalog.dart' show InstalledApp;
+import 'app_files.dart';
 import 'google_service.dart';
 import 'meeting_detector.dart';
 import 'notes_service.dart';
@@ -215,11 +216,7 @@ class IslandController extends ChangeNotifier {
 
   // ---------------------------------------------------------- persistence
 
-  File get _file {
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    final s = Platform.pathSeparator;
-    return File('$base${s}AodWorldMap${s}island.json');
-  }
+  File get _file => appDataFile('island.json');
 
   String? _lastJson; // island.json as this process last read or wrote it
 
