@@ -1,7 +1,7 @@
 part of 'home_page.dart';
 
 /// Right panel: today's planned tasks plus Google Calendar events at their
-/// real times. With events present, tasks and events get their own lane.
+/// real times. With both present, tasks and events get their own lane.
 class _SchedulePanel extends StatefulWidget {
   const _SchedulePanel({required this.t, required this.p, required this.g});
   final _T t;
@@ -14,6 +14,7 @@ class _SchedulePanel extends StatefulWidget {
 
 class _SchedulePanelState extends State<_SchedulePanel> {
   static const _rowH = 56.0, _padT = 10.0;
+  static const _gutter = 52.0; // hour labels; lines and blocks both start here
   static const _startHour = 6, _endHour = 21;
   late final ScrollController _sc;
 
@@ -47,7 +48,9 @@ class _SchedulePanelState extends State<_SchedulePanel> {
       child: GestureDetector(
         onTap: onTap,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          // Square on the left so the bar runs the full height; rounded
+          // corners there would trim it into notches.
+          borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
           child: ColoredBox(
             color: fill,
             child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -122,8 +125,11 @@ class _SchedulePanelState extends State<_SchedulePanel> {
           child: SingleChildScrollView(
             controller: _sc,
             child: LayoutBuilder(builder: (context, c) {
-              final lanes = timed.isEmpty ? 1 : 2;
-              final laneW = (c.maxWidth - 62 - 12 - (lanes - 1) * 6) / lanes;
+              // Two lanes only when there are both; otherwise one gets the full width.
+              final lanes = timed.isNotEmpty && tasks.isNotEmpty ? 2 : 1;
+              // Blocks run to the panel edge, where the hour lines end.
+              final laneW = (c.maxWidth - _gutter - (lanes - 1) * 6) / lanes;
+              final eventLeft = lanes == 2 ? _gutter + laneW + 6 : _gutter;
               final height = hours * _rowH + _padT * 2;
               final blocks = <Widget>[];
 
@@ -133,10 +139,10 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                 final h = (task.minutes / 60 * _rowH).clamp(28.0, 600.0).toDouble();
                 cursor += task.minutes;
                 blocks.add(Positioned(
-                  top: top + 1,
-                  left: 62,
+                  top: top,
+                  left: _gutter,
                   width: laneW,
-                  height: h - 2,
+                  height: h,
                   child: _block(
                     bar: t.accent,
                     fill: task.done ? t.panelCard : t.accentSoft,
@@ -154,10 +160,10 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                 final h = (mins / 60 * _rowH).clamp(30.0, 600.0).toDouble();
                 if (top + h < _padT || top > height) continue;
                 blocks.add(Positioned(
-                  top: top + 1,
-                  left: 62 + laneW + 6,
+                  top: top,
+                  left: eventLeft,
                   width: laneW,
-                  height: h - 2,
+                  height: h,
                   child: _block(
                     bar: t.sub,
                     fill: t.panelCard,
@@ -178,7 +184,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                       height: 14,
                       child: Row(children: [
                         SizedBox(
-                          width: 52,
+                          width: _gutter,
                           child: Padding(
                             padding: const EdgeInsets.only(left: 14),
                             child: Text(_hour(_startHour + i), style: _ts(t.faint, 10.5, tab: true)),
@@ -192,7 +198,7 @@ class _SchedulePanelState extends State<_SchedulePanel> {
                     Positioned(
                       top: _padT + nowY - 4,
                       left: 50,
-                      right: 12,
+                      right: 0,
                       height: 8,
                       child: Row(children: [
                         Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: t.accent)),
