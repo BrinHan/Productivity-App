@@ -1117,6 +1117,11 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
   double _min0 = 0;
   CalEvent? _preview;
 
+  /// Minutes between the pointer and the snapped preview while moving or
+  /// resizing, so the lifted block tracks the pointer 1:1 while the slot
+  /// it will land in snaps to 15 minutes underneath it.
+  double _residual = 0;
+
   static const gutter = _CalTimeGrid.gutter;
   double get rowH => _rowH;
 
@@ -1184,6 +1189,7 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
           // Deltas, not absolute positions, so the grab point stays under the pointer.
           final dd = a.day - _day0;
           final dm = ((a.min - _min0) / 15).round() * 15;
+          _residual = a.min - _min0 - dm;
           _preview = o!.copyWith(
             start: _shift(o.start, days: dd, minutes: dm),
             end: _shift(o.end, days: dd, minutes: dm),
@@ -1191,7 +1197,11 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
         case _GridDrag.resize:
           final dm = ((a.min - _min0) / 15).round() * 15;
           var end = _shift(o!.end, minutes: dm);
-          if (end.difference(o.start).inMinutes < 15) end = o.start.add(const Duration(minutes: 15));
+          _residual = a.min - _min0 - dm;
+          if (end.difference(o.start).inMinutes < 15) {
+            end = o.start.add(const Duration(minutes: 15));
+            _residual = 0; // at the shortest length the edge stops
+          }
           _preview = o.copyWith(end: end);
       }
     });
@@ -1203,6 +1213,7 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
       _kind = null;
       _orig = null;
       _preview = null;
+      _residual = 0;
     });
     if (pv == null) return;
     if (k == _GridDrag.create) {
@@ -1216,6 +1227,7 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
         _kind = null;
         _orig = null;
         _preview = null;
+        _residual = 0;
       });
 
   /// Scrolls when a drag reaches the top or bottom edge of the hours.
@@ -1429,18 +1441,42 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
                   ));
                 }
               }
-              // The thing being dragged, drawn above everything in its new place.
+              // The thing being dragged, drawn above everything. While moving
+              // or resizing it follows the pointer exactly; a faint outline
+              // marks the 15-minute slot it will land in.
               final pv = _preview;
               if (pv != null) {
+                final lifting = _kind != _GridDrag.create;
+                final off = _residual / 60 * rowH;
                 for (var i = 0; i < days.length; i++) {
                   for (final s in _layoutDay([pv], days[i])) {
                     final top = 6 + (s.s.hour + s.s.minute / 60) * rowH;
                     final h = math.max(18.0, s.end.difference(s.s).inMinutes / 60 * rowH);
+                    final slide = _kind == _GridDrag.move ? off : 0.0;
+                    final grow = _kind == _GridDrag.resize && s.end == pv.end ? off : 0.0;
+                    if (lifting) {
+                      final c = widget.color(pv);
+                      blocks.add(Positioned(
+                        left: gutter + colW * i + 2,
+                        top: top + 1,
+                        width: colW - 4,
+                        height: h - 2,
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: c.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: c.withValues(alpha: 0.5)),
+                            ),
+                          ),
+                        ),
+                      ));
+                    }
                     blocks.add(Positioned(
                       left: gutter + colW * i + 2,
-                      top: top + 1,
+                      top: top + 1 + slide,
                       width: colW - 4,
-                      height: h - 2,
+                      height: math.max(18.0, h + grow) - 2,
                       child: IgnorePointer(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
