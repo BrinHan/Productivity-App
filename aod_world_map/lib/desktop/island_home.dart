@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import 'date_names.dart';
 import 'island_controller.dart';
 import 'island_pages.dart';
 import 'island_widgets.dart';
@@ -11,8 +12,6 @@ import 'stock_service.dart';
 import 'today_calendar.dart';
 
 const _dim = TextStyle(fontSize: 11, color: Color(0x99FFFFFF));
-const _dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const _monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const _up = Color(0xFF30D158), _down = Color(0xFFFF453A);
 
 String _clock(DateTime d) {
@@ -150,7 +149,7 @@ class _PipCorner extends StatelessWidget {
               const _ClockText(),
               const SizedBox(height: 4),
               Text(
-                '${_dayShort[n.weekday - 1]}, ${_monthShort[n.month - 1]} ${n.day}',
+                '${dayShort[n.weekday - 1]}, ${monthShort[n.month - 1]} ${n.day}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: _dim,
@@ -383,7 +382,7 @@ class _DayScrollerState extends State<_DayScroller> {
         child: Column(
           children: [
             Text(
-              _dayShort[d.weekday - 1].toUpperCase(),
+              dayShort[d.weekday - 1].toUpperCase(),
               style: TextStyle(
                 fontSize: 8.5,
                 fontWeight: FontWeight.w700,
@@ -438,7 +437,7 @@ class _DayScrollerState extends State<_DayScroller> {
     } else if (day == DateTime(today.year, today.month, today.day + 1)) {
       dayName = 'tomorrow';
     } else {
-      dayName = '${_dayShort[day.weekday - 1]} ${day.day}';
+      dayName = '${dayShort[day.weekday - 1]} ${day.day}';
     }
 
     return Column(
@@ -456,7 +455,7 @@ class _DayScrollerState extends State<_DayScroller> {
                   child: SizedBox(
                     width: 40,
                     child: Text(
-                      _monthShort[day.month - 1],
+                      monthShort[day.month - 1],
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.4),
                     ),
                   ),

@@ -71,14 +71,14 @@ class _DayColumn extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-          Text(_dayNames[date.weekday - 1], style: _ts(t.text, 24, w: FontWeight.w700, ls: -0.6)),
+          Text(dayNames[date.weekday - 1], style: _ts(t.text, 24, w: FontWeight.w700, ls: -0.6)),
           if (isToday) ...[
             const SizedBox(width: 10),
             Text('Today', style: _ts(t.accent, 13, w: FontWeight.w600)),
           ],
         ]),
         const SizedBox(height: 2),
-        Text('${_monthNames[date.month - 1]} ${date.day}', style: _ts(t.sub, 13)),
+        Text('${monthNames[date.month - 1]} ${date.day}', style: _ts(t.sub, 13)),
         const SizedBox(height: 14),
         _Bar(t, all.isEmpty ? 0 : done / all.length),
         const SizedBox(height: 8),
@@ -170,7 +170,7 @@ class _GoogleTaskRowState extends State<_GoogleTaskRow> with SingleTickerProvide
                 Expanded(child: _StrikeText(t, gt.title, _done, size: 13.5)),
                 if (gt.due != null) ...[
                   const SizedBox(width: 8),
-                  Text('${_monthNames[gt.due!.month - 1].substring(0, 3)} ${gt.due!.day}',
+                  Text('${monthNames[gt.due!.month - 1].substring(0, 3)} ${gt.due!.day}',
                       style: _ts(t.sub, 12, tab: true)),
                 ],
               ]),

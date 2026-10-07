@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Directory, File, Platform, Process, ProcessStartMode;
+import 'dart:io' show File, Process, ProcessStartMode;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -8,7 +8,10 @@ import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../aod/sky_toggle.dart';
-import 'agenda_service.dart' show CalendarFeed;
+import 'agenda_service.dart' show CalendarFeed, isCalendarLink;
+import 'app_files.dart';
+import 'browser.dart';
+import 'date_names.dart';
 import 'google_service.dart';
 import 'notes_model.dart';
 import 'notes_service.dart';
@@ -224,11 +227,11 @@ class _HomePageState extends State<HomePage> {
   Widget _boardView(_T t) {
     final today = dayOf(DateTime.now());
     final first = today.add(Duration(days: _startOffset));
-    final title = _startOffset == 0 ? 'Today' : '${_monthNames[first.month - 1]} ${first.day}';
+    final title = _startOffset == 0 ? 'Today' : '${monthNames[first.month - 1]} ${first.day}';
     final heading = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
       Text(title, style: _ts(t.text, 30, w: FontWeight.w700, ls: -0.8, h: 1.1)),
       const SizedBox(height: 4),
-      Text('${_dayNames[first.weekday - 1]}, ${_monthNames[first.month - 1]} ${first.day}', style: _ts(t.sub, 14)),
+      Text('${dayNames[first.weekday - 1]}, ${monthNames[first.month - 1]} ${first.day}', style: _ts(t.sub, 14)),
     ]);
     final controls = Row(mainAxisSize: MainAxisSize.min, children: [
       _IconBtn(t, Icons.chevron_left_rounded, 'Previous day', () => setState(() => _startOffset--), size: 22),

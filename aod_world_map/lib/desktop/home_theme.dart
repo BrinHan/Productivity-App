@@ -1,10 +1,5 @@
 part of 'home_page.dart';
 
-const _dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const _monthNames = [
-  'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-  'September', 'October', 'November', 'December',
-];
 
 /// Shape rule for the whole planner: controls and inputs use 6, surfaces
 /// use 8, checkboxes use 6, toggles are pills. Nothing else. Small radii and
@@ -128,11 +123,7 @@ class _Prefs extends ChangeNotifier {
   int calMode = 1; // Calendar page: 0 day, 1 week, 2 month
   bool _loaded = false;
 
-  File get _file {
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    final s = Platform.pathSeparator;
-    return File('$base${s}AodWorldMap${s}ui.json');
-  }
+  File get _file => appDataFile('ui.json');
 
   Future<void> load() async {
     if (_loaded) return;

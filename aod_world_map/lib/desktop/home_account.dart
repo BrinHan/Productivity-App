@@ -24,12 +24,7 @@ class _AccountViewState extends State<_AccountView> {
     super.dispose();
   }
 
-  Future<void> _open(String url) async {
-    if (!Platform.isWindows) return;
-    try {
-      await Process.start('rundll32', ['url.dll,FileProtocolHandler', url], mode: ProcessStartMode.detached);
-    } catch (_) {}
-  }
+  void _open(String url) => openInBrowser(url).ignore();
 
   void _save() {
     final id = _id.text.trim(), secret = _secret.text.trim();
@@ -47,18 +42,7 @@ class _AccountViewState extends State<_AccountView> {
     setState(() => _formError = null);
   }
 
-  Widget _card({required Widget child}) {
-    final t = widget.t;
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: t.surface,
-        borderRadius: BorderRadius.circular(_rLg),
-        border: Border.all(color: t.line),
-      ),
-      child: child,
-    );
-  }
+  Widget _card({required Widget child}) => _Card(widget.t, padding: 22, fill: false, child: child);
 
   // ------------------------------------------------------------ sign in
 
@@ -307,7 +291,7 @@ class _AccountViewState extends State<_AccountView> {
       final diff = d.difference(today).inDays;
       if (diff == 0) return 'Today';
       if (diff == 1) return 'Tomorrow';
-      return '${_monthNames[d.month - 1].substring(0, 3)} ${d.day}';
+      return '${monthNames[d.month - 1].substring(0, 3)} ${d.day}';
     }
 
     return Padding(

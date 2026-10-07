@@ -4,6 +4,11 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+/// Loose on purpose: anything that could be a feed URL is accepted, and a
+/// bad one just shows up as a feed that fails to load.
+bool isCalendarLink(String url) =>
+    url.startsWith('http://') || url.startsWith('https://') || url.startsWith('webcal');
+
 /// A calendar the user subscribed to by its iCal link (Google "secret
 /// address in iCal format", iCloud public calendar, Outlook, ...).
 class CalendarFeed {

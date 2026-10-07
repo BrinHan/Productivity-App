@@ -29,7 +29,7 @@ DateTime _shift(DateTime x, {int days = 0, int minutes = 0}) =>
 
 int _snap(double m, {bool up = false}) => (up ? (m / 15).ceil() : (m / 15).floor()) * 15;
 
-String _dateLabel(DateTime d) => '${_calShortDays[d.weekday % 7]}, ${_monthNames[d.month - 1].substring(0, 3)} ${d.day}';
+String _dateLabel(DateTime d) => '${_calShortDays[d.weekday % 7]}, ${monthNames[d.month - 1].substring(0, 3)} ${d.day}';
 
 String _tzLabel() {
   final o = DateTime.now().timeZoneOffset;
@@ -131,10 +131,10 @@ class _CalendarViewState extends State<_CalendarView> {
       final a = _from, b = _days.last;
       if (a.month != b.month) {
         final y = a.year == b.year ? '' : ' ${a.year}';
-        return '${_monthNames[a.month - 1].substring(0, 3)}$y – ${_monthNames[b.month - 1].substring(0, 3)} ${b.year}';
+        return '${monthNames[a.month - 1].substring(0, 3)}$y – ${monthNames[b.month - 1].substring(0, 3)} ${b.year}';
       }
     }
-    return '${_monthNames[_anchor.month - 1]} ${_anchor.year}';
+    return '${monthNames[_anchor.month - 1]} ${_anchor.year}';
   }
 
   /// Visible events (plus the draft), de-duplicated across month caches.
@@ -806,7 +806,7 @@ class _MiniMonthState extends State<_MiniMonth> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
       Row(children: [
         const SizedBox(width: 4),
-        Text('${_monthNames[_month.month - 1]} ${_month.year}', style: _ts(t.text, 13, w: FontWeight.w600)),
+        Text('${monthNames[_month.month - 1]} ${_month.year}', style: _ts(t.text, 13, w: FontWeight.w600)),
         const Spacer(),
         _IconBtn(t, Icons.keyboard_arrow_up_rounded, 'Previous month',
             () => setState(() => _month = DateTime(_month.year, _month.month - 1)), size: 16),
@@ -1047,6 +1047,8 @@ List<_CalSeg> _layoutDay(List<CalEvent> events, DateTime day) {
 
 enum _GridDrag { create, move, resize }
 
+typedef _AllDayItem = ({CalEvent? e, _CalTask? task, int a, int b, int lane});
+
 class _CalTimeGrid extends StatefulWidget {
   const _CalTimeGrid({
     required this.t,
@@ -1254,13 +1256,23 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final t = widget.t, days = widget.days;
+    // One clock reading per build, so the now line, its label and the
+    // "past" shading on events can never disagree by a minute.
     final now = DateTime.now();
     final today = dayOf(now);
-    final first = days.first;
+    final allDay = _allDayLanes();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _dayLabels(today),
+      _allDayRow(allDay.items, allDay.lanes),
+      Expanded(child: _hourGrid(now, today)),
+    ]);
+  }
 
-    // All-day lanes: events span the days they cover, tasks sit on their day.
-    final items = <({CalEvent? e, _CalTask? task, int a, int b, int lane})>[];
+  /// All-day events span the days they cover and tasks sit on their day.
+  /// Each takes the first lane that's free by the time it starts.
+  ({List<_AllDayItem> items, int lanes}) _allDayLanes() {
+    final days = widget.days, first = days.first;
+    final items = <_AllDayItem>[];
     final laneEnds = <int>[];
     void place(CalEvent? e, _CalTask? task, int a, int b) {
       var lane = laneEnds.indexWhere((end) => end < a);
@@ -1273,12 +1285,12 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
       items.add((e: e, task: task, a: a, b: b, lane: lane));
     }
 
-    final ad = widget.events.where((e) => e.allDay).toList()
+    final events = widget.events.where((e) => e.allDay).toList()
       ..sort((x, y) {
         final c = x.start.compareTo(y.start);
         return c != 0 ? c : y.end.compareTo(x.end);
       });
-    for (final e in ad) {
+    for (final e in events) {
       final a = math.max(0, _daysBetween(first, e.start));
       final lastDay = e.end.isAfter(e.start) ? e.end.subtract(const Duration(minutes: 1)) : e.start;
       final b = math.min(days.length - 1, _daysBetween(first, lastDay));
@@ -1288,299 +1300,331 @@ class _CalTimeGridState extends State<_CalTimeGrid> {
       final i = _daysBetween(first, x.day);
       if (i >= 0 && i < days.length) place(null, x, i, i);
     }
-    final allDayH = math.max(1, laneEnds.length) * 22.0 + 6;
-    final todayCol = days.indexOf(today);
+    return (items: items, lanes: laneEnds.length);
+  }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // Day labels.
-      SizedBox(
-        height: 30,
-        child: Row(children: [
-          SizedBox(
-            width: gutter,
-            child: Center(child: Text(_tzLabel(), style: _ts(t.faint, 10, w: FontWeight.w600))),
-          ),
-          for (final d in days)
-            Expanded(
-              child: _Hover(
-                onTap: days.length > 1 ? () => widget.onOpenDay(d) : null,
-                builder: (h) => Center(child: _dayLabel(t, d, d == today, h)),
-              ),
-            ),
-          const SizedBox(width: 8),
-        ]),
-      ),
-      // All-day row.
-      AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        height: allDayH,
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.line))),
-        child: Row(children: [
-          SizedBox(
-            width: gutter,
-            child: Align(
-              alignment: const Alignment(0, -0.4),
-              child: Text('All-day', style: _ts(t.faint, 10, w: FontWeight.w600)),
-            ),
-          ),
+  Widget _dayLabels(DateTime today) {
+    final t = widget.t, days = widget.days;
+    return SizedBox(
+      height: 30,
+      child: Row(children: [
+        SizedBox(
+          width: gutter,
+          child: Center(child: Text(_tzLabel(), style: _ts(t.faint, 10, w: FontWeight.w600))),
+        ),
+        for (final d in days)
           Expanded(
-            child: LayoutBuilder(builder: (context, c) {
-              final colW = c.maxWidth / days.length;
-              return Stack(clipBehavior: Clip.none, children: [
-                // Drop zones and click-to-create, one per day.
-                for (var i = 0; i < days.length; i++)
-                  Positioned(
-                    left: colW * i,
-                    top: 0,
-                    bottom: 0,
-                    width: colW,
-                    child: DragTarget<_CalDrag>(
-                      onWillAcceptWithDetails: (d) => d.data.task != null || (d.data.e?.allDay ?? false),
-                      onAcceptWithDetails: (d) => widget.onDrop(d.data, days[i]),
-                      builder: (context, cand, _) => GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => widget.onCreate(days[i], days[i].add(const Duration(days: 1)), true),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 120),
-                          decoration: BoxDecoration(
-                            color: cand.isNotEmpty ? t.raised : Colors.transparent,
-                            border: Border(left: BorderSide(color: t.line.withValues(alpha: 0.6))),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                for (final x in items)
-                  Positioned(
-                    left: colW * x.a + 2,
-                    width: colW * (x.b - x.a + 1) - 4,
-                    top: 3 + x.lane * 22.0,
-                    height: 20,
-                    child: x.e != null
-                        ? _dayDraggable(
-                            context,
-                            _CalDrag(e: x.e),
-                            _AllDayChip(
-                              t: t,
-                              e: x.e!,
-                              color: widget.color(x.e!),
-                              selected: widget.isSel(x.e!),
-                              onTap: () => widget.onSelect(x.e!),
-                            ),
-                            enabled: widget.canEdit(x.e!) && !x.e!.isDraft,
-                            width: colW - 4,
-                          )
-                        : _dayDraggable(
-                            context,
-                            _CalDrag(task: x.task),
-                            _TaskChip(
-                              t: t,
-                              task: x.task!,
-                              selected: widget.selTask == x.task!.key,
-                              onTap: () => widget.onSelect(x.task!.key),
-                              onToggle: () => widget.onToggleTask(x.task!),
-                            ),
-                            width: colW - 4,
-                          ),
-                  ),
-              ]);
-            }),
+            child: _Hover(
+              onTap: days.length > 1 ? () => widget.onOpenDay(d) : null,
+              builder: (h) => Center(child: _dayLabel(t, d, d == today, h)),
+            ),
           ),
-          const SizedBox(width: 8),
-        ]),
-      ),
-      // Hours.
-      Expanded(
-        child: LayoutBuilder(builder: (context, view) {
-          _fitRows(view.maxHeight);
-          return SingleChildScrollView(
-          key: _viewKey,
-          controller: _sc,
-          child: SizedBox(
-            key: _stackKey,
-            height: 24 * rowH + 12,
-            child: LayoutBuilder(builder: (context, c) {
-              final colW = (c.maxWidth - gutter - 8) / days.length;
-              _colW = colW;
-              final nowY = 6 + (now.hour + now.minute / 60) * rowH;
-              final blocks = <Widget>[];
-              final o = _orig;
-              for (var i = 0; i < days.length; i++) {
-                for (final s in _layoutDay(widget.events, days[i])) {
-                  final top = 6 + (s.s.hour + s.s.minute / 60) * rowH;
-                  final mins = s.end.difference(s.s).inMinutes;
-                  final h = math.max(18.0, mins / 60 * rowH);
-                  final indent = s.level * 8.0;
-                  final w = (colW - 4 - indent) / s.slots;
-                  final lifted = o != null && s.e.same(o);
-                  final editable = widget.canEdit(s.e);
-                  blocks.add(Positioned(
-                    left: gutter + colW * i + 2 + indent + w * s.slot,
-                    top: top + 1,
-                    width: w - (s.slots > 1 ? 2 : 0),
-                    height: h - 2,
-                    child: Opacity(
-                      opacity: lifted ? 0.35 : 1,
-                      child: _TimedBlock(
-                        t: t,
-                        e: s.e,
-                        color: widget.color(s.e),
-                        stacked: s.level > 0,
-                        selected: widget.isSel(s.e),
-                        past: s.e.end.isBefore(now),
-                        editable: editable,
-                        onTap: () => widget.onSelect(s.e),
-                        onMove: (g) => _start(_GridDrag.move, g, s.e),
-                        onResize: (g) => _start(_GridDrag.resize, g, s.e),
-                        onDrag: _update,
-                        onEnd: _end,
-                        onCancel: _cancel,
-                      ),
-                    ),
-                  ));
-                }
-              }
-              // The thing being dragged, drawn above everything. While moving
-              // or resizing it follows the pointer exactly; a faint outline
-              // marks the 15-minute slot it will land in.
-              final pv = _preview;
-              if (pv != null) {
-                final lifting = _kind != _GridDrag.create;
-                final off = _residual / 60 * rowH;
-                for (var i = 0; i < days.length; i++) {
-                  for (final s in _layoutDay([pv], days[i])) {
-                    final top = 6 + (s.s.hour + s.s.minute / 60) * rowH;
-                    final h = math.max(18.0, s.end.difference(s.s).inMinutes / 60 * rowH);
-                    final slide = _kind == _GridDrag.move ? off : 0.0;
-                    final grow = _kind == _GridDrag.resize && s.end == pv.end ? off : 0.0;
-                    if (lifting) {
-                      final c = widget.color(pv);
-                      blocks.add(Positioned(
-                        left: gutter + colW * i + 2,
-                        top: top + 1,
-                        width: colW - 4,
-                        height: h - 2,
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: c.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: c.withValues(alpha: 0.5)),
-                            ),
-                          ),
-                        ),
-                      ));
-                    }
-                    blocks.add(Positioned(
-                      left: gutter + colW * i + 2,
-                      top: top + 1 + slide,
-                      width: colW - 4,
-                      height: math.max(18.0, h + grow) - 2,
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: t.line),
-                          ),
-                          child: _TimedBlock(
-                            t: t,
-                            e: pv.title.isEmpty && pv.isDraft ? pv.copyWith(title: 'New event') : pv,
-                            color: _kind == _GridDrag.create ? widget.newColor : widget.color(pv),
-                            stacked: false,
-                            selected: true,
-                            past: false,
-                            editable: false,
-                            onTap: () {},
-                          ),
-                        ),
-                      ),
-                    ));
-                  }
-                }
-              }
-              return Stack(children: [
-                // Hour lines and labels.
-                for (var hr = 1; hr < 24; hr++) ...[
-                  Positioned(
-                    left: gutter,
-                    right: 8,
-                    top: 6 + hr * rowH,
-                    height: 1,
-                    child: ColoredBox(color: t.line.withValues(alpha: 0.7)),
-                  ),
-                  Positioned(
-                    left: 0,
-                    width: gutter - 10,
-                    top: 6 + hr * rowH - 7,
-                    child: Text('${hr.toString().padLeft(2, '0')}:00',
-                        textAlign: TextAlign.right, style: _ts(t.faint, 10, w: FontWeight.w600, tab: true)),
-                  ),
-                ],
-                // Day separators.
-                for (var i = 0; i < days.length; i++)
-                  Positioned(
-                    left: gutter + colW * i,
-                    top: 0,
-                    bottom: 0,
-                    width: 1,
-                    child: ColoredBox(color: t.line.withValues(alpha: 0.7)),
-                  ),
-                // Empty time: click for a one-hour event, drag to draw one.
+        const SizedBox(width: 8),
+      ]),
+    );
+  }
+
+  Widget _allDayRow(List<_AllDayItem> items, int lanes) {
+    final t = widget.t, days = widget.days;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      height: math.max(1, lanes) * 22.0 + 6,
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.line))),
+      child: Row(children: [
+        SizedBox(
+          width: gutter,
+          child: Align(
+            alignment: const Alignment(0, -0.4),
+            child: Text('All-day', style: _ts(t.faint, 10, w: FontWeight.w600)),
+          ),
+        ),
+        Expanded(
+          child: LayoutBuilder(builder: (context, c) {
+            final colW = c.maxWidth / days.length;
+            return Stack(clipBehavior: Clip.none, children: [
+              // Drop zones and click-to-create, one per day.
+              for (var i = 0; i < days.length; i++)
                 Positioned(
-                  left: gutter,
-                  right: 8,
+                  left: colW * i,
                   top: 0,
                   bottom: 0,
-                  child: MouseRegion(
-                    cursor: widget.canCreate ? SystemMouseCursors.precise : SystemMouseCursors.basic,
-                    child: GestureDetector(
+                  width: colW,
+                  child: DragTarget<_CalDrag>(
+                    onWillAcceptWithDetails: (d) => d.data.task != null || (d.data.e?.allDay ?? false),
+                    onAcceptWithDetails: (d) => widget.onDrop(d.data, days[i]),
+                    builder: (context, cand, _) => GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTapUp: (d) => _tapEmpty(d.globalPosition),
-                      onPanStart: widget.canCreate ? (d) => _start(_GridDrag.create, d.globalPosition) : null,
-                      onPanUpdate: widget.canCreate ? (d) => _update(d.globalPosition) : null,
-                      onPanEnd: widget.canCreate ? (_) => _end() : null,
-                      onPanCancel: widget.canCreate ? _cancel : null,
+                      onTap: () => widget.onCreate(days[i], days[i].add(const Duration(days: 1)), true),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 120),
+                        decoration: BoxDecoration(
+                          color: cand.isNotEmpty ? t.raised : Colors.transparent,
+                          border: Border(left: BorderSide(color: t.line.withValues(alpha: 0.6))),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                ...blocks,
-                // Now line: strong across today, faint across the rest of the week.
-                if (todayCol >= 0) ...[
-                  if (days.length > 1)
-                    Positioned(
-                      left: gutter,
-                      right: 8,
-                      top: nowY,
-                      height: 1,
-                      child: IgnorePointer(child: ColoredBox(color: _calRed.withValues(alpha: 0.3))),
-                    ),
-                  Positioned(
-                    left: gutter + colW * todayCol,
-                    width: colW,
-                    top: nowY - 0.75,
-                    height: 1.5,
-                    child: const IgnorePointer(child: ColoredBox(color: _calRed)),
-                  ),
-                  Positioned(
-                    left: 6,
-                    width: gutter - 12,
-                    top: nowY - 8,
-                    height: 16,
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: _calRed, borderRadius: BorderRadius.circular(4)),
-                      child: Text(_hm(now), style: _ts(Colors.white, 10, w: FontWeight.w700, tab: true)),
-                    ),
-                  ),
-                ],
-              ]);
-            }),
-          ),
-          );
-        }),
+              for (final x in items)
+                Positioned(
+                  left: colW * x.a + 2,
+                  width: colW * (x.b - x.a + 1) - 4,
+                  top: 3 + x.lane * 22.0,
+                  height: 20,
+                  child: _allDayChip(context, x, colW),
+                ),
+            ]);
+          }),
+        ),
+        const SizedBox(width: 8),
+      ]),
+    );
+  }
+
+  Widget _allDayChip(BuildContext context, _AllDayItem x, double colW) {
+    final t = widget.t, e = x.e;
+    if (e != null) {
+      return _dayDraggable(
+        context,
+        _CalDrag(e: e),
+        _AllDayChip(t: t, e: e, color: widget.color(e), selected: widget.isSel(e), onTap: () => widget.onSelect(e)),
+        enabled: widget.canEdit(e) && !e.isDraft,
+        width: colW - 4,
+      );
+    }
+    final task = x.task!;
+    return _dayDraggable(
+      context,
+      _CalDrag(task: task),
+      _TaskChip(
+        t: t,
+        task: task,
+        selected: widget.selTask == task.key,
+        onTap: () => widget.onSelect(task.key),
+        onToggle: () => widget.onToggleTask(task),
       ),
-    ]);
+      width: colW - 4,
+    );
+  }
+
+  /// The scrolling 24-hour grid, drawn back to front.
+  Widget _hourGrid(DateTime now, DateTime today) {
+    return LayoutBuilder(builder: (context, view) {
+      _fitRows(view.maxHeight);
+      return SingleChildScrollView(
+        key: _viewKey,
+        controller: _sc,
+        child: SizedBox(
+          key: _stackKey,
+          height: 24 * rowH + 12,
+          child: LayoutBuilder(builder: (context, c) {
+            final colW = (c.maxWidth - gutter - 8) / widget.days.length;
+            _colW = colW;
+            final todayCol = widget.days.indexOf(today);
+            return Stack(children: [
+              ..._hourLines(),
+              ..._daySeparators(colW),
+              _emptyTime(),
+              ..._eventBlocks(colW, now),
+              ..._dragPreview(colW),
+              if (todayCol >= 0) ..._nowLine(colW, todayCol, now),
+            ]);
+          }),
+        ),
+      );
+    });
+  }
+
+  List<Widget> _hourLines() {
+    final t = widget.t;
+    return [
+      for (var hr = 1; hr < 24; hr++) ...[
+        Positioned(
+          left: gutter,
+          right: 8,
+          top: 6 + hr * rowH,
+          height: 1,
+          child: ColoredBox(color: t.line.withValues(alpha: 0.7)),
+        ),
+        Positioned(
+          left: 0,
+          width: gutter - 10,
+          top: 6 + hr * rowH - 7,
+          child: Text('${hr.toString().padLeft(2, '0')}:00',
+              textAlign: TextAlign.right, style: _ts(t.faint, 10, w: FontWeight.w600, tab: true)),
+        ),
+      ],
+    ];
+  }
+
+  List<Widget> _daySeparators(double colW) => [
+        for (var i = 0; i < widget.days.length; i++)
+          Positioned(
+            left: gutter + colW * i,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            child: ColoredBox(color: widget.t.line.withValues(alpha: 0.7)),
+          ),
+      ];
+
+  /// Empty time: click for a one-hour event, drag to draw one.
+  Widget _emptyTime() {
+    final can = widget.canCreate;
+    return Positioned(
+      left: gutter,
+      right: 8,
+      top: 0,
+      bottom: 0,
+      child: MouseRegion(
+        cursor: can ? SystemMouseCursors.precise : SystemMouseCursors.basic,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapUp: (d) => _tapEmpty(d.globalPosition),
+          onPanStart: can ? (d) => _start(_GridDrag.create, d.globalPosition) : null,
+          onPanUpdate: can ? (d) => _update(d.globalPosition) : null,
+          onPanEnd: can ? (_) => _end() : null,
+          onPanCancel: can ? _cancel : null,
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _eventBlocks(double colW, DateTime now) {
+    final days = widget.days, lifted = _orig;
+    return [
+      for (var i = 0; i < days.length; i++)
+        for (final s in _layoutDay(widget.events, days[i])) _eventBlock(s, i, colW, now, lifted),
+    ];
+  }
+
+  Widget _eventBlock(_CalSeg s, int day, double colW, DateTime now, CalEvent? lifted) {
+    final top = 6 + (s.s.hour + s.s.minute / 60) * rowH;
+    final h = math.max(18.0, s.end.difference(s.s).inMinutes / 60 * rowH);
+    final indent = s.level * 8.0;
+    final w = (colW - 4 - indent) / s.slots;
+    return Positioned(
+      left: gutter + colW * day + 2 + indent + w * s.slot,
+      top: top + 1,
+      width: w - (s.slots > 1 ? 2 : 0),
+      height: h - 2,
+      child: Opacity(
+        // The original stays put, faded, while its copy follows the pointer.
+        opacity: lifted != null && s.e.same(lifted) ? 0.35 : 1,
+        child: _TimedBlock(
+          t: widget.t,
+          e: s.e,
+          color: widget.color(s.e),
+          stacked: s.level > 0,
+          selected: widget.isSel(s.e),
+          past: s.e.end.isBefore(now),
+          editable: widget.canEdit(s.e),
+          onTap: () => widget.onSelect(s.e),
+          onMove: (g) => _start(_GridDrag.move, g, s.e),
+          onResize: (g) => _start(_GridDrag.resize, g, s.e),
+          onDrag: _update,
+          onEnd: _end,
+          onCancel: _cancel,
+        ),
+      ),
+    );
+  }
+
+  /// The thing being dragged, drawn above everything. While moving or
+  /// resizing it follows the pointer exactly; a faint outline marks the
+  /// 15-minute slot it will land in.
+  List<Widget> _dragPreview(double colW) {
+    final pv = _preview;
+    if (pv == null) return const [];
+    final t = widget.t;
+    final lifting = _kind != _GridDrag.create;
+    final off = _residual / 60 * rowH;
+    final blocks = <Widget>[];
+    for (var i = 0; i < widget.days.length; i++) {
+      for (final s in _layoutDay([pv], widget.days[i])) {
+        final top = 6 + (s.s.hour + s.s.minute / 60) * rowH;
+        final h = math.max(18.0, s.end.difference(s.s).inMinutes / 60 * rowH);
+        final slide = _kind == _GridDrag.move ? off : 0.0;
+        final grow = _kind == _GridDrag.resize && s.end == pv.end ? off : 0.0;
+        if (lifting) {
+          final c = widget.color(pv);
+          blocks.add(Positioned(
+            left: gutter + colW * i + 2,
+            top: top + 1,
+            width: colW - 4,
+            height: h - 2,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: c.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: c.withValues(alpha: 0.5)),
+                ),
+              ),
+            ),
+          ));
+        }
+        blocks.add(Positioned(
+          left: gutter + colW * i + 2,
+          top: top + 1 + slide,
+          width: colW - 4,
+          height: math.max(18.0, h + grow) - 2,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: t.line),
+              ),
+              child: _TimedBlock(
+                t: t,
+                e: pv.title.isEmpty && pv.isDraft ? pv.copyWith(title: 'New event') : pv,
+                color: _kind == _GridDrag.create ? widget.newColor : widget.color(pv),
+                stacked: false,
+                selected: true,
+                past: false,
+                editable: false,
+                onTap: () {},
+              ),
+            ),
+          ),
+        ));
+      }
+    }
+    return blocks;
+  }
+
+  /// Strong across today, faint across the rest of the week.
+  List<Widget> _nowLine(double colW, int todayCol, DateTime now) {
+    final y = 6 + (now.hour + now.minute / 60) * rowH;
+    return [
+      if (widget.days.length > 1)
+        Positioned(
+          left: gutter,
+          right: 8,
+          top: y,
+          height: 1,
+          child: IgnorePointer(child: ColoredBox(color: _calRed.withValues(alpha: 0.3))),
+        ),
+      Positioned(
+        left: gutter + colW * todayCol,
+        width: colW,
+        top: y - 0.75,
+        height: 1.5,
+        child: const IgnorePointer(child: ColoredBox(color: _calRed)),
+      ),
+      Positioned(
+        left: 6,
+        width: gutter - 12,
+        top: y - 8,
+        height: 16,
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: _calRed, borderRadius: BorderRadius.circular(4)),
+          child: Text(_hm(now), style: _ts(Colors.white, 10, w: FontWeight.w700, tab: true)),
+        ),
+      ),
+    ];
   }
 }
 
@@ -1934,7 +1978,7 @@ class _CalMonthGrid extends StatelessWidget {
       for (final x in tasks)
         if (x.day == d) x,
     ];
-    final label = d.day == 1 ? '${_monthNames[d.month - 1]} 1' : '${d.day}';
+    final label = d.day == 1 ? '${monthNames[d.month - 1]} 1' : '${d.day}';
     return DragTarget<_CalDrag>(
       onAcceptWithDetails: (det) => onDrop(det.data, d),
       builder: (context, cand, _) => GestureDetector(

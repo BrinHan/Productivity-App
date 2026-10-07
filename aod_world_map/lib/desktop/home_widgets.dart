@@ -466,6 +466,28 @@ class _Bar extends StatelessWidget {
       );
 }
 
+/// The planner's standard surface: hairline border, no shadow. Screens pick
+/// their own padding, so it stays a parameter rather than one house value.
+class _Card extends StatelessWidget {
+  const _Card(this.t, {required this.padding, required this.child, this.fill = true});
+  final _T t;
+  final double padding;
+  final bool fill;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: fill ? double.infinity : null,
+        padding: EdgeInsets.all(padding),
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(_rLg),
+          border: Border.all(color: t.line),
+        ),
+        child: child,
+      );
+}
+
 class _Hair extends StatelessWidget {
   const _Hair(this.t, {this.color});
   final _T t;

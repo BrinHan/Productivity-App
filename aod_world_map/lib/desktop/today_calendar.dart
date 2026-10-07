@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'date_names.dart';
 import 'island_controller.dart';
 import 'island_widgets.dart';
 
@@ -50,8 +51,6 @@ List<DayEvent> calendarEvents(IslandController c) {
 const _dim = TextStyle(fontSize: 11, color: Color(0x99FFFFFF));
 const _label = TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: Color(0x80FFFFFF));
 const _letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const _dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const _monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -152,7 +151,7 @@ class _IslandMonthViewState extends State<IslandMonthView> {
           ]),
         ),
       const Divider(height: 10, thickness: 1, color: Color(0x14FFFFFF)),
-      Text(s == today ? 'TODAY' : '${_dayShort[s.weekday - 1]}, ${_monthShort[s.month - 1]} ${s.day}'.toUpperCase(),
+      Text(s == today ? 'TODAY' : '${dayShort[s.weekday - 1]}, ${monthShort[s.month - 1]} ${s.day}'.toUpperCase(),
           style: _label),
       Expanded(
         child: picked.isEmpty

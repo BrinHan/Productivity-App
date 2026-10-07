@@ -13,7 +13,7 @@ String _when(DateTime d) {
   final c = _clock(d);
   if (diff == 0) return 'Today $c';
   if (diff == 1) return 'Yesterday $c';
-  return '${_monthNames[d.month - 1].substring(0, 3)} ${d.day}, $c';
+  return '${monthNames[d.month - 1].substring(0, 3)} ${d.day}, $c';
 }
 
 String _lenText(Duration d) => d.inMinutes < 1 ? '${d.inSeconds}s' : '${d.inMinutes} min';

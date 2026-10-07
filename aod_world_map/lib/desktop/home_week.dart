@@ -41,7 +41,7 @@ class _WeekView extends StatelessWidget {
           border: Border.all(color: isToday ? t.accent : t.line, width: isToday ? 1.5 : 1),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(_dayNames[d.weekday - 1].substring(0, 3), style: _ts(isToday ? t.accent : t.sub, 12, w: FontWeight.w600)),
+          Text(dayNames[d.weekday - 1].substring(0, 3), style: _ts(isToday ? t.accent : t.sub, 12, w: FontWeight.w600)),
           Text('${d.day}', style: _ts(t.text, 26, w: FontWeight.w600, ls: -0.6, tab: true)),
           const SizedBox(height: 6),
           Text(tasks.isEmpty ? 'Free' : '${tasks.length} ${tasks.length == 1 ? 'task' : 'tasks'}, ${_dur(mins)}',
@@ -67,16 +67,7 @@ class _ReviewView extends StatelessWidget {
   final _T t;
   final PlannerModel p;
 
-  Widget _card(Widget child) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: t.surface,
-          borderRadius: BorderRadius.circular(_rLg),
-          border: Border.all(color: t.line),
-        ),
-        child: child,
-      );
+  Widget _card(Widget child) => _Card(t, padding: 20, child: child);
 
   Widget _stat(String value, String label, {bool accent = false}) => Container(
         width: 200,
@@ -134,7 +125,7 @@ class _ReviewView extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 8),
-        Text(_dayNames[i].substring(0, 3),
+        Text(dayNames[i].substring(0, 3),
             style: _ts(isToday ? t.text : t.sub, 12, w: isToday ? FontWeight.w700 : FontWeight.w500)),
       ]);
     }

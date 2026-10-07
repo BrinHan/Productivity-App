@@ -57,8 +57,7 @@ class _WelcomeViewState extends State<_WelcomeView> {
 
   void _addFeed() {
     final url = _url.text.trim();
-    final ok = url.startsWith('http://') || url.startsWith('https://') || url.startsWith('webcal');
-    if (!ok) {
+    if (!isCalendarLink(url)) {
       setState(() => _urlError = 'Paste the calendar link. It starts with https:// or webcal://');
       return;
     }
@@ -98,16 +97,7 @@ class _WelcomeViewState extends State<_WelcomeView> {
     ),
   );
 
-  Widget _card(Widget child) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: t.surface,
-      borderRadius: BorderRadius.circular(_rLg),
-      border: Border.all(color: t.line),
-    ),
-    child: child,
-  );
+  Widget _card(Widget child) => _Card(t, padding: 18, child: child);
 
   Widget _done(String s) => Row(
     children: [

@@ -100,11 +100,11 @@ class _SchedulePanelState extends State<_SchedulePanel> {
           padding: const EdgeInsets.fromLTRB(18, 22, 18, 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text(_dayNames[now.weekday - 1], style: _ts(t.sub, 12.5, w: FontWeight.w600)),
+              Text(dayNames[now.weekday - 1], style: _ts(t.sub, 12.5, w: FontWeight.w600)),
               const Spacer(),
               if (g.signedIn && g.loading) Text('Syncing', style: _ts(t.sub, 11.5)),
             ]),
-            Text('${now.day} ${_monthNames[now.month - 1]}', style: _ts(t.text, 22, w: FontWeight.w700, ls: -0.5)),
+            Text('${now.day} ${monthNames[now.month - 1]}', style: _ts(t.text, 22, w: FontWeight.w700, ls: -0.5)),
             if (allDay.isNotEmpty) ...[
               const SizedBox(height: 10),
               Wrap(spacing: 6, runSpacing: 6, children: [

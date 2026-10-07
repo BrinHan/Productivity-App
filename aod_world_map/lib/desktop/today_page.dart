@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'agenda_service.dart';
+import 'date_names.dart';
 import 'google_service.dart';
 import 'island_controller.dart';
 import 'island_widgets.dart';
@@ -13,12 +14,6 @@ import 'today_calendar.dart';
 const _card = Color(0xFF1C1C1E);
 const _dim = TextStyle(fontSize: 11, color: Color(0x99FFFFFF));
 
-const _dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const _monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const _monthLong = [
-  'January', 'February', 'March', 'April', 'May', 'June', //
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 /// The Schedule card's views, swiped through in a loop.
 enum _View { list, month, week }
@@ -105,8 +100,7 @@ class _TodayPageState extends State<TodayPage> {
 
   void _connect() {
     final url = _url.text.trim();
-    final ok = url.startsWith('http://') || url.startsWith('https://') || url.startsWith('webcal');
-    if (!ok) {
+    if (!isCalendarLink(url)) {
       setState(() => _feedError = 'Paste the iCal link (starts with https:// or webcal://)');
       return;
     }
@@ -144,7 +138,7 @@ class _TodayPageState extends State<TodayPage> {
       const SizedBox(width: 8),
       Padding(
         padding: const EdgeInsets.only(bottom: 3),
-        child: Text('${_dayShort[n.weekday - 1]}, ${_monthShort[n.month - 1]} ${n.day}', style: _dim),
+        child: Text('${dayShort[n.weekday - 1]}, ${monthShort[n.month - 1]} ${n.day}', style: _dim),
       ),
       const Spacer(),
       if (loading)
@@ -279,7 +273,7 @@ class _TodayPageState extends State<TodayPage> {
     return _section(
       switch (_view) {
         _View.list => 'Schedule',
-        _View.month => _monthLong[now.month - 1],
+        _View.month => monthNames[now.month - 1],
         _View.week => 'This week',
       },
       trailing: _view == _View.list && todayEv.isNotEmpty ? '${todayEv.length} today' : null,
@@ -731,7 +725,7 @@ class _IslandGoogleTaskState extends State<_IslandGoogleTask> with SingleTickerP
               ),
               if (t.due != null) ...[
                 const SizedBox(width: 6),
-                Text('${_monthShort[t.due!.month - 1]} ${t.due!.day}', style: _dim),
+                Text('${monthShort[t.due!.month - 1]} ${t.due!.day}', style: _dim),
               ],
             ]),
           ),
