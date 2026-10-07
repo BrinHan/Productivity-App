@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'agenda_service.dart';
+import 'app_files.dart';
+import 'browser.dart';
 
 /// The OAuth client that ships inside the app. Put the values in
 /// google_client.json (gitignored) and run or build with
@@ -162,12 +164,7 @@ class GoogleService extends ChangeNotifier {
 
   // ------------------------------------------------------- persistence
 
-  Directory get _dir {
-    final base = Platform.environment['APPDATA'] ?? Directory.systemTemp.path;
-    return Directory('$base${Platform.pathSeparator}AodWorldMap');
-  }
-
-  File get _file => File('${_dir.path}${Platform.pathSeparator}google.json');
+  File get _file => appDataFile('google.json');
 
   String? _lastRaw; // google.json as this process last read or wrote it
 
@@ -240,7 +237,7 @@ class GoogleService extends ChangeNotifier {
 
   Future<void> _save() async {
     try {
-      await _dir.create(recursive: true);
+      await appDataDir.create(recursive: true);
       final raw = jsonEncode({
         'userClientId': _userId,
         'userClientSecret': _userSecret,
@@ -281,11 +278,6 @@ class GoogleService extends ChangeNotifier {
   static String _rand(int n) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
     return String.fromCharCodes([for (var i = 0; i < n; i++) chars.codeUnitAt(_rng.nextInt(chars.length))]);
-  }
-
-  Future<void> _openBrowser(String url) async {
-    if (!Platform.isWindows) return;
-    await Process.start('rundll32', ['url.dll,FileProtocolHandler', url], mode: ProcessStartMode.detached);
   }
 
   static String _doneHtml(bool ok, String text) => '''<!doctype html><html><head><meta charset="utf-8">
@@ -344,7 +336,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
         'prompt': 'consent',
         'include_granted_scopes': 'true',
       });
-      await _openBrowser(url.toString());
+      await openInBrowser(url.toString());
       final q = await _waitForCode(server, state);
 
       final res = await http.post(Uri.https('oauth2.googleapis.com', '/token'), body: {
@@ -1055,7 +1047,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
   Future<String> _bundle() async {
     final files = <String, String>{};
     for (final n in _backupFiles) {
-      final f = File('${_dir.path}${Platform.pathSeparator}$n');
+      final f = appDataFile(n);
       if (await f.exists()) files[n] = await f.readAsString();
     }
     return jsonEncode({'v': 1, 'files': files});
@@ -1147,11 +1139,11 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       final j = jsonDecode(utf8.decode(r.bodyBytes));
       final files = (j is Map ? j['files'] : null) as Map?;
       if (files == null || files.isEmpty) throw _ApiError('That backup is empty.');
-      await _dir.create(recursive: true);
+      await appDataDir.create(recursive: true);
       for (final e in files.entries) {
         final name = '${e.key}';
         if (!_backupFiles.contains(name)) continue;
-        await File('${_dir.path}${Platform.pathSeparator}$name').writeAsString('${e.value}');
+        await appDataFile(name).writeAsString('${e.value}');
       }
       lastSync = DateTime.now();
       await _save();
