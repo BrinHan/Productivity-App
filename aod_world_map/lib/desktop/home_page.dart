@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../aod/sky_toggle.dart';
+import 'agenda_service.dart' show CalendarFeed;
 import 'google_service.dart';
 import 'notes_model.dart';
 import 'notes_service.dart';
@@ -29,6 +30,7 @@ part 'home_account.dart';
 part 'home_settings.dart';
 part 'home_notes.dart';
 part 'home_calendar.dart';
+part 'home_welcome.dart';
 
 enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings, notes, calendar }
 
@@ -111,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                     notes: notes,
                     onOpenNotes: () => setState(() => _view = _View.notes),
                   ),
-                  Expanded(
+                  if (p.isNew) Expanded(child: _welcome(t)) else Expanded(
                     child: LayoutBuilder(builder: (context, c) {
                       final showPanel = prefs.showSchedule &&
                           c.maxWidth > 1080 &&
@@ -153,6 +155,24 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _welcome(_T t) {
+    final island = widget.shell.island;
+    return ListenableBuilder(
+      listenable: island,
+      builder: (context, _) => _WelcomeView(
+        t: t,
+        p: p,
+        g: g,
+        feeds: [for (final f in island.calendarFeeds) f.label],
+        onAddFeed: (label, url) => island.addFeed(CalendarFeed(label, url)),
+        onDone: () => setState(() {
+          _view = _View.home;
+          p.finishWelcome();
+        }),
       ),
     );
   }
