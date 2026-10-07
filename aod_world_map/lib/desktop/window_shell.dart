@@ -22,8 +22,14 @@ const Size _kAppMin = Size(720, 480);
 /// separate process (see IslandShell), so it keeps working over Chrome or
 /// anything else, and closing this window frees all of its memory.
 class ShellController extends ChangeNotifier with WindowListener {
-  ShellController({this.mode = AppMode.map, this.helloAtStart = false});
+  ShellController({this.mode = AppMode.map, this.helloAtStart = false, String? view}) {
+    this.view.value = view;
+  }
   AppMode mode;
+
+  /// A planner page someone asked for ('notes'). The planner shows it and
+  /// clears this.
+  final ValueNotifier<String?> view = ValueNotifier(null);
 
   /// Started (with --hello) only to show the Hello screen.
   final bool helloAtStart;
@@ -104,6 +110,7 @@ class ShellController extends ChangeNotifier with WindowListener {
     switch (m['t']) {
       case 'open':
         final want = AppMode.values.where((x) => x.name == m['mode']).firstOrNull;
+        if (m['view'] is String) view.value = m['view'] as String;
         bringForward(want);
       case 'quit':
         quit();

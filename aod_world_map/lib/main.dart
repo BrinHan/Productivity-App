@@ -35,6 +35,7 @@ Future<void> main(List<String> args) async {
   final shell = ShellController(
     mode: args.contains('--home') ? AppMode.home : AppMode.map,
     helloAtStart: args.contains('--hello'),
+    view: args.contains('--notes') ? 'notes' : null,
   );
   if (!await shell.claim()) exit(0); // already open; it was brought forward
   final planner = PlannerModel();
