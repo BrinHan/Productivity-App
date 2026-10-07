@@ -201,8 +201,8 @@ class _Seg extends StatelessWidget {
           height: _h,
           child: Stack(children: [
             AnimatedPositioned(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeOutBack,
+              duration: const Duration(milliseconds: 300), // a tap carries no momentum: settle, don't overshoot
+              curve: Curves.easeOutCubic,
               left: _w * index,
               top: 0,
               width: _w,
