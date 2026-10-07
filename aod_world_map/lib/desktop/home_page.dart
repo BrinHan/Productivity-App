@@ -8,10 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../aod/sky_toggle.dart';
-import 'agenda_service.dart' show CalendarFeed, isCalendarLink;
+import 'action_items.dart';
+import 'agenda_service.dart' show AgendaService, CalendarFeed, isCalendarLink;
 import 'app_files.dart';
 import 'browser.dart';
 import 'date_names.dart';
+import 'day_fit.dart';
 import 'google_service.dart';
 import 'notes_model.dart';
 import 'notes_service.dart';
@@ -65,23 +67,47 @@ class _HomePageState extends State<HomePage> {
   PlannerModel get p => widget.planner;
   GoogleService get g => widget.shell.island.google;
   NotesService get notes => widget.shell.island.notes;
+  AgendaService get agenda => widget.shell.island.agenda;
 
   @override
   void initState() {
     super.initState();
     _Prefs.i.load();
     g.refresh();
+    agenda.refresh(widget.shell.island.calendarFeeds);
+    widget.shell.view.addListener(_onViewAsked);
+    _onViewAsked();
     _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (!mounted) return;
       setState(() {});
       g.refresh(); // throttled to once per 10 minutes inside the service
+      agenda.refresh(widget.shell.island.calendarFeeds); // likewise
     });
   }
 
   @override
   void dispose() {
+    widget.shell.view.removeListener(_onViewAsked);
     _clockTimer?.cancel();
     super.dispose();
+  }
+
+  /// The island asked for a page (after a call: the note's to-dos).
+  void _onViewAsked() {
+    final v = widget.shell.view.value;
+    if (v == null) return;
+    widget.shell.view.value = null;
+    if (v == 'notes') setState(() => _view = _View.notes);
+  }
+
+  /// Today's timed events from Google and the iCal feeds, for planning.
+  List<({DateTime start, DateTime end})> _busyToday() {
+    final today = dayOf(DateTime.now());
+    final next = today.add(const Duration(days: 1));
+    return [
+      for (final e in [...g.events, ...agenda.events])
+        if (!e.allDay && e.start.isBefore(next) && e.end.isAfter(today)) (start: e.start, end: e.end),
+    ];
   }
 
   @override
@@ -106,7 +132,7 @@ class _HomePageState extends State<HomePage> {
             body: DefaultTextStyle.merge(
               style: TextStyle(fontFamily: family, fontFamilyFallback: _fontFallback),
               child: ListenableBuilder(
-                listenable: Listenable.merge([p, g, prefs, notes]),
+                listenable: Listenable.merge([p, g, prefs, notes, agenda]),
                 builder: (context, _) => Column(children: [
                   _TitleBar(
                     t: t,
@@ -187,7 +213,7 @@ class _HomePageState extends State<HomePage> {
       case _View.focus:
         return _FocusView(t: t, p: p);
       case _View.planning:
-        return _PlanningView(t: t, p: p);
+        return _PlanningView(t: t, p: p, busy: _busyToday(), prefs: _Prefs.i);
       case _View.tasks:
         return _TaskListView(t: t, p: p);
       case _View.shutdown:
@@ -206,7 +232,7 @@ class _HomePageState extends State<HomePage> {
       case _View.account:
         return _AccountView(t: t, g: g);
       case _View.notes:
-        return _NotesView(t: t, notes: notes);
+        return _NotesView(t: t, notes: notes, p: p);
       case _View.calendar:
         return _CalendarView(t: t, g: g, p: p, onAccount: () => setState(() => _view = _View.account));
       case _View.settings:

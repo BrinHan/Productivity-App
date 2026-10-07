@@ -226,9 +226,10 @@ class _NoteEditorState extends State<_NoteEditor> {
 }
 
 class _NotesView extends StatefulWidget {
-  const _NotesView({required this.t, required this.notes});
+  const _NotesView({required this.t, required this.notes, required this.p});
   final _T t;
   final NotesService notes;
+  final PlannerModel p;
 
   @override
   State<_NotesView> createState() => _NotesViewState();
@@ -236,7 +237,7 @@ class _NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<_NotesView> {
   String? _selected, _lastActive;
-  int _tab = 0; // 0 notes, 1 transcript
+  int _tab = 0; // 0 notes, 1 transcript, 2 to-dos
   final _scroll = ScrollController();
 
   @override
@@ -443,6 +444,60 @@ class _NotesViewState extends State<_NotesView> {
     ]);
   }
 
+  /// To-dos found in the call, each one a tap away from the planner.
+  Widget _todos(_T t, NotesService n, MeetingNote note) {
+    final items = extractActionItems(note);
+    if (items.isEmpty) {
+      return Text(
+        n.active == note
+            ? 'To-dos show up here as the call goes on.'
+            : 'No to-dos found. Lines in your notes that start with "[ ]" or "todo" show up here, '
+                'and so do things people commit to in the call, like "I\'ll send..." or "we need to...".',
+        style: _ts(t.sub, 14, h: 1.5),
+      );
+    }
+    final fresh = [for (final x in items) if (!note.taken.contains(x)) x];
+    void take(Iterable<String> xs, int dayOffset) {
+      final day = DateTime.now().add(Duration(days: dayOffset));
+      for (final x in xs) {
+        widget.p.add(day, x);
+      }
+      n.markTaken(note, xs);
+    }
+
+    return ListView(children: [
+      Row(children: [
+        Expanded(
+          child: Text('Picked out of your notes and the transcript. Keep the ones that are yours.',
+              style: _ts(t.sub, 13, h: 1.45)),
+        ),
+        const SizedBox(width: 12),
+        _Btn(t, 'Add all to today', fresh.isEmpty ? null : () => take(fresh, 0), compact: true, icon: Icons.playlist_add_rounded),
+      ]),
+      const SizedBox(height: 8),
+      for (var i = 0; i < items.length; i++) ...[
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(children: [
+            Icon(note.taken.contains(items[i]) ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                size: 18, color: note.taken.contains(items[i]) ? t.accent : t.faint),
+            const SizedBox(width: 12),
+            Expanded(child: Text(items[i], style: _ts(t.text, 14, h: 1.4))),
+            const SizedBox(width: 12),
+            if (note.taken.contains(items[i]))
+              Text('Added', style: _ts(t.sub, 12.5, w: FontWeight.w600))
+            else ...[
+              _Btn(t, 'Today', () => take([items[i]], 0), compact: true),
+              const SizedBox(width: 6),
+              _Btn(t, 'Tomorrow', () => take([items[i]], 1), compact: true),
+            ],
+          ]),
+        ),
+        if (i < items.length - 1) _Hair(t),
+      ],
+    ]);
+  }
+
   Widget _detail(_T t, NotesService n, MeetingNote note) {
     final heading = _ts(t.text, 34, w: FontWeight.w700, ls: -1, h: 1.15);
     return Padding(
@@ -496,6 +551,8 @@ class _NotesViewState extends State<_NotesView> {
                       _tabPill(t, Icons.edit_outlined, 'Notes', 0),
                       const SizedBox(width: 4),
                       _tabPill(t, Icons.notes_rounded, 'Transcript', 1),
+                      const SizedBox(width: 4),
+                      _tabPill(t, Icons.checklist_rounded, 'To-dos', 2),
                       const SizedBox(width: 16),
                       Expanded(
                         child: n.active == note
@@ -519,14 +576,16 @@ class _NotesViewState extends State<_NotesView> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-                      child: _tab == 0
-                          ? _NoteEditor(
-                              key: ValueKey(note.id),
-                              t: t,
-                              note: note,
-                              onChanged: (v) => n.setText(note, v),
-                            )
-                          : _transcript(t, n, note),
+                      child: switch (_tab) {
+                        0 => _NoteEditor(
+                            key: ValueKey(note.id),
+                            t: t,
+                            note: note,
+                            onChanged: (v) => n.setText(note, v),
+                          ),
+                        1 => _transcript(t, n, note),
+                        _ => _todos(t, n, note),
+                      },
                     ),
                   ),
                 ]),
