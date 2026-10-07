@@ -25,7 +25,7 @@ class _ShutdownView extends StatelessWidget {
     return _Page(
       t: t,
       title: p.shutdownToday ? 'Shut down. See you tomorrow.' : 'Daily shutdown',
-      subtitle: 'Review today, then close the loop.',
+      subtitle: 'Review today, then close the loop. Anything still open moves to tomorrow on its own, marked as slipped.',
       child: ListView(children: [
         IntrinsicHeight(
           child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -52,10 +52,18 @@ class _ShutdownView extends StatelessWidget {
           const SizedBox(height: 4),
           for (var i = 0; i < left.length; i++) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(children: [
                 Expanded(child: Text(left[i].title, style: _ts(t.text, 14))),
+                if (left[i].slipped > 0) ...[
+                  _SlipChip(t, left[i].slipped),
+                  const SizedBox(width: 10),
+                ],
                 Text(_dur(left[i].minutes), style: _ts(t.sub, 12, w: FontWeight.w600, tab: true)),
+                const SizedBox(width: 6),
+                _IconBtn(t, Icons.task_alt_rounded, 'Done after all', () => p.toggle(left[i])),
+                _IconBtn(t, Icons.arrow_forward_rounded, 'Tomorrow', () => p.slip(left[i])),
+                _IconBtn(t, Icons.delete_outline_rounded, 'Drop it', () => _deleteWithUndo(context, t, p, left[i])),
               ]),
             ),
             if (i < left.length - 1) _Hair(t),

@@ -140,7 +140,7 @@ void _deleteWithUndo(BuildContext context, _T t, PlannerModel p, Task task) {
       label: 'Undo',
       textColor: t.accent,
       onPressed: () {
-        final r = p.add(task.day, task.title, minutes: task.minutes, tag: task.tag);
+        final r = p.add(task.day, task.title, minutes: task.minutes, tag: task.tag)..slipped = task.slipped;
         for (final s in task.subs) {
           r.subs.add(Sub(s.title, s.done));
         }
@@ -276,6 +276,10 @@ class _TaskCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (task.slipped > 0 && !task.done) ...[
+                    const SizedBox(width: 4),
+                    _SlipChip(t, task.slipped),
+                  ],
                 ]),
               ]),
             ),

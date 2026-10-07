@@ -260,6 +260,23 @@ class _TagChip extends StatelessWidget {
   }
 }
 
+/// Shown on a task that was carried over from an earlier day.
+class _SlipChip extends StatelessWidget {
+  const _SlipChip(this.t, this.count);
+  final _T t;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+        message: count == 1 ? 'Carried over once' : 'Carried over $count times',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          decoration: BoxDecoration(color: t.warn.withValues(alpha: t.dark ? 0.18 : 0.10), borderRadius: BorderRadius.circular(4)),
+          child: Text(count == 1 ? 'slipped' : 'slipped $count×', style: _ts(t.warn, 12, h: 1.35)),
+        ),
+      );
+}
+
 class _Check extends StatefulWidget {
   const _Check(this.t, this.done, this.onTap, {this.size = 18});
   final _T t;
