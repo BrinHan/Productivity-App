@@ -18,7 +18,9 @@ class MeetingNote {
     this.endedAt,
     List<NoteSegment>? segments,
     this.text = '',
-  }) : segments = segments ?? [];
+    List<String>? taken,
+  })  : segments = segments ?? [],
+        taken = taken ?? [];
 
   final String id;
   String title;
@@ -27,6 +29,9 @@ class MeetingNote {
   DateTime? endedAt;
   final List<NoteSegment> segments;
   String text; // the user's own notes
+
+  /// Suggested action items already added to the planner.
+  final List<String> taken;
 
   Duration get length => (endedAt ?? DateTime.now()).difference(startedAt);
   String get transcript => segments.map((s) => s.text).join(' ');
@@ -39,6 +44,7 @@ class MeetingNote {
         'endedAt': endedAt?.toIso8601String(),
         'text': text,
         'segments': [for (final s in segments) s.toJson()],
+        if (taken.isNotEmpty) 'taken': taken,
       };
 
   static MeetingNote fromJson(Map<String, dynamic> j) => MeetingNote(
@@ -52,5 +58,6 @@ class MeetingNote {
           for (final s in ((j['segments'] as List?) ?? const []))
             if (s is Map<String, dynamic>) NoteSegment.fromJson(s),
         ],
+        taken: [for (final x in ((j['taken'] as List?) ?? const [])) if (x is String) x],
       );
 }

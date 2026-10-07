@@ -36,6 +36,9 @@ class NotesService extends ChangeNotifier {
   String? error, status;
   void Function(MeetingInfo)? onOffer;
 
+  /// Island side: a recording finished and its note is saved.
+  void Function(MeetingNote)? onFinished;
+
   /// Ticks about 10 times a second while recording (elapsed time, levels).
   final ValueNotifier<int> tick = ValueNotifier(0);
   final List<double> levels = List<double>.filled(56, 0.0, growable: true);
@@ -124,6 +127,14 @@ class NotesService extends ChangeNotifier {
       return;
     }
     _saveTimer = Timer(const Duration(milliseconds: 500), () => _save(n));
+  }
+
+  /// Remembers that these suggested action items went to the planner.
+  void markTaken(MeetingNote n, Iterable<String> items) {
+    n.taken.addAll(items.where((x) => !n.taken.contains(x)));
+    notifyListeners();
+    // The island owns the live note's file; it is saved when the call ends.
+    if (!(remote && n.id == active?.id)) _save(n);
   }
 
   Future<void> delete(MeetingNote n) async {
@@ -455,6 +466,7 @@ class NotesService extends ChangeNotifier {
     }
     _cleanup();
     notifyListeners();
+    if (note != null && note.segments.isNotEmpty) onFinished?.call(note);
   }
 
   void _cleanup() {
