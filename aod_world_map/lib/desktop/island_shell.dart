@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:flutter/foundation.dart' show ChangeNotifier, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/legacy.dart' as tray;
@@ -18,14 +18,17 @@ import 'planner_model.dart';
 import 'process_link.dart';
 import 'hello_screen.dart';
 import 'unlock_watch.dart';
+import 'log.dart';
 import 'window_shell.dart' show launchApp, openWeb;
 
 const Size kIslandWindowSize = Size(640, 480);
 
-/// Hotkey id for quick capture.
-const kCaptureHotkey = 1;
+/// Hotkey ids for quick capture: a letter combination, and Ctrl+Shift+Alt
+/// on its own.
+const kCaptureHotkey = 1, kCaptureChord = 2;
 
-/// Quick-capture shortcuts to try, in order.
+/// Quick-capture shortcuts to try, in order. Ctrl+Shift+Alt alone is the
+/// main one; the first free letter combination works alongside it.
 const kCaptureHotkeys = [
   (GlobalHotkey.ctrl | GlobalHotkey.alt, 0x4E, 'Ctrl+Alt+N'), // N
   (GlobalHotkey.ctrl | GlobalHotkey.shift | GlobalHotkey.alt, 0x4E, 'Ctrl+Shift+Alt+N'),
@@ -63,7 +66,9 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   Future<void> _try(Future<void> Function() f) async {
     try {
       await f();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   /// Takes the island's single-instance lock. False if one already runs.
@@ -102,15 +107,20 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
 
     _initKeys();
     // Quick capture. Registered, so the app in front never sees the keys,
-    // and the press lets the island take the keyboard. The first free
-    // combination wins (Claude's app takes Ctrl+Alt+Space).
+    // and the press lets the island take the keyboard. Ctrl+Shift+Alt on
+    // its own, plus the first free letter combination (Claude's app takes
+    // Ctrl+Alt+Space).
     island.giveBackFocus = GlobalHotkey.giveBackFocus;
+    final keys = <String>[];
+    if (await GlobalHotkey.registerChord(kCaptureChord, island.capture)) keys.add('Ctrl+Shift+Alt');
     for (final (mods, vk, label) in kCaptureHotkeys) {
       if (await GlobalHotkey.register(kCaptureHotkey, mods, vk, island.capture)) {
-        _captureKeys = label;
+        keys.add(label);
         break;
       }
     }
+    if (keys.isNotEmpty) _captureKeys = keys.first;
+    Log.info('Quick capture: ${keys.isEmpty ? 'no free shortcut' : keys.join(', ')}');
     await _initTray();
     island.sendMusic = (cmd) => _music?.send(cmd);
     island.openUrl = (u) => _try(() => openWeb(u));
@@ -278,6 +288,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   Future<void> quit() async {
     _poll?.cancel();
     await GlobalHotkey.unregister(kCaptureHotkey);
+    await GlobalHotkey.unregisterChord(kCaptureChord);
     _unlock?.stop();
     _away?.stop();
     _trim?.cancel();
@@ -322,7 +333,9 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     try {
       final lib = ffi.DynamicLibrary.open('user32.dll');
       _asyncKey = lib.lookupFunction<ffi.Int16 Function(ffi.Int32), int Function(int)>('GetAsyncKeyState');
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   bool _down(int vk) {
@@ -340,6 +353,8 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'annotate', label: 'Annotate screen  (Ctrl+Shift+A)'),
         tray.MenuItem(key: 'capture', label: _captureKeys == null ? 'Quick capture' : 'Quick capture  ($_captureKeys)'),
         tray.MenuItem.separator(),
+        // Demos of each island state, for working on the island.
+        if (kDebugMode) ...[
         tray.MenuItem(key: 'island', label: 'Island: open'),
         tray.MenuItem(key: 'notch', label: 'Island: Chrome notch'),
         tray.MenuItem(key: 'idle', label: 'Island: idle'),
@@ -351,6 +366,8 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'face', label: 'Island: Face ID unlock'),
         tray.MenuItem(key: 'finger', label: 'Island: fingerprint unlock'),
         tray.MenuItem(key: 'pin', label: 'Island: PIN unlock'),
+        tray.MenuItem.separator(),
+        ],
         tray.MenuItem(key: 'hello', label: 'Show the Hello screen'),
         tray.MenuItem.separator(),
         tray.MenuItem(key: 'quit', label: 'Quit'),
