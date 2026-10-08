@@ -77,6 +77,10 @@ class _HomePageState extends State<HomePage> {
     agenda.refresh(widget.shell.island.calendarFeeds);
     widget.shell.view.addListener(_onViewAsked);
     _onViewAsked();
+    p.placeOf = (task) {
+      final spans = _placeToday()[task.id];
+      return spans == null || spans.isEmpty ? null : spans.first.start;
+    };
     _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (!mounted) return;
       setState(() {});
@@ -88,6 +92,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     widget.shell.view.removeListener(_onViewAsked);
+    p.placeOf = null;
     _clockTimer?.cancel();
     super.dispose();
   }
@@ -108,6 +113,20 @@ class _HomePageState extends State<HomePage> {
       for (final e in [...g.events, ...agenda.events])
         if (!e.allDay && e.start.isBefore(next) && e.end.isAfter(today)) (start: e.start, end: e.end),
     ];
+  }
+
+  /// Today's tasks on the calendar: pinned ones at their time, the rest in
+  /// the free gaps of the workday.
+  Map<String, List<({DateTime start, DateTime end})>> _placeToday() {
+    final now = DateTime.now();
+    return placeTasks(
+      now: now,
+      day: now,
+      startHour: _Prefs.i.dayStart,
+      endHour: _Prefs.i.dayEnd,
+      busy: _busyToday(),
+      tasks: [for (final x in p.forDay(now)) (id: x.id, minutes: x.minutes, at: x.at)],
+    );
   }
 
   @override
@@ -175,7 +194,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         Expanded(child: _content(t)),
-                        if (showPanel) _SchedulePanel(t: t, p: p, g: g),
+                        if (showPanel) _SchedulePanel(t: t, p: p, g: g, prefs: prefs, placed: _placeToday()),
                       ]);
                     }),
                   ),
