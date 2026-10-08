@@ -46,8 +46,10 @@ Widget _chip(String label, VoidCallback onTap, {bool on = false, IconData? icon}
       ),
     );
 
-Widget _iconBtn(IconData icon, VoidCallback onTap, {double size = 16, Color color = _dim}) => IslandPressable(
+Widget _iconBtn(IconData icon, String label, VoidCallback onTap, {double size = 16, Color color = _dim}) =>
+    IslandPressable(
       onTap: onTap,
+      label: label,
       child: SizedBox(width: 28, height: 28, child: Icon(icon, size: size, color: color)),
     );
 
@@ -557,7 +559,7 @@ class _IslandWeatherPageState extends State<IslandWeatherPage> {
                       ),
                     )
                   else
-                    _iconBtn(Icons.refresh_rounded, () => s.refresh(force: true)),
+                    _iconBtn(Icons.refresh_rounded, 'Refresh', () => s.refresh(force: true)),
                 ]),
               ]),
               const Spacer(),
@@ -632,7 +634,7 @@ class _IslandClipboardPageState extends State<IslandClipboardPage> {
               child: Text('Copied', style: TextStyle(fontSize: 11, color: Color(0xFF30D158))),
             )
           else
-            _iconBtn(Icons.close_rounded, () => h.remove(s), size: 14, color: _faint),
+            _iconBtn(Icons.close_rounded, 'Remove', () => h.remove(s), size: 14, color: _faint),
         ]),
       ),
     );
@@ -693,7 +695,8 @@ class _IslandClipboardPageState extends State<IslandClipboardPage> {
 
 // --------------------------------------------------------- meeting soon pill
 
-/// A call with a join link starts in a few minutes: count down, offer Join.
+/// Something starts in a few minutes: count down, and offer Join for a
+/// call or Focus for a planner task.
 class IslandUpcomingContent extends StatefulWidget {
   const IslandUpcomingContent({super.key, required this.c});
   final IslandController c;
@@ -709,6 +712,14 @@ class _IslandUpcomingContentState extends State<IslandUpcomingContent> with _Tic
     if (e == null) return const SizedBox.shrink();
     final until = e.start.difference(DateTime.now());
     final when = until.inSeconds > 0 ? 'Starts in ${_left(until)}' : 'Started ${_left(-until)} ago';
+    final task = e.feed == IslandController.kTaskFeed;
+    final call = e.link.isNotEmpty;
+    final where = call ? meetingAppOf(e.link) : e.location.split('\n').first.trim();
+    final (String? action, VoidCallback? onAction, Color actionColor) = call
+        ? ('Join', widget.c.joinSoon, const Color(0xFF30D158))
+        : task && widget.c.soonTask != null
+            ? ('Focus', widget.c.focusSoon, const Color(0xFF0A84FF))
+            : (null, null, Colors.transparent);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(children: [
@@ -716,7 +727,11 @@ class _IslandUpcomingContentState extends State<IslandUpcomingContent> with _Tic
           width: 44,
           height: 44,
           decoration: BoxDecoration(color: const Color(0x1FFFFFFF), borderRadius: BorderRadius.circular(13)),
-          child: const Icon(Icons.videocam_rounded, color: Colors.white, size: 22),
+          child: Icon(
+            call ? Icons.videocam_rounded : task ? Icons.task_alt_rounded : Icons.event_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -724,20 +739,24 @@ class _IslandUpcomingContentState extends State<IslandUpcomingContent> with _Tic
             Text(e.title,
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             const SizedBox(height: 2),
-            Text('$when · ${meetingAppOf(e.link)}',
+            Text(where.isEmpty ? when : '$when · $where',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12.5, color: Color(0x99FFFFFF), fontFeatures: _tab)),
           ]),
         ),
-        _iconBtn(Icons.close_rounded, widget.c.dismissSoon, color: const Color(0x99FFFFFF)),
-        const SizedBox(width: 6),
-        IslandPressable(
-          onTap: widget.c.joinSoon,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-            decoration: BoxDecoration(color: const Color(0xFF30D158), borderRadius: BorderRadius.circular(18)),
-            child: const Text('Join', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+        _iconBtn(Icons.close_rounded, 'Dismiss', widget.c.dismissSoon, color: const Color(0x99FFFFFF)),
+        if (action != null) ...[
+          const SizedBox(width: 6),
+          IslandPressable(
+            onTap: onAction!,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              decoration: BoxDecoration(color: actionColor, borderRadius: BorderRadius.circular(18)),
+              child: Text(action, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+            ),
           ),
-        ),
+        ],
       ]),
     );
   }
