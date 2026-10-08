@@ -7,6 +7,7 @@ class _SettingsView extends StatelessWidget {
     required this.isDark,
     required this.onDark,
     required this.g,
+    required this.p,
     required this.onAccount,
   });
   final _T t;
@@ -14,6 +15,7 @@ class _SettingsView extends StatelessWidget {
   final bool isDark;
   final ValueChanged<bool> onDark;
   final GoogleService g;
+  final PlannerModel p;
   final VoidCallback onAccount;
 
   Widget _head(String s) => Padding(
@@ -118,6 +120,10 @@ class _SettingsView extends StatelessWidget {
                 _row('Google account', g.signedIn ? (g.email ?? 'Connected') : 'Not connected',
                     _Btn(t, g.signedIn ? 'Manage' : 'Connect', onAccount, compact: true),
                     last: true),
+                _head('Your data'),
+                _DataSection(t: t, p: p, row: _row),
+                _head('About'),
+                _AboutSection(t: t, row: _row),
                 _head('Other screens'),
                 Text('The map and the island keep their own settings: the gear on the map, and the gear tab in the island.',
                     style: _ts(t.sub, 13, h: 1.5)),

@@ -4,6 +4,7 @@ import 'dart:io' show File, Process, ProcessStartMode;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -11,13 +12,17 @@ import '../aod/sky_toggle.dart';
 import 'action_items.dart';
 import 'agenda_service.dart' show AgendaService, CalendarFeed, isCalendarLink;
 import 'app_files.dart';
+import 'backup.dart';
 import 'browser.dart';
 import 'date_names.dart';
 import 'day_fit.dart';
 import 'google_service.dart';
+import 'log.dart';
+import 'motion.dart';
 import 'notes_model.dart';
 import 'notes_service.dart';
 import 'planner_model.dart';
+import 'updates.dart';
 import 'window_shell.dart';
 
 part 'home_theme.dart';
@@ -33,8 +38,12 @@ part 'home_week.dart';
 part 'home_schedule.dart';
 part 'home_account.dart';
 part 'home_settings.dart';
+part 'home_about.dart';
 part 'home_notes.dart';
 part 'home_calendar.dart';
+part 'home_calendar_grid.dart';
+part 'home_calendar_month.dart';
+part 'home_calendar_panels.dart';
 part 'home_welcome.dart';
 
 enum _View { home, focus, planning, tasks, shutdown, week, review, account, settings, notes, calendar }
@@ -261,6 +270,7 @@ class _HomePageState extends State<HomePage> {
           isDark: widget.isDark,
           onDark: widget.onDarkChanged,
           g: g,
+          p: p,
           onAccount: () => setState(() => _view = _View.account),
         );
     }

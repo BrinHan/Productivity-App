@@ -148,14 +148,16 @@ class _Prefs extends ChangeNotifier {
       dayStart = ((j['dayStart'] as num?)?.toInt() ?? 9).clamp(0, 23).toInt();
       dayEnd = ((j['dayEnd'] as num?)?.toInt() ?? 17).clamp(dayStart + 1, 24).toInt();
       notifyListeners();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   Future<void> _save() async {
     try {
       final f = _file;
       await f.parent.create(recursive: true);
-      await f.writeAsString(jsonEncode({
+      await writeFileSafely(f, jsonEncode({
         'font': font,
         'sidebar': sidebarOpen,
         'schedule': showSchedule,
@@ -164,7 +166,9 @@ class _Prefs extends ChangeNotifier {
         'dayStart': dayStart,
         'dayEnd': dayEnd,
       }));
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void setFont(String v) {
