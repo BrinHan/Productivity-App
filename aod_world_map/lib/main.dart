@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show exit;
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemChannels;
@@ -14,6 +15,7 @@ import 'desktop/annotate/overlay_shell.dart';
 import 'desktop/dynamic_island.dart';
 import 'desktop/home_page.dart';
 import 'desktop/island_shell.dart';
+import 'desktop/log.dart';
 import 'desktop/planner_model.dart';
 import 'desktop/window_shell.dart';
 
@@ -23,6 +25,12 @@ import 'desktop/window_shell.dart';
 /// which starts the island if it is not running yet.
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  Log.process = args.contains('--island')
+      ? 'island'
+      : args.contains('--overlay')
+      ? 'overlay'
+      : 'app';
+  _catchUncaught();
   if (args.contains('--island')) return _runIsland();
   if (args.contains('--overlay')) {
     return _runOverlay(ask: args.contains('--ask'), standby: args.contains('--standby'));
@@ -44,6 +52,19 @@ Future<void> main(List<String> args) async {
   final map = MapModel()..start();
   runApp(AodApp(shell: shell, planner: planner, map: map));
   WidgetsBinding.instance.addPostFrameCallback((_) => shell.settleWindow());
+}
+
+/// Errors nothing else caught still end up in the log, as well as the console.
+void _catchUncaught() {
+  final framework = FlutterError.onError;
+  FlutterError.onError = (details) {
+    Log.error(details.exception, details.stack);
+    framework?.call(details);
+  };
+  PlatformDispatcher.instance.onError = (e, st) {
+    Log.error(e, st);
+    return true;
+  };
 }
 
 Future<void> _runIsland() async {
