@@ -57,6 +57,22 @@ at the top of your screen. Click it (or hover, if you prefer) and it opens.
 
 When music starts, the pill pops up with the song for a moment. It stays
 quiet when Chrome is in front, so it never covers a tab strip.
+It follows Windows' **Animation effects** setting too: with it off, the
+island and Pip move without the bounce.
+
+### Quick capture
+
+Press **Ctrl+Shift+Alt** together and let go, from any app, and the island
+opens a box to type a task into. Write `call mum 15m tomorrow` and it lands
+on tomorrow as a 15 minute task. Enter adds it and hands the keyboard back
+to whatever you were doing. **Ctrl+Alt+N** does the same.
+
+### Reminders
+
+Five minutes before a timed event or a planner task with a set time, the
+pill counts down to it. Calls get a **Join** button for Zoom, Meet or
+Teams; tasks get **Focus**, which starts a focus session on them. Choose
+calls only, or turn reminders off, in the island's settings.
 
 ### The Hello screen
 
@@ -101,7 +117,11 @@ shutdown.
   and a progress bar for the day.
 - **Daily planning, task list and shutdown:** a ritual for starting and
   ending each day.
-- **Weekly planning and review:** see the whole week, then look back on it.
+- **Weekly planning and review:** see the whole week, then look back on it:
+  what got done, what is still open, and how your estimates compared with
+  the time focus sessions actually took.
+- **Repeating tasks:** every day, every weekday, weekly or monthly. Tick
+  one off and the next appears; a missed one stays on its day.
 - **Focus:** a timer for the task you are on.
 - **Calendar:** day, week and month views; drag events and tasks to reschedule them.
 - **Google:** sign in once and your Calendar, Tasks and birthdays appear,
@@ -227,6 +247,14 @@ unless you turn it on:
 - **Location:** the map asks Windows for a rough location, or falls back to
   your IP address.
 - **Ask Claude:** sends a screenshot to Anthropic only when you ask.
+- **Updates:** once a day Meridian asks GitHub whether a newer version is
+  out. Nothing about you is sent.
+
+Saves can't be left half written, and each file keeps an hourly `.bak`
+copy. **Settings > Your data** saves everything (tasks, settings and
+meeting notes, but not sign-ins) to one backup file and restores from one.
+If something goes wrong, **Settings > About > Copy diagnostics** copies the
+error log from `%APPDATA%\AodWorldMap\logs` for a bug report.
 
 ---
 
