@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 
 import 'island_controller.dart';
 import 'island_services.dart' show PipLook, PipSky;
+import 'motion.dart';
 
 class Heart {
   Heart(this.x, this.vx, this.age);
@@ -1075,7 +1076,8 @@ class _PipActorState extends State<PipActor>
     _ft = 0;
     _from = _pos;
     _fromScale = _scale;
-    _dur = seconds;
+    // With animation effects off in Windows, Pip hops straight to his spot.
+    _dur = Motion.reduced ? 0.01 : seconds;
     _seed = _rng.nextDouble() * math.pi * 2;
     _m.flying = true;
     _trail.clear();
