@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'date_names.dart';
 import 'island_controller.dart';
+import 'island_extras.dart' show IslandWeatherLine;
 import 'island_pages.dart';
 import 'island_widgets.dart';
 import 'stock_service.dart';
@@ -75,7 +76,7 @@ class _IslandHomePageState extends State<IslandHomePage> {
         children: [
           SizedBox(
             width: kCardW,
-            child: _Card(child: c.musicPlaying ? _MiniMusic(c: c) : const _PipCorner()),
+            child: _Card(child: c.musicPlaying ? _MiniMusic(c: c) : _PipCorner(c: c)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -130,9 +131,10 @@ class _Card extends StatelessWidget {
 }
 
 /// Pip's seat (the flying Pip lands here, drawn by the island) beside the
-/// time and date.
+/// time, date and weather.
 class _PipCorner extends StatelessWidget {
-  const _PipCorner();
+  const _PipCorner({required this.c});
+  final IslandController c;
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +156,7 @@ class _PipCorner extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: _dim,
               ),
+              IslandWeatherLine(c: c),
             ],
           ),
         ),
