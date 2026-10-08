@@ -162,22 +162,54 @@ class _TopBar extends StatelessWidget {
   const _TopBar({required this.c});
   final IslandController c;
 
-  Widget _tab(IconData icon, IslandPage p) {
+  static const _names = {
+    IslandPage.home: 'Home',
+    IslandPage.music: 'Music',
+    IslandPage.stocks: 'Stocks',
+    IslandPage.today: 'Today',
+    IslandPage.clock: 'Timer',
+    IslandPage.clipboard: 'Clipboard',
+    IslandPage.settings: 'Settings',
+  };
+
+  Widget _tab(IconData icon, IslandPage p, {bool dot = false}) {
     final on = c.page == p;
-    return IslandPressable(
-      onTap: () => c.setPage(p),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 40,
-        height: 28,
-        decoration: BoxDecoration(
-          color: on ? const Color(0x2EFFFFFF) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: on ? Colors.white : const Color(0x99FFFFFF),
+    final name = _names[p] ?? p.name;
+    return Semantics(
+      button: true,
+      selected: on,
+      label: dot ? '$name, update available' : name,
+      child: Tooltip(
+        message: name,
+        waitDuration: const Duration(milliseconds: 600),
+        child: IslandPressable(
+          onTap: () => c.setPage(p),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 40,
+            height: 28,
+            decoration: BoxDecoration(
+              color: on ? const Color(0x2EFFFFFF) : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(icon, size: 16, color: on ? Colors.white : const Color(0x99FFFFFF)),
+                if (dot)
+                  const Positioned(
+                    top: 5,
+                    right: 9,
+                    child: SizedBox.square(
+                      dimension: 6,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: Color(0xFF6FD08C), shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -203,17 +235,21 @@ class _TopBar extends StatelessWidget {
           _tab(Icons.content_paste_rounded, IslandPage.clipboard),
           const Spacer(),
           if (c.startAnnotate != null) ...[
-            IslandPressable(
-              onTap: c.startAnnotate!,
-              child: const SizedBox(
-                width: 40,
-                height: 28,
-                child: Icon(Icons.draw_rounded, size: 16, color: Color(0x99FFFFFF)),
+            Tooltip(
+              message: 'Draw on screen',
+              waitDuration: const Duration(milliseconds: 600),
+              child: IslandPressable(
+                onTap: c.startAnnotate!,
+                child: const SizedBox(
+                  width: 40,
+                  height: 28,
+                  child: Icon(Icons.draw_rounded, size: 16, color: Color(0x99FFFFFF), semanticLabel: 'Draw on screen'),
+                ),
               ),
             ),
             const SizedBox(width: 6),
           ],
-          _tab(Icons.settings_rounded, IslandPage.settings),
+          _tab(Icons.settings_rounded, IslandPage.settings, dot: c.update != null),
         ],
       ),
     ),
@@ -228,8 +264,10 @@ class _MusicPage extends StatelessWidget {
 
   static const _accent = Color(0xFF8FB3C9);
 
-  Widget _ctl(IconData icon, VoidCallback onTap, {double size = 32, Color color = Colors.white}) => IslandPressable(
+  Widget _ctl(IconData icon, String label, VoidCallback onTap, {double size = 32, Color color = Colors.white}) =>
+      IslandPressable(
         onTap: onTap,
+        label: label,
         child: SizedBox(width: 46, height: 42, child: Icon(icon, size: size, color: color)),
       );
 
@@ -289,10 +327,10 @@ class _MusicPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               SizedBox(width: 46, child: Center(child: IslandAppBadge(app: np?.app ?? '', size: 24))),
-              _ctl(Icons.fast_rewind_rounded, () => c.sendMusic?.call('prev'), size: 34),
-              _ctl(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, () => c.sendMusic?.call('toggle'), size: 42),
-              _ctl(Icons.fast_forward_rounded, () => c.sendMusic?.call('next'), size: 34),
-              _ctl(Icons.laptop_rounded, _soundSettings, size: 24, color: const Color(0x8CFFFFFF)),
+              _ctl(Icons.fast_rewind_rounded, 'Previous track', () => c.sendMusic?.call('prev'), size: 34),
+              _ctl(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, playing ? 'Pause' : 'Play', () => c.sendMusic?.call('toggle'), size: 42),
+              _ctl(Icons.fast_forward_rounded, 'Next track', () => c.sendMusic?.call('next'), size: 34),
+              _ctl(Icons.laptop_rounded, 'Sound output', _soundSettings, size: 24, color: const Color(0x8CFFFFFF)),
             ],
           ),
         ],
@@ -458,9 +496,28 @@ class _SettingsPageState extends State<_SettingsPage> {
       );
     }
     final picked = c.pipColor.toARGB32();
+    final update = c.update;
     return ListView(
       padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
       children: [
+        if (update != null) ...[
+          IslandPressable(
+            onTap: () => c.openUrl?.call(update.installer ?? update.page),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(color: const Color(0x266FD08C), borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                children: [
+                  const Icon(Icons.system_update_alt_rounded, size: 15, color: Color(0xFF6FD08C)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Meridian ${update.version} is out', style: _label)),
+                  Text(update.installer != null ? 'Download' : "See what's new", style: _dim),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
         Row(
           children: [
             const Text('Open island on', style: _label),
@@ -488,6 +545,17 @@ class _SettingsPageState extends State<_SettingsPage> {
             _seg('On', c.popOnTrackChange, () => c.setPopOnTrackChange(true)),
             const SizedBox(width: 6),
             _seg('Off', !c.popOnTrackChange, () => c.setPopOnTrackChange(false)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text('Remind me before', style: _label),
+            const Spacer(),
+            for (final (label, r) in const [('Off', Reminders.off), ('Calls', Reminders.calls), ('All', Reminders.all)]) ...[
+              _seg(label, c.reminders == r, () => c.setReminders(r)),
+              if (r != Reminders.all) const SizedBox(width: 6),
+            ],
           ],
         ),
         const SizedBox(height: 8),
