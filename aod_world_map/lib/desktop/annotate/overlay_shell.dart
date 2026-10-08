@@ -13,6 +13,7 @@ import '../process_link.dart';
 import 'annotation_model.dart';
 import 'overlay_win32.dart';
 import 'vision_agent.dart';
+import '../log.dart';
 
 enum Tool { mouse, pen, highlighter, vanish, line, arrow, rect, ellipse, stamp, text, eraser, pixelEraser }
 
@@ -106,7 +107,9 @@ class OverlayShell extends ChangeNotifier {
   Future<void> _try(Future<void> Function() f) async {
     try {
       await f();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   /// Single-instance lock. False if an overlay already runs (it was told to
@@ -228,12 +231,14 @@ class OverlayShell extends ChangeNotifier {
         if (m['color'] case final int c) colors[g] = Color(c);
         if (m['width'] case final num w when kInkWidths.contains(w.toDouble())) widths[g] = w.toDouble();
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void _savePrefs() => _try(() async {
         await _prefsFile.parent.create(recursive: true);
-        await _prefsFile.writeAsString(jsonEncode({
+        await writeFileSafely(_prefsFile, jsonEncode({
           'dock': dock.name,
           'groups': {
             for (final g in ToolGroup.values)

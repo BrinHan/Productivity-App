@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 
 import '../app_files.dart';
 import 'annotation_model.dart';
+import '../log.dart';
 
 /// One screen grab ready to send: the monitor with your annotations drawn
 /// on it, downscaled. [toLogical] maps image pixels back to the overlay.
@@ -171,7 +172,9 @@ class VisionAgent extends ChangeNotifier {
       try {
         final k = (await _keyFile.readAsString()).trim();
         if (k.isNotEmpty) _key = k;
-      } catch (_) {}
+      } catch (e, st) {
+        logError(e, st);
+      }
     }
     notifyListeners();
   }
@@ -183,8 +186,10 @@ class VisionAgent extends ChangeNotifier {
     error = null;
     try {
       await _keyFile.parent.create(recursive: true);
-      await _keyFile.writeAsString(key);
-    } catch (_) {}
+      await writeFileSafely(_keyFile, key);
+    } catch (e, st) {
+      logError(e, st);
+    }
     notifyListeners();
   }
 
@@ -313,7 +318,9 @@ class VisionAgent extends ChangeNotifier {
       var msg = 'HTTP ${res.statusCode}';
       try {
         msg = '${jsonDecode(body)['error']['message']}';
-      } catch (_) {}
+      } catch (e, st) {
+        logError(e, st);
+      }
       throw msg;
     }
 
@@ -354,7 +361,9 @@ class VisionAgent extends ChangeNotifier {
             try {
               final s = json[i].toString();
               if (s.isNotEmpty) input = jsonDecode(s) as Map<String, dynamic>;
-            } catch (_) {}
+            } catch (e, st) {
+              logError(e, st);
+            }
             b['input'] = input;
             _draw('${b['name']}', input, cap);
           }
