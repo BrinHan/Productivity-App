@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:aod_world_map/desktop/annotate/annotation_model.dart';
+import 'package:meridian/desktop/annotate/annotation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 StrokeShape _stroke(List<Offset> pts) => StrokeShape(color: const Color(0xFFFF0000), points: pts);

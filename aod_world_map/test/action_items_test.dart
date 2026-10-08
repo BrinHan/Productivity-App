@@ -1,5 +1,5 @@
-import 'package:aod_world_map/desktop/action_items.dart';
-import 'package:aod_world_map/desktop/notes_model.dart';
+import 'package:meridian/desktop/action_items.dart';
+import 'package:meridian/desktop/notes_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 MeetingNote _note({String text = '', List<String> said = const []}) => MeetingNote(

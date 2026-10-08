@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aod_world_map/desktop/planner_model.dart';
+import 'package:meridian/desktop/planner_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

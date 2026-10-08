@@ -1,4 +1,4 @@
-import 'package:aod_world_map/desktop/day_fit.dart';
+import 'package:meridian/desktop/day_fit.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

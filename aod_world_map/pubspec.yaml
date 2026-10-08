@@ -1,5 +1,5 @@
-name: aod_world_map
-description: "A new Flutter project."
+name: meridian
+description: "Meridian: a dynamic island, day planner and living world map for Windows."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ^3.13.4
@@ -41,6 +41,7 @@ dependencies:
   screen_retriever: ^0.2.2
   ffi: ^2.2.0
   crypto: ^3.0.7
+  file_selector: ^1.1.0
 
 dev_dependencies:
   flutter_test:

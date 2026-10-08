@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:aod_world_map/desktop/island_controller.dart';
-import 'package:aod_world_map/desktop/island_live.dart';
-import 'package:aod_world_map/desktop/notes_model.dart';
-import 'package:aod_world_map/desktop/planner_model.dart';
+import 'package:meridian/desktop/island_controller.dart';
+import 'package:meridian/desktop/island_live.dart';
+import 'package:meridian/desktop/notes_model.dart';
+import 'package:meridian/desktop/planner_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

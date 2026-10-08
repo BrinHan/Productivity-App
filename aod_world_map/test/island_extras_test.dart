@@ -1,6 +1,6 @@
-import 'package:aod_world_map/desktop/agenda_service.dart';
-import 'package:aod_world_map/desktop/island_extras.dart';
-import 'package:aod_world_map/desktop/island_services.dart';
+import 'package:meridian/desktop/agenda_service.dart';
+import 'package:meridian/desktop/island_extras.dart';
+import 'package:meridian/desktop/island_services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
