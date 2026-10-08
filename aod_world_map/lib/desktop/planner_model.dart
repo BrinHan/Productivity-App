@@ -25,6 +25,7 @@ class Task {
     List<Sub>? subs,
     this.done = false,
     this.slipped = 0,
+    this.at,
   }) : subs = subs ?? [];
   final String id;
   String title, tag;
@@ -36,6 +37,10 @@ class Task {
   /// How many times the task was left unfinished and carried to a later day.
   int slipped;
 
+  /// Pinned start time on the calendar. Without one, the task fills the
+  /// next free gap in its day.
+  DateTime? at;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -44,6 +49,7 @@ class Task {
         'minutes': minutes,
         'done': done,
         if (slipped > 0) 'slipped': slipped,
+        if (at != null) 'at': at!.toIso8601String(),
         'subs': [
           for (final s in subs) {'t': s.title, 'd': s.done},
         ],
@@ -57,6 +63,7 @@ class Task {
         minutes: (j['minutes'] as num?)?.toInt() ?? 30,
         done: (j['done'] as bool?) ?? false,
         slipped: (j['slipped'] as num?)?.toInt() ?? 0,
+        at: DateTime.tryParse((j['at'] as String?) ?? ''),
         subs: [
           for (final s in ((j['subs'] as List?) ?? const []))
             if (s is Map) Sub((s['t'] as String?) ?? '', (s['d'] as bool?) ?? false),
@@ -78,6 +85,7 @@ int rollOver(List<Task> tasks, DateTime today) {
   for (final t in tasks) {
     if (!t.done && t.day.isBefore(t0) && !t.day.isBefore(oldest)) {
       t.day = t0;
+      t.at = null;
       t.slipped++;
       n++;
     }
@@ -211,8 +219,18 @@ class PlannerModel extends ChangeNotifier {
     return t;
   }
 
+  /// Where today's calendar has a task, set by the app window. A task
+  /// checked off is pinned there, so the rest of the plan doesn't shift.
+  DateTime? Function(Task)? placeOf;
+
+  void _setDone(Task t, bool done) {
+    if (done && !t.done) t.at ??= placeOf?.call(t);
+    if (!done && t.done) t.at = null;
+    t.done = done;
+  }
+
   void toggle(Task t) {
-    t.done = !t.done;
+    _setDone(t, !t.done);
     for (final s in t.subs) {
       s.done = t.done;
     }
@@ -221,7 +239,13 @@ class PlannerModel extends ChangeNotifier {
 
   void toggleSub(Task t, Sub s) {
     s.done = !s.done;
-    t.done = t.subs.isNotEmpty && t.subs.every((x) => x.done);
+    _setDone(t, t.subs.isNotEmpty && t.subs.every((x) => x.done));
+    _changed();
+  }
+
+  /// Pins [t] to start at [at] on the calendar; null lets it fit itself in again.
+  void pin(Task t, DateTime? at) {
+    t.at = at;
     _changed();
   }
 
@@ -243,12 +267,14 @@ class PlannerModel extends ChangeNotifier {
 
   void moveDay(Task t, int days) {
     t.day = dayOf(t.day.add(Duration(days: days)));
+    t.at = null;
     _changed();
   }
 
   /// Not getting to it today: carry it to tomorrow and count the slip.
   void slip(Task t) {
     t.day = dayOf(DateTime.now()).add(const Duration(days: 1));
+    t.at = null;
     t.slipped++;
     _changed();
   }
@@ -265,6 +291,7 @@ class PlannerModel extends ChangeNotifier {
     for (final t in tasks) {
       if (t.day == today && !t.done) {
         t.day = today.add(const Duration(days: 1));
+        t.at = null;
         t.slipped++;
         n++;
       }
