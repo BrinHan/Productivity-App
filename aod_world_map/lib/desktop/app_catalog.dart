@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'app_files.dart';
 import 'cs_helper.dart';
+import 'log.dart';
 
 /// An app from the Start menu. [target] opens it ('shell:AppsFolder\<id>'
 /// works for desktop and Store apps alike); [icon] is a PNG of its icon, or
@@ -72,7 +73,9 @@ class AppCatalog {
           if (name != null && id != null && _keep(name, id)) add(InstalledApp(name, 'shell:AppsFolder\\$id', ''));
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     _cache = out;
     onUpdate?.call(List.of(out));
     return out;

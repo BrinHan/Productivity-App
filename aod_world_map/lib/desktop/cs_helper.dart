@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'app_files.dart';
+import 'log.dart';
 
 /// Compiles a small C# helper with the .NET Framework compiler that ships
 /// with Windows, once, into %APPDATA%\AodWorldMap\bin\<name>.exe. Returns its
@@ -34,7 +35,9 @@ Future<String?> buildCsHelper(String name, String source, {List<String> refs = c
     ]);
     try {
       await src.delete();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     return r.exitCode == 0 && await exe.exists() ? exe.path : null;
   } catch (_) {
     return null;

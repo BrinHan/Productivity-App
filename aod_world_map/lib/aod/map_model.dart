@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'dot_grid.dart';
 import 'solar_math.dart';
+import '../desktop/log.dart';
 
 class MapModel extends ChangeNotifier {
   final DotGrid grid = DotGrid.fromPolygons();
@@ -58,7 +59,9 @@ class MapModel extends ChangeNotifier {
         label = _nameFrom(data) ?? label;
         notifyListeners();
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   Future<Map<String, dynamic>?> _geocode([double? lat, double? lon]) async {
