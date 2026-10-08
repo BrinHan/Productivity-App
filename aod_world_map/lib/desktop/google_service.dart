@@ -582,7 +582,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
               'singleEvents': 'true',
               'orderBy': 'startTime',
               'maxResults': '50',
-              'fields': 'items(summary,location,status,start,end)',
+              'fields': 'items(summary,location,description,hangoutLink,status,start,end)',
             }),
           );
           if (r.statusCode != 200) return;
@@ -598,6 +598,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
               allDay,
               '${e['location'] ?? ''}',
               1000 + ci, // colour slot, apart from the iCal feeds
+              link: joinLink('${e['hangoutLink'] ?? ''} ${e['location'] ?? ''} ${e['description'] ?? ''}'),
             ));
           }
         }(),

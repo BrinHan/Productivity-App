@@ -21,11 +21,32 @@ class CalendarFeed {
 }
 
 class AgendaEvent {
-  const AgendaEvent(this.title, this.start, this.end, this.allDay, this.location, this.feed);
+  const AgendaEvent(this.title, this.start, this.end, this.allDay, this.location, this.feed, {this.link = ''});
   final String title, location;
+
+  /// The Zoom, Meet or Teams link to join it, or ''.
+  final String link;
   final DateTime start, end;
   final bool allDay;
   final int feed; // index into the feed list (for colour)
+}
+
+final _joinRe = RegExp(
+  r'https://(?:[\w-]+\.)?(?:zoom\.us/(?:j|my|w)/[^\s<>"]+'
+  r'|meet\.google\.com/[a-z]{3}-[a-z]{4}-[a-z]{3}'
+  r'|teams\.microsoft\.com/l/meetup-join/[^\s<>"]+'
+  r'|teams\.live\.com/meet/[^\s<>"]+)',
+  caseSensitive: false,
+);
+
+/// The first Zoom, Meet or Teams link in [text], or ''.
+String joinLink(String text) => _joinRe.firstMatch(text)?.group(0) ?? '';
+
+/// 'Zoom', 'Meet' or 'Teams' for a link from [joinLink].
+String meetingAppOf(String link) {
+  if (link.contains('zoom.us')) return 'Zoom';
+  if (link.contains('meet.google.com')) return 'Meet';
+  return 'Teams';
 }
 
 class AgendaTodo {
@@ -42,7 +63,7 @@ class _Prop {
 }
 
 class _Raw {
-  String title = '', location = '', uid = '', status = '';
+  String title = '', location = '', uid = '', status = '', notes = '';
   DateTime? start, end, recurrenceId;
   bool allDay = false;
   Map<String, String>? rule;
@@ -259,7 +280,8 @@ class AgendaService extends ChangeNotifier {
         final en = st.add(span);
         final overlaps = st.isBefore(to) && (en.isAfter(from) || (span == Duration.zero && !st.isBefore(from)));
         if (!overlaps) continue;
-        ev.add(AgendaEvent(r.title.isEmpty ? '(No title)' : r.title, st, en, r.allDay, r.location, feed));
+        ev.add(AgendaEvent(r.title.isEmpty ? '(No title)' : r.title, st, en, r.allDay, r.location, feed,
+            link: joinLink('${r.location} ${r.notes}')));
       }
     }
 
@@ -280,6 +302,9 @@ class AgendaService extends ChangeNotifier {
           r.title = _text(p.value);
         case 'LOCATION':
           r.location = _text(p.value);
+        case 'DESCRIPTION':
+        case 'URL':
+          r.notes = '${r.notes} ${_text(p.value)}';
         case 'UID':
           r.uid = p.value.trim();
         case 'STATUS':
