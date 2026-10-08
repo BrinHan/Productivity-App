@@ -37,6 +37,16 @@ class FlutterWindow : public Win32Window {
 
   // What was in front when a hotkey took the foreground, to hand it back.
   HWND before_hotkey_ = nullptr;
+
+  // A chord of modifiers alone (Ctrl+Shift+Alt, pressed and let go with
+  // nothing else) can't be registered as a hotkey, so a low-level keyboard
+  // hook spots it and replays it as the registered hotkey Ctrl+Shift+Alt
+  // plus [chord_vk_], which brings this window forward as usual.
+  HHOOK chord_hook_ = nullptr;
+  UINT chord_vk_ = 0;
+  void StartChord(UINT vk);
+  void StopChord();
+  void SendChordHotkey();
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_
