@@ -8,6 +8,7 @@ import 'app_files.dart';
 import 'meeting_detector.dart';
 import 'notes_model.dart';
 import 'window_scan.dart';
+import 'log.dart';
 
 enum RecState { idle, recording, paused, finishing }
 
@@ -93,7 +94,9 @@ class NotesService extends ChangeNotifier {
         try {
           final j = jsonDecode(await f.readAsString());
           if (j is Map<String, dynamic>) out.add(MeetingNote.fromJson(j));
-        } catch (_) {}
+        } catch (e, st) {
+          logError(e, st);
+        }
       }
       out.sort((a, b) => b.startedAt.compareTo(a.startedAt));
       // The live note comes from the island, not from its half-written file.
@@ -107,15 +110,19 @@ class NotesService extends ChangeNotifier {
         ..clear()
         ..addAll(out);
       notifyListeners();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   Future<void> _save(MeetingNote n) async {
     try {
       final d = notesDir;
       await d.create(recursive: true);
-      await File('${d.path}$_s${n.id}.json').writeAsString(jsonEncode(n.toJson()));
-    } catch (_) {}
+      await writeFileSafely(File('${d.path}$_s${n.id}.json'), jsonEncode(n.toJson()));
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void setText(MeetingNote n, String v) {
@@ -144,7 +151,9 @@ class NotesService extends ChangeNotifier {
     try {
       final f = File('${notesDir.path}$_s${n.id}.json');
       if (await f.exists()) await f.delete();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   // --------------------------------------------------------- detection
@@ -314,7 +323,9 @@ class NotesService extends ChangeNotifier {
     _cmd = File('$tmp${_s}orbit_cap_cmd.txt');
     try {
       if (_cmd!.existsSync()) _cmd!.deleteSync();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     notifyListeners();
 
     try {
@@ -447,7 +458,9 @@ class NotesService extends ChangeNotifier {
     notifyListeners();
     try {
       await _cmd?.writeAsString('stop');
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     final p = _proc;
     if (p != null) {
       await Future.any<void>([_done.future, Future<void>.delayed(const Duration(seconds: 6))]);
@@ -474,7 +487,9 @@ class NotesService extends ChangeNotifier {
     _readyTimer?.cancel();
     try {
       _chunkDir?.deleteSync(recursive: true);
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     active = null;
     current = null;
     state = RecState.idle;
@@ -499,7 +514,9 @@ class NotesService extends ChangeNotifier {
   void _delete(String path) {
     try {
       File(path).deleteSync();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   Future<void> _pump() async {
@@ -569,7 +586,7 @@ class NotesService extends ChangeNotifier {
 
   /// Records ONE app's audio (and its child processes) with WASAPI process
   /// loopback, mixes to 16 kHz mono, and writes 10 second WAV chunks.
-  /// stdout: READY | L <level> | C|<wav>|<rms> | DONE | ERR <message>
+  /// stdout: `READY | L <level> | C|<wav>|<rms> | DONE | ERR <message>`
   static const _script = r'''
 param([int]$TargetPid, [string]$OutDir, [int]$ParentPid, [string]$CmdFile)
 $ErrorActionPreference = 'Stop'
