@@ -103,6 +103,48 @@ Future<T?> _drawer<T>(
   );
 }
 
+/// Picks how [task] repeats, from its own day: every day, every weekday,
+/// that day of the week, or that date each month.
+Future<void> _pickRepeat(BuildContext context, _T t, PlannerModel p, Task task) async {
+  final options = <(String?, String)>[
+    (null, 'Doesn\'t repeat'),
+    (Repeat.daily, Repeat.label(Repeat.daily)),
+    (Repeat.weekdays, Repeat.label(Repeat.weekdays)),
+    (Repeat.weekly(task.day), Repeat.label(Repeat.weekly(task.day))),
+    (Repeat.monthly(task.day), Repeat.label(Repeat.monthly(task.day))),
+  ];
+  final v = await _drawer<(String?,)>(
+    context,
+    t,
+    title: 'Repeat',
+    description:
+        'When it\'s ticked off, or its day passes, the next one appears on its own. '
+        'A missed one stays on its day instead of piling onto today.',
+    body: (close) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (rule, label) in options)
+          _Tap(
+            t: t,
+            selected: task.repeat == rule,
+            onTap: () => close((rule,)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+              child: Row(
+                children: [
+                  Expanded(child: Text(label, style: _ts(t.text, 14))),
+                  if (task.repeat == rule) Icon(Icons.check_rounded, size: 18, color: t.text),
+                ],
+              ),
+            ),
+          ),
+      ],
+    ),
+    footer: (close) => [Expanded(child: _Btn(t, 'Cancel', () => close(null), fill: true))],
+  );
+  if (v != null && v.$1 != task.repeat) p.setRepeat(task, v.$1);
+}
+
 Future<void> _rename(BuildContext context, _T t, PlannerModel p, Task task) async {
   final ctl = TextEditingController(text: task.title);
   final v = await _drawer<String>(
@@ -124,7 +166,7 @@ Future<void> _rename(BuildContext context, _T t, PlannerModel p, Task task) asyn
 /// Delete with an Undo bar instead of a confirm dialog.
 void _deleteWithUndo(BuildContext context, _T t, PlannerModel p, Task task) {
   final m = ScaffoldMessenger.of(context);
-  p.remove(task);
+  final removed = p.remove(task);
   m.clearSnackBars();
   m.showSnackBar(SnackBar(
     behavior: SnackBarBehavior.floating,
@@ -135,22 +177,12 @@ void _deleteWithUndo(BuildContext context, _T t, PlannerModel p, Task task) {
       borderRadius: BorderRadius.circular(_rSm),
       side: BorderSide(color: t.line),
     ),
-    content: Text('Deleted "${task.title}"', maxLines: 1, overflow: TextOverflow.ellipsis, style: _ts(t.text, 13)),
-    action: SnackBarAction(
-      label: 'Undo',
-      textColor: t.accent,
-      onPressed: () {
-        final r = p.add(task.day, task.title, minutes: task.minutes, tag: task.tag)..slipped = task.slipped;
-        for (final s in task.subs) {
-          r.subs.add(Sub(s.title, s.done));
-        }
-        if (task.done) {
-          p.toggle(r);
-        } else {
-          p.rename(r, r.title);
-        }
-      },
-    ),
+    content: Text(
+        task.repeat == null ? 'Deleted "${task.title}"' : 'Deleted "${task.title}". It won\'t repeat any more.',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: _ts(t.text, 13)),
+    action: SnackBarAction(label: 'Undo', textColor: t.accent, onPressed: () => p.undoRemove(removed)),
   ));
 }
 
@@ -191,6 +223,8 @@ class _TaskMenu extends StatelessWidget {
               p.addMinutes(task, -15);
             case 'tag':
               p.cycleTag(task);
+            case 'repeat':
+              _pickRepeat(context, t, p, task);
             case 'focus':
               p.pickFocusTask(task);
             case 'del':
@@ -204,6 +238,7 @@ class _TaskMenu extends StatelessWidget {
           _item('plus', '+15 min'),
           _item('minus', '−15 min'),
           _item('tag', 'Switch tag'),
+          _item('repeat', task.repeat == null ? 'Repeat…' : 'Repeat: ${Repeat.label(task.repeat!)}…'),
           _item('focus', 'Use in Focus'),
           _item('del', 'Delete', danger: true),
         ],
@@ -276,6 +311,10 @@ class _TaskCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (task.repeat != null) ...[
+                    const SizedBox(width: 4),
+                    _RepeatChip(t, task.repeat!),
+                  ],
                   if (task.slipped > 0 && !task.done) ...[
                     const SizedBox(width: 4),
                     _SlipChip(t, task.slipped),

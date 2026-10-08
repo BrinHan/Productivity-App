@@ -277,6 +277,24 @@ class _SlipChip extends StatelessWidget {
       );
 }
 
+class _RepeatChip extends StatelessWidget {
+  const _RepeatChip(this.t, this.rule);
+  final _T t;
+  final String rule;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: Repeat.label(rule),
+    child: Semantics(
+      label: Repeat.label(rule),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Icon(Icons.repeat_rounded, size: 14, color: t.sub),
+      ),
+    ),
+  );
+}
+
 class _Check extends StatefulWidget {
   const _Check(this.t, this.done, this.onTap, {this.size = 18});
   final _T t;
@@ -319,7 +337,7 @@ class _CheckState extends State<_Check> {
               tween: Tween<double>(end: widget.done ? 1 : 0),
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
-              builder: (_, v, __) => CustomPaint(painter: _TickPainter(v, t.onAccent)),
+              builder: (_, v, _) => CustomPaint(painter: _TickPainter(v, t.onAccent)),
             ),
           ),
         ),
@@ -375,7 +393,7 @@ class _StrikeText extends StatelessWidget {
       tween: Tween<double>(end: done ? 1 : 0),
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutCubic,
-      builder: (_, p, __) => LayoutBuilder(
+      builder: (_, p, _) => LayoutBuilder(
         builder: (context, c) => CustomPaint(
           foregroundPainter: _StrikePainter(text, measure, c.maxWidth, p, t.sub),
           child: AnimatedDefaultTextStyle(
@@ -463,7 +481,7 @@ class _Bar extends StatelessWidget {
         tween: Tween<double>(end: value.clamp(0.0, 1.0).toDouble()),
         duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
-        builder: (_, v, __) => ClipRRect(
+        builder: (_, v, _) => ClipRRect(
           borderRadius: BorderRadius.circular(height),
           child: SizedBox(
             height: height,
@@ -622,7 +640,7 @@ class _Page extends StatelessWidget {
                 ),
               ]),
             ),
-            if (trailing != null) trailing!,
+            ?trailing,
           ]),
           const SizedBox(height: 28),
           Expanded(child: child),
