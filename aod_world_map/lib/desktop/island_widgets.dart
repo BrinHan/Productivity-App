@@ -19,9 +19,12 @@ const kPipColors = <Color>[
 
 /// Hover + press feedback without Material ink (ink would paint behind the pill).
 class IslandPressable extends StatefulWidget {
-  const IslandPressable({super.key, required this.child, required this.onTap});
+  const IslandPressable({super.key, required this.child, required this.onTap, this.label});
   final Widget child;
   final VoidCallback onTap;
+
+  /// What a screen reader says for a button that is only an icon.
+  final String? label;
 
   @override
   State<IslandPressable> createState() => _IslandPressableState();
@@ -31,7 +34,14 @@ class _IslandPressableState extends State<IslandPressable> {
   bool _hover = false, _down = false;
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: widget.label,
+        onTap: widget.onTap,
+        child: _pressable(),
+      );
+
+  Widget _pressable() => MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),

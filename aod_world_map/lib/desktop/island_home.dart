@@ -217,8 +217,11 @@ class _MiniMusic extends StatelessWidget {
   const _MiniMusic({required this.c});
   final IslandController c;
 
+  static const _ctlNames = {'prev': 'Previous track', 'toggle': 'Play or pause', 'next': 'Next track'};
+
   Widget _ctl(IconData icon, String cmd, {double size = 21}) => IslandPressable(
     onTap: () => c.sendMusic?.call(cmd),
+    label: _ctlNames[cmd],
     child: SizedBox(
       width: 24,
       height: 26,
