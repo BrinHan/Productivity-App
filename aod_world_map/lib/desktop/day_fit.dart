@@ -62,3 +62,58 @@ DayFit dayFit({
   final free = gaps.fold<int>(0, (s, g) => s + g.end.difference(g.start).inMinutes);
   return DayFit(free: free, meetings: meetings.inMinutes, planned: planned, gaps: gaps);
 }
+
+/// Where each task lands on [day]'s calendar, by task id. A task pinned to
+/// a time on [day] ([at]) stays there; the rest fill the free gaps of the
+/// workday in order, split across gaps when one isn't long enough. A task
+/// whose spans add up to less than its minutes ran out of room.
+Map<String, List<({DateTime start, DateTime end})>> placeTasks({
+  required DateTime now,
+  required DateTime day,
+  required int startHour,
+  required int endHour,
+  required List<({DateTime start, DateTime end})> busy,
+  required List<({String id, int minutes, DateTime? at})> tasks,
+}) {
+  final d = DateTime(day.year, day.month, day.day);
+  final placed = <String, List<({DateTime start, DateTime end})>>{};
+  final pinned = <({DateTime start, DateTime end})>[];
+  for (final t in tasks) {
+    final at = t.at;
+    if (at == null || DateTime(at.year, at.month, at.day) != d) continue;
+    final span = (start: at, end: at.add(Duration(minutes: t.minutes)));
+    placed[t.id] = [span];
+    pinned.add(span);
+  }
+
+  final gaps = dayFit(
+    now: now,
+    day: day,
+    startHour: startHour,
+    endHour: endHour,
+    busy: [...busy, ...pinned],
+    planned: 0,
+  ).gaps;
+
+  var gi = 0;
+  var cursor = gaps.isEmpty ? null : gaps.first.start;
+  for (final t in tasks) {
+    if (placed.containsKey(t.id)) continue;
+    final spans = placed[t.id] = [];
+    var left = Duration(minutes: t.minutes);
+    while (left > Duration.zero && gi < gaps.length) {
+      final room = gaps[gi].end.difference(cursor!);
+      // Don't start a piece in a sliver the task won't finish in.
+      if (room < left && room < kMinGap) {
+        if (++gi < gaps.length) cursor = gaps[gi].start;
+        continue;
+      }
+      final take = room < left ? room : left;
+      spans.add((start: cursor, end: cursor.add(take)));
+      left -= take;
+      cursor = cursor.add(take);
+      if (!cursor.isBefore(gaps[gi].end) && ++gi < gaps.length) cursor = gaps[gi].start;
+    }
+  }
+  return placed;
+}

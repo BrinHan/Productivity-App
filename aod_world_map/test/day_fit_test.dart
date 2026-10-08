@@ -67,4 +67,60 @@ void main() {
     expect(f.free, 0);
     expect(f.gaps, isEmpty);
   });
+
+  group('placeTasks', () {
+    ({String id, int minutes, DateTime? at}) task(String id, int minutes, [DateTime? pin]) =>
+        (id: id, minutes: minutes, at: pin);
+
+    test('fills the free time after now, not the start of the workday', () {
+      final p = placeTasks(
+        now: at(21, 55),
+        day: day,
+        startHour: 9,
+        endHour: 23,
+        busy: [ev(at(8, 30), at(15)), ev(at(18), at(19))],
+        tasks: [task('a', 35)],
+      );
+      expect(p['a'], [ev(at(21, 55), at(22, 30))]);
+    });
+
+    test('goes around meetings and splits across gaps', () {
+      final p = placeTasks(
+        now: at(7),
+        day: day,
+        startHour: 9,
+        endHour: 17,
+        busy: [ev(at(10), at(16))],
+        tasks: [task('a', 30), task('b', 60)],
+      );
+      expect(p['a'], [ev(at(9), at(9, 30))]);
+      expect(p['b'], [ev(at(9, 30), at(10)), ev(at(16), at(16, 30))]);
+    });
+
+    test('pinned tasks stay put and the rest work around them', () {
+      final p = placeTasks(
+        now: at(7),
+        day: day,
+        startHour: 9,
+        endHour: 17,
+        busy: const [],
+        tasks: [task('a', 60), task('b', 30, at(9))],
+      );
+      expect(p['b'], [ev(at(9), at(9, 30))]);
+      expect(p['a'], [ev(at(9, 30), at(10, 30))]);
+    });
+
+    test('what does not fit is left short', () {
+      final p = placeTasks(
+        now: at(16, 35),
+        day: day,
+        startHour: 9,
+        endHour: 17,
+        busy: const [],
+        tasks: [task('a', 20), task('b', 60)],
+      );
+      expect(p['a'], [ev(at(16, 35), at(16, 55))]);
+      expect(p['b'], isEmpty); // 5 minutes left is too little to start in
+    });
+  });
 }
