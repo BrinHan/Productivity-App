@@ -6,6 +6,7 @@ import 'package:ffi/ffi.dart';
 
 import 'cs_helper.dart';
 import 'unlock_watch.dart';
+import 'log.dart';
 
 /// Windows Hello for the Hello screen: the world map that comes up when you
 /// step away, and asks Windows Hello who you are when you come back.
@@ -173,9 +174,13 @@ class AwayWatch {
         _power = ffi.DynamicLibrary.open('powrprof.dll').lookupFunction<
             ffi.Int32 Function(ffi.Int32, ffi.Pointer<ffi.Void>, ffi.Uint32, ffi.Pointer<ffi.Void>, ffi.Uint32),
             int Function(int, ffi.Pointer<ffi.Void>, int, ffi.Pointer<ffi.Void>, int)>('CallNtPowerInformation');
-      } catch (_) {}
+      } catch (e, st) {
+        logError(e, st);
+      }
       _ready = true;
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     return _ready;
   }
 

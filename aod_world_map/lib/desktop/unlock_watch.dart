@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
+import 'log.dart';
+
 /// How Windows was unlocked, as far as Windows Hello's log can tell.
 enum UnlockMethod { face, fingerprint, pin }
 
@@ -60,7 +62,9 @@ class UnlockWatch {
           ffi.Int32 Function(ffi.IntPtr, ffi.Int32, ffi.Pointer<ffi.Void>, ffi.Uint32, ffi.Pointer<ffi.Uint32>),
           int Function(int, int, ffi.Pointer<ffi.Void>, int, ffi.Pointer<ffi.Uint32>)>('GetUserObjectInformationW');
       _ready = true;
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     return _ready;
   }
 
