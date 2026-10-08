@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'agenda_service.dart';
 import 'app_files.dart';
 import 'browser.dart';
+import 'log.dart';
 
 /// The OAuth client that ships inside the app. Put the values in
 /// google_client.json (gitignored) and run or build with
@@ -173,7 +174,9 @@ class GoogleService extends ChangeNotifier {
     _loaded = true;
     try {
       if (await _file.exists()) _apply(await _file.readAsString());
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     if (autoBackup && signedIn) _startAuto();
     notifyListeners();
   }
@@ -228,7 +231,9 @@ class GoogleService extends ChangeNotifier {
         }
       }
       notifyListeners();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   Future<void> _ensureLoaded() async {
@@ -250,8 +255,10 @@ class GoogleService extends ChangeNotifier {
         'lastSync': lastSync?.toIso8601String(),
       });
       _lastRaw = raw;
-      await _file.writeAsString(raw);
-    } catch (_) {}
+      await writeFileSafely(_file, raw);
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   // ---- "use my own client" (only shown under Advanced) ----
@@ -383,7 +390,9 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
     try {
       final r = await _call('GET', Uri.https('openidconnect.googleapis.com', '/v1/userinfo'));
       if (r.statusCode == 200) return (jsonDecode(r.body) as Map)['email'] as String?;
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     return null;
   }
 
@@ -397,7 +406,9 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
         await http
             .post(Uri.https('oauth2.googleapis.com', '/revoke'), body: {'token': tok})
             .timeout(const Duration(seconds: 10));
-      } catch (_) {}
+      } catch (e, st) {
+        logError(e, st);
+      }
     }
     await _clearSession(null);
     busy = false;
@@ -458,7 +469,9 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       if (data is Map && data['error'] == 'invalid_grant') {
         await _clearSession('Your Google session ended. Sign in again.');
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     return null;
   }
 
@@ -1144,7 +1157,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}p{margin:0;color:#a1a1aa}
       for (final e in files.entries) {
         final name = '${e.key}';
         if (!_backupFiles.contains(name)) continue;
-        await appDataFile(name).writeAsString('${e.value}');
+        await writeFileSafely(appDataFile(name), '${e.value}', backup: true);
       }
       lastSync = DateTime.now();
       await _save();
