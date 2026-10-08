@@ -179,7 +179,7 @@ class IslandController extends ChangeNotifier {
 
   /// How long the cursor has to rest at the top middle before the hidden
   /// island (or Chrome notch) shows, so passing by doesn't pop it up.
-  static const kRevealDwell = Duration(milliseconds: 1200);
+  static const kRevealDwell = Duration(milliseconds: 900);
 
   // ---- user settings (saved) ----
   double idleWidth = 260;
