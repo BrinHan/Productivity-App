@@ -12,6 +12,7 @@ import 'island_controller.dart';
 import 'planner_model.dart';
 import 'process_link.dart';
 import 'unlock_watch.dart';
+import 'log.dart';
 
 /// The app window shows one of these at a time; the other is disposed.
 enum AppMode { map, home }
@@ -48,7 +49,9 @@ class ShellController extends ChangeNotifier with WindowListener {
   Future<void> _try(Future<void> Function() f) async {
     try {
       await f();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   /// Takes the single-instance lock. False when an app window is already

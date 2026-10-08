@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'cs_helper.dart';
 import 'island_controller.dart';
+import 'log.dart';
 
 /// Reads the Windows media session (what media keys control) through one
 /// hidden, long-lived PowerShell process. It prints a JSON line about once a
@@ -537,14 +538,18 @@ static class NowPlayingHelper
           .transform(const LineSplitter())
           .listen(_onLine);
       _proc!.stderr.drain<void>();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   /// 'toggle' | 'next' | 'prev'
   Future<void> send(String cmd) async {
     try {
       await File(_cmdPath).writeAsString(cmd);
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void _onLine(String raw) {
@@ -581,7 +586,9 @@ static class NowPlayingHelper
         _emit(NowPlaying(title, artist, status == 'Playing', path, album, app, pos, len, posAt));
         if (path == null && _fbKey != k && title.isNotEmpty) _lookupArt(title, artist, k);
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void _emit(NowPlaying? n) {
@@ -634,14 +641,18 @@ static class NowPlayingHelper
       if (old != null) {
         try {
           await File(old).delete();
-        } catch (_) {}
+        } catch (e, st) {
+          logError(e, st);
+        }
       }
       final cur = _cur;
       if (cur != null && cur.key == key && cur.art == null) {
         _emit(NowPlaying(
             cur.title, cur.artist, cur.playing, f.path, cur.album, cur.app, cur.position, cur.length, cur.positionAt));
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void dispose() {

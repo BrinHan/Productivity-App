@@ -8,6 +8,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show IconData, Icons;
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+
+import 'log.dart';
+
 import 'package:http/http.dart' as http;
 
 // ------------------------------------------------------------------- timer
@@ -238,7 +241,9 @@ class WeatherService extends ChangeNotifier {
         lat = p.latitude;
         lon = p.longitude;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     try {
       // With no coordinates this looks the place up from the IP address.
       final res = await http
@@ -256,7 +261,9 @@ class WeatherService extends ChangeNotifier {
         lon ??= (j['longitude'] as num?)?.toDouble();
         if (lat != null && lon != null) return (lat, lon, place);
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     return lat != null && lon != null ? (lat, lon, '') : null;
   }
 }
@@ -307,7 +314,9 @@ class ClipboardHistory extends ChangeNotifier {
       items.insert(0, text.length > 20000 ? text.substring(0, 20000) : text);
       if (items.length > kMax) items.removeRange(kMax, items.length);
       notifyListeners();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   /// Puts [text] back on the clipboard; it moves to the top.
