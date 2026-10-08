@@ -29,7 +29,7 @@ class _FocusView extends StatelessWidget {
                   tween: Tween<double>(end: progress),
                   duration: const Duration(milliseconds: 900),
                   curve: Curves.easeOut,
-                  builder: (_, v, __) => CustomPaint(
+                  builder: (_, v, _) => CustomPaint(
                     size: const Size(260, 260),
                     painter: _RingPainter(v, t.line, t.accent),
                   ),

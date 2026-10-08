@@ -117,7 +117,7 @@ class _TodayPageState extends State<TodayPage> {
 
   // ------------------------------------------------------------ widgets
 
-  Widget _icon(IconData i, VoidCallback onTap, {bool on = false, String? tip}) => IslandPressable(
+  Widget _icon(IconData i, VoidCallback onTap, {bool on = false}) => IslandPressable(
         onTap: onTap,
         child: Container(
           width: 30,
@@ -166,7 +166,7 @@ class _TodayPageState extends State<TodayPage> {
           ]),
           const SizedBox(height: 6),
           Expanded(child: child),
-          if (footer != null) footer,
+          ?footer,
         ]),
       );
 
@@ -453,7 +453,7 @@ class _TodayPageState extends State<TodayPage> {
 
   // ------------------------------------------------------------ manager
 
-  Widget _field(TextEditingController ctl, String hint, {bool grow = false}) => SizedBox(
+  Widget _field(TextEditingController ctl, String hint) => SizedBox(
         height: 32,
         child: TextField(
           controller: ctl,
@@ -623,7 +623,7 @@ class _TodayPageState extends State<TodayPage> {
   Widget build(BuildContext context) {
     final p = widget.c.planner;
     return ListenableBuilder(
-      listenable: Listenable.merge([widget.c.agenda, widget.c.google, if (p != null) p]),
+      listenable: Listenable.merge([widget.c.agenda, widget.c.google, ?p]),
       builder: (context, _) => Padding(
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
         child: Column(children: [

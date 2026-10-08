@@ -173,7 +173,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
           tween: Tween<double>(end: d.price),
           duration: const Duration(milliseconds: 700),
           curve: Curves.easeOutCubic,
-          builder: (_, v, __) => Text(_money(d, v), style: big.copyWith(color: Colors.white)),
+          builder: (_, v, _) => Text(_money(d, v), style: big.copyWith(color: Colors.white)),
         );
       case 1:
         w = Text('$sign${d.pct.abs().toStringAsFixed(2)}%', key: const ValueKey(1), style: big.copyWith(color: col));
@@ -198,7 +198,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
       },
       layoutBuilder: (cur, prev) => Stack(
         alignment: Alignment.centerLeft,
-        children: [...prev, if (cur != null) cur],
+        children: [...prev, ?cur],
       ),
       child: w,
     );
@@ -303,7 +303,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
                 tween: Tween<double>(begin: 0, end: 1),
                 duration: const Duration(milliseconds: 750),
                 curve: Curves.easeOutCubic,
-                builder: (_, p, __) => CustomPaint(painter: _ChartPainter(candles, c.stockCandles, d.prevClose, p)),
+                builder: (_, p, _) => CustomPaint(painter: _ChartPainter(candles, c.stockCandles, d.prevClose, p)),
               ),
             ),
             Positioned(
@@ -443,7 +443,7 @@ class _Gauge extends StatelessWidget {
               tween: Tween<double>(end: ((score + 1) / 2).clamp(0.0, 1.0).toDouble()),
               duration: const Duration(milliseconds: 800),
               curve: Curves.easeOutCubic,
-              builder: (_, p, __) => Stack(clipBehavior: Clip.none, children: [
+              builder: (_, p, _) => Stack(clipBehavior: Clip.none, children: [
                 Positioned(
                   left: 0,
                   right: 0,

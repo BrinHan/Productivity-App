@@ -20,7 +20,7 @@ String _lenText(Duration d) => d.inMinutes < 1 ? '${d.inSeconds}s' : '${d.inMinu
 
 /// Slow red pulse for "recording".
 class _RecDot extends StatefulWidget {
-  const _RecDot(this.color, {this.size = 8});
+  const _RecDot(this.color) : size = 8;
   final Color color;
   final double size;
 
@@ -122,7 +122,7 @@ class _RecordingChip extends StatelessWidget {
             ),
             ValueListenableBuilder<int>(
               valueListenable: notes.tick,
-              builder: (_, __, ___) => Text(_hms(notes.elapsed), style: _ts(t.sub, 12, tab: true)),
+              builder: (_, _, _) => Text(_hms(notes.elapsed), style: _ts(t.sub, 12, tab: true)),
             ),
           ]),
           const SizedBox(height: 10),
@@ -130,7 +130,7 @@ class _RecordingChip extends StatelessWidget {
             height: 18,
             child: ValueListenableBuilder<int>(
               valueListenable: notes.tick,
-              builder: (_, __, ___) => CustomPaint(
+              builder: (_, _, _) => CustomPaint(
                 size: const Size(double.infinity, 18),
                 painter: _LevelPainter(notes.levels.sublist(notes.levels.length - 28), t.warn, bars: true),
               ),
@@ -174,7 +174,7 @@ class _RecPill extends StatelessWidget {
             const SizedBox(width: 8),
             ValueListenableBuilder<int>(
               valueListenable: notes.tick,
-              builder: (_, __, ___) => Text(
+              builder: (_, _, _) => Text(
                 notes.state == RecState.finishing ? 'Finishing' : _hms(notes.elapsed),
                 style: _ts(t.text, 12, w: FontWeight.w600, tab: true),
               ),
@@ -261,7 +261,9 @@ class _NotesViewState extends State<_NotesView> {
     try {
       await d.create(recursive: true);
       await Process.start('explorer.exe', [d.path], mode: ProcessStartMode.detached);
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   Future<void> _confirmDelete(MeetingNote note) async {
@@ -397,7 +399,7 @@ class _NotesViewState extends State<_NotesView> {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       ValueListenableBuilder<int>(
         valueListenable: n.tick,
-        builder: (_, __, ___) => Text(_hms(n.elapsed), style: _ts(t.sub, 13, w: FontWeight.w600, tab: true)),
+        builder: (_, _, _) => Text(_hms(n.elapsed), style: _ts(t.sub, 13, w: FontWeight.w600, tab: true)),
       ),
       const SizedBox(width: 12),
       _Btn(t, paused ? 'Resume' : 'Pause', paused ? n.resume : n.pause, compact: true),
@@ -560,7 +562,7 @@ class _NotesViewState extends State<_NotesView> {
                                 height: 24,
                                 child: ValueListenableBuilder<int>(
                                   valueListenable: n.tick,
-                                  builder: (_, __, ___) => CustomPaint(
+                                  builder: (_, _, _) => CustomPaint(
                                     size: const Size(double.infinity, 24),
                                     painter: _LevelPainter(n.levels, t.text),
                                   ),

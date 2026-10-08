@@ -373,7 +373,7 @@ class _WatchRowState extends State<_WatchRow> {
                           tween: Tween<double>(begin: 0, end: 1),
                           duration: const Duration(milliseconds: 650),
                           curve: Curves.easeOutCubic,
-                          builder: (_, p, __) => CustomPaint(
+                          builder: (_, p, _) => CustomPaint(
                             painter: _SparkPainter([for (final c in d.candles) c.c], d.prevClose, p),
                           ),
                         ),
