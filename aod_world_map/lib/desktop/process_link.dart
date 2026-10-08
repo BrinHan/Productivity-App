@@ -5,6 +5,8 @@ import 'dart:io';
 
 import 'package:window_manager/window_manager.dart';
 
+import 'log.dart';
+
 /// The app runs as two processes from the same exe:
 ///
 ///  * the island (`--island`): always running, small, owns the background
@@ -174,7 +176,9 @@ class LinkClient {
 Future<void> spawnSelf(List<String> args) async {
   try {
     await Process.start(Platform.resolvedExecutable, args, mode: ProcessStartMode.detached);
-  } catch (_) {}
+  } catch (e, st) {
+    logError(e, st);
+  }
 }
 
 /// Watches the app's data folder so a change saved by the other process
@@ -191,8 +195,11 @@ class DataWatch {
     try {
       dir.createSync(recursive: true);
       _sub = dir.watch(recursive: true).listen((e) {
-        if (e.path.length <= dir.path.length) return;
-        final name = e.path.substring(dir.path.length + 1);
+        // Saves land by renaming a .tmp file into place, which arrives as a
+        // move: the file that changed is where it moved to.
+        final path = e is FileSystemMoveEvent ? (e.destination ?? e.path) : e.path;
+        if (path.length <= dir.path.length || path.endsWith('.tmp')) return;
+        final name = path.substring(dir.path.length + 1);
         // Saves arrive as several events; act once things settle.
         _debounce[name]?.cancel();
         _debounce[name] = Timer(const Duration(milliseconds: 250), () {
@@ -200,7 +207,9 @@ class DataWatch {
           onChange(name);
         });
       });
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void stop() {
@@ -226,7 +235,9 @@ void trimMemory() {
           'SetProcessWorkingSetSize');
     }
     _setWs!(_curProc!(), -1, -1);
-  } catch (_) {}
+  } catch (e, st) {
+    logError(e, st);
+  }
 }
 
 /// Ends this process. windowManager.destroy() tears the engine down while
@@ -235,6 +246,8 @@ void trimMemory() {
 Future<void> shutdownWindow() async {
   try {
     await windowManager.hide();
-  } catch (_) {}
+  } catch (e, st) {
+    logError(e, st);
+  }
   exit(0);
 }
