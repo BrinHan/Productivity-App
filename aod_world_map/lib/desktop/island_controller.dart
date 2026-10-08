@@ -12,12 +12,14 @@ import 'app_catalog.dart' show InstalledApp;
 import 'app_files.dart';
 import 'google_service.dart';
 import 'island_services.dart';
+import 'log.dart';
 import 'meeting_detector.dart';
 import 'notes_model.dart';
 import 'notes_service.dart';
 import 'planner_model.dart';
 import 'unlock_glyphs.dart' show kUnlockAnimation;
 import 'unlock_watch.dart';
+import 'updates.dart';
 
 /// [verify]: Windows Hello is checking you on the Hello screen; the island
 /// scans until it answers, then shows [success]. [focus]: a focus session
@@ -31,6 +33,9 @@ enum IslandState { hidden, notch, idle, open, call, music, verify, success, meet
 enum IslandPage { home, music, stocks, today, clock, weather, clipboard, settings, capture }
 
 enum ShortcutKind { web, app, screensaver, planner }
+
+/// What the island pops up for, five minutes ahead.
+enum Reminders { off, calls, all }
 
 class NowPlaying {
   const NowPlaying(this.title, this.artist, this.playing,
@@ -186,6 +191,10 @@ class IslandController extends ChangeNotifier {
   /// Resuming after a pause always pops it up.
   bool popOnTrackChange = false;
 
+  /// What pops up five minutes ahead: calls with a join link, or every
+  /// timed event and planner task.
+  Reminders reminders = Reminders.all;
+
   /// Minutes away before the Hello screen comes up; 0 is off.
   int helloAfter = 5;
   bool musicHelper = true; // the PowerShell media-session reader
@@ -241,7 +250,18 @@ class IslandController extends ChangeNotifier {
 
   /// Opens the planner on its Notes page (set by the island process).
   void Function()? openNotes;
-  Timer? _gTimer;
+  Timer? _gTimer, _updateTimer;
+
+  /// A newer Meridian on GitHub, once the daily check has found one. The
+  /// settings tab wears a dot and the settings page says so.
+  Release? update;
+
+  Future<void> checkForUpdate({bool force = false}) async {
+    final r = await UpdateCheck.newer(force: force);
+    if (r?.version == update?.version) return;
+    update = r;
+    notifyListeners();
+  }
 
   final ValueNotifier<Offset> gaze = ValueNotifier(Offset.zero);
   final AudioBands bands = AudioBands();
@@ -298,6 +318,11 @@ class IslandController extends ChangeNotifier {
     clipboard.start();
     _soonTimer ??= Timer.periodic(const Duration(seconds: 20), (_) => _checkSoon());
     _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
+    // A minute after starting, so it never slows down signing in.
+    _updateTimer ??= Timer(const Duration(minutes: 1), () {
+      checkForUpdate();
+      _updateTimer = Timer.periodic(const Duration(hours: 6), (_) => checkForUpdate());
+    });
   }
 
   /// The other process changed a setting.
@@ -310,10 +335,8 @@ class IslandController extends ChangeNotifier {
 
   Future<void> loadSettings() async {
     try {
-      final f = _file;
-      if (!await f.exists()) return;
-      final raw = await f.readAsString();
-      if (raw == _lastJson) return;
+      final raw = await readWithBackup(_file, (raw) => jsonDecode(raw) is Map<String, dynamic>);
+      if (raw == null || raw == _lastJson) return;
       final j = jsonDecode(raw);
       if (j is! Map<String, dynamic>) return;
       _lastJson = raw;
@@ -322,6 +345,7 @@ class IslandController extends ChangeNotifier {
       openOnHover = (j['openOnHover'] as bool?) ?? false;
       quietInChrome = (j['quietInChrome'] as bool?) ?? true;
       popOnTrackChange = (j['popOnTrackChange'] as bool?) ?? false;
+      reminders = Reminders.values.where((r) => r.name == j['reminders']).firstOrNull ?? Reminders.all;
       helloAfter = (j['helloAfter'] as num?)?.toInt() ?? 5;
       musicHelper = (j['musicHelper'] as bool?) ?? true;
       stockSymbol = (j['stockSymbol'] as String?) ?? 'AAPL';
@@ -345,7 +369,9 @@ class IslandController extends ChangeNotifier {
         ];
         if (list.isNotEmpty) shortcuts = list;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   void _persist() {
@@ -360,6 +386,7 @@ class IslandController extends ChangeNotifier {
           'openOnHover': openOnHover,
           'quietInChrome': quietInChrome,
           'popOnTrackChange': popOnTrackChange,
+          'reminders': reminders.name,
           'helloAfter': helloAfter,
           'musicHelper': musicHelper,
           'stockSymbol': stockSymbol,
@@ -371,8 +398,10 @@ class IslandController extends ChangeNotifier {
           'shortcuts': [for (final s in shortcuts) s.toJson()],
         });
         _lastJson = raw;
-        await f.writeAsString(raw);
-      } catch (_) {}
+        await writeFileSafely(f, raw, backup: true);
+      } catch (e, st) {
+        logError(e, st);
+      }
     });
   }
 
@@ -398,6 +427,12 @@ class IslandController extends ChangeNotifier {
 
   void setPopOnTrackChange(bool v) {
     popOnTrackChange = v;
+    notifyListeners();
+    _persist();
+  }
+
+  void setReminders(Reminders v) {
+    reminders = v;
     notifyListeners();
     _persist();
   }
@@ -823,12 +858,32 @@ class IslandController extends ChangeNotifier {
   /// How long before a call the island counts down to it.
   static const kSoonLead = Duration(minutes: 5);
 
+  /// [AgendaEvent.feed] for a reminder made from a planner task with a time.
+  static const kTaskFeed = -1;
+
+  /// The task behind the reminder showing, if it is one.
+  Task? soonTask;
+
+  /// What the island pops up for ahead of time, from [reminders]: timed
+  /// planner tasks and every timed event, or only calls with a join link.
+  List<AgendaEvent> _remindable() {
+    if (reminders == Reminders.off) return const [];
+    final calls = reminders == Reminders.calls;
+    return [
+      for (final e in [...google.events, ...agenda.events])
+        if (!e.allDay && (!calls || e.link.isNotEmpty)) e,
+      if (!calls)
+        for (final t in planner?.tasks ?? const <Task>[])
+          if (!t.done && t.at != null)
+            AgendaEvent(t.title, t.at!, t.at!.add(Duration(minutes: t.minutes)), false, '', kTaskFeed),
+    ];
+  }
+
   void _checkSoon() {
     final now = DateTime.now();
     if (soon != null && now.isAfter(soon!.start.add(const Duration(minutes: 5)))) dismissSoon();
     AgendaEvent? next;
-    for (final e in [...google.events, ...agenda.events]) {
-      if (e.allDay || e.link.isEmpty) continue;
+    for (final e in _remindable()) {
       final until = e.start.difference(now);
       if (until > kSoonLead || until < const Duration(minutes: -2)) continue;
       if (_soonShown.contains(_soonKey(e))) continue;
@@ -839,6 +894,9 @@ class IslandController extends ChangeNotifier {
     if (busy.contains(state)) return; // try again on the next check
     _soonShown.add(_soonKey(next));
     soon = next;
+    soonTask = next.feed == kTaskFeed
+        ? planner?.tasks.where((t) => t.at == next!.start && t.title == next.title).firstOrNull
+        : null;
     _timer?.cancel();
     _set(IslandState.upcoming);
   }
@@ -852,8 +910,19 @@ class IslandController extends ChangeNotifier {
     dismissSoon();
   }
 
+  /// Starts a focus session on the task the reminder is for.
+  void focusSoon() {
+    final t = soonTask, p = planner;
+    if (t != null && p != null) {
+      p.pickFocusTask(t);
+      p.startFocus();
+    }
+    dismissSoon();
+  }
+
   void dismissSoon() {
     soon = null;
+    soonTask = null;
     if (state == IslandState.upcoming) _set(near ? _resting : _away);
   }
 
@@ -963,6 +1032,7 @@ class IslandController extends ChangeNotifier {
     gaze.dispose();
     agenda.dispose();
     _gTimer?.cancel();
+    _updateTimer?.cancel();
     _soonTimer?.cancel();
     _weatherTimer?.cancel();
     timers.removeListener(_onTimers);
