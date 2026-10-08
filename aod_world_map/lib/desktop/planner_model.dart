@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import 'app_files.dart';
+import 'log.dart';
 
 DateTime dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
 String _dayKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
@@ -26,6 +27,9 @@ class Task {
     this.done = false,
     this.slipped = 0,
     this.at,
+    this.repeat,
+    this.series,
+    this.focused = 0,
   }) : subs = subs ?? [];
   final String id;
   String title, tag;
@@ -41,6 +45,16 @@ class Task {
   /// next free gap in its day.
   DateTime? at;
 
+  /// How the task repeats ('daily', 'weekdays', 'weekly:3', 'monthly:15';
+  /// see [Repeat]), or null. Every occurrence carries it, and they share a
+  /// [series] id, the first occurrence's id.
+  String? repeat;
+  String? series;
+
+  /// Seconds spent on it in focus sessions, for the weekly review to set
+  /// against [minutes].
+  int focused;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -50,6 +64,9 @@ class Task {
         'done': done,
         if (slipped > 0) 'slipped': slipped,
         if (at != null) 'at': at!.toIso8601String(),
+        if (repeat != null) 'repeat': repeat,
+        if (series != null) 'series': series,
+        if (focused > 0) 'focused': focused,
         'subs': [
           for (final s in subs) {'t': s.title, 'd': s.done},
         ],
@@ -64,6 +81,9 @@ class Task {
         done: (j['done'] as bool?) ?? false,
         slipped: (j['slipped'] as num?)?.toInt() ?? 0,
         at: DateTime.tryParse((j['at'] as String?) ?? ''),
+        repeat: Repeat.valid(j['repeat'] as String?),
+        series: j['series'] as String?,
+        focused: (j['focused'] as num?)?.toInt() ?? 0,
         subs: [
           for (final s in ((j['subs'] as List?) ?? const []))
             if (s is Map) Sub((s['t'] as String?) ?? '', (s['d'] as bool?) ?? false),
@@ -71,6 +91,88 @@ class Task {
       );
 }
 
+/// Repeat rules. Weekly and monthly ones carry the day they land on, so a
+/// monthly task on the 31st comes back to the 31st after a short month.
+class Repeat {
+  Repeat._();
+
+  static const daily = 'daily', weekdays = 'weekdays';
+  static String weekly(DateTime d) => 'weekly:${d.weekday}';
+  static String monthly(DateTime d) => 'monthly:${d.day}';
+
+  /// [rule] if it is one, else null.
+  static String? valid(String? rule) {
+    if (rule == daily || rule == weekdays) return rule;
+    final m = RegExp(r'^(weekly|monthly):(\d+)$').firstMatch(rule ?? '');
+    if (m == null) return null;
+    final n = int.parse(m.group(2)!);
+    return (m.group(1) == 'weekly' ? n >= 1 && n <= 7 : n >= 1 && n <= 31) ? rule : null;
+  }
+
+  /// The first day on or after [from] that [rule] lands on.
+  static DateTime next(String rule, DateTime from) {
+    var d = dayOf(from);
+    if (rule == daily) return d;
+    if (rule == weekdays) {
+      while (d.weekday > DateTime.friday) {
+        d = DateTime(d.year, d.month, d.day + 1);
+      }
+      return d;
+    }
+    final n = int.parse(rule.split(':').last);
+    if (rule.startsWith('weekly')) return DateTime(d.year, d.month, d.day + (n - d.weekday) % 7);
+    // Monthly: day n, or the month's last day when it is shorter.
+    for (var i = 0;; i++) {
+      final last = DateTime(d.year, d.month + i + 1, 0).day;
+      final c = DateTime(d.year, d.month + i, n > last ? last : n);
+      if (!c.isBefore(d)) return c;
+    }
+  }
+
+  /// How the rule reads in a menu or a chip.
+  static String label(String rule) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    if (rule == daily) return 'Every day';
+    if (rule == weekdays) return 'Every weekday';
+    final n = int.parse(rule.split(':').last);
+    if (rule.startsWith('weekly')) return 'Every ${days[n - 1]}';
+    final th = (n % 100 >= 11 && n % 100 <= 13) ? 'th' : const {1: 'st', 2: 'nd', 3: 'rd'}[n % 10] ?? 'th';
+    return 'Monthly on the $n$th';
+  }
+}
+
+/// Keeps one open occurrence of every repeating series on or after
+/// [today]. When the latest occurrence is done, or its day has passed, the
+/// next one is added. Missed occurrences stay where they were rather than
+/// piling up on today. Returns the tasks added.
+List<Task> spawnRepeats(List<Task> tasks, DateTime today, String Function() newId) {
+  final t0 = dayOf(today);
+  final latest = <String, Task>{};
+  for (final t in tasks) {
+    if (t.repeat == null) continue;
+    final key = t.series ?? t.id;
+    final cur = latest[key];
+    if (cur == null || t.day.isAfter(cur.day) || (t.day == cur.day && !t.done)) latest[key] = t;
+  }
+  final added = <Task>[];
+  for (final e in latest.entries) {
+    final t = e.value;
+    if (!t.done && !t.day.isBefore(t0)) continue; // still to do
+    final after = t.day.isBefore(t0) ? t0 : DateTime(t.day.year, t.day.month, t.day.day + 1);
+    added.add(Task(
+      id: newId(),
+      title: t.title,
+      day: Repeat.next(t.repeat!, after),
+      minutes: t.minutes,
+      tag: t.tag,
+      subs: [for (final s in t.subs) Sub(s.title)],
+      repeat: t.repeat,
+      series: e.key,
+    ));
+  }
+  tasks.addAll(added);
+  return added;
+}
 
 /// Unfinished tasks from the last this-many days roll over to today.
 /// Older ones were left behind before rollover existed and stay put.
@@ -83,7 +185,8 @@ int rollOver(List<Task> tasks, DateTime today) {
   final oldest = t0.subtract(const Duration(days: kRolloverDays));
   var n = 0;
   for (final t in tasks) {
-    if (!t.done && t.day.isBefore(t0) && !t.day.isBefore(oldest)) {
+    // A repeating task doesn't roll over: its next occurrence is coming.
+    if (!t.done && t.repeat == null && t.day.isBefore(t0) && !t.day.isBefore(oldest)) {
       t.day = t0;
       t.at = null;
       t.slipped++;
@@ -92,6 +195,8 @@ int rollOver(List<Task> tasks, DateTime today) {
   }
   return n;
 }
+
+typedef RemovedTask = ({Task task, int index, List<Task> stopped});
 
 class PlannerModel extends ChangeNotifier {
   /// [file] is for tests; the app keeps the planner in its data folder.
@@ -115,12 +220,17 @@ class PlannerModel extends ChangeNotifier {
   Future<void> load() async {
     try {
       final f = _file;
-      if (await f.exists()) {
-        _apply(await f.readAsString());
+      if (await f.exists() || await backupOf(f).exists()) {
+        // A planner that won't parse falls back to the last backup rather
+        // than starting empty and saving over it.
+        final raw = await readWithBackup(f, (raw) => jsonDecode(raw) is Map<String, dynamic>);
+        if (raw != null) _apply(raw);
       } else {
         isNew = true;
       }
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
     _rollOver();
     // Left open past midnight: carry yesterday's leftovers over then too.
     _dayTimer ??= Timer.periodic(const Duration(minutes: 1), (_) {
@@ -130,7 +240,8 @@ class PlannerModel extends ChangeNotifier {
 
   void _rollOver() {
     _today = dayOf(DateTime.now());
-    if (rollOver(tasks, _today) > 0) _changed();
+    final moved = rollOver(tasks, _today);
+    if (spawnRepeats(tasks, _today, _id).isNotEmpty || moved > 0) _changed();
   }
 
   /// The welcome is done (or skipped). Saving creates the planner file, so
@@ -169,7 +280,9 @@ class PlannerModel extends ChangeNotifier {
       final raw = await _file.readAsString();
       if (raw == _lastJson || _saveTimer?.isActive == true) return;
       if (_apply(raw)) notifyListeners();
-    } catch (_) {}
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   String _id() => '${DateTime.now().microsecondsSinceEpoch}-${_seq++}';
@@ -189,8 +302,6 @@ class PlannerModel extends ChangeNotifier {
 
   Future<void> _write() async {
     try {
-      final f = _file;
-      await f.parent.create(recursive: true);
       final raw = jsonEncode({
         'tasks': [for (final t in tasks) t.toJson()],
         'shutdownDay': _shutdownDay,
@@ -203,8 +314,10 @@ class PlannerModel extends ChangeNotifier {
         },
       });
       _lastJson = raw;
-      await f.writeAsString(raw);
-    } catch (_) {}
+      await writeFileSafely(_file, raw, backup: true);
+    } catch (e, st) {
+      logError(e, st);
+    }
   }
 
   List<Task> forDay(DateTime d) {
@@ -234,12 +347,44 @@ class PlannerModel extends ChangeNotifier {
     for (final s in t.subs) {
       s.done = t.done;
     }
+    _repeatChanged(t);
     _changed();
   }
 
   void toggleSub(Task t, Sub s) {
     s.done = !s.done;
     _setDone(t, t.subs.isNotEmpty && t.subs.every((x) => x.done));
+    _repeatChanged(t);
+    _changed();
+  }
+
+  /// Ticking off a repeating task brings in its next occurrence; unticking
+  /// it takes that back out again while it is still untouched.
+  void _repeatChanged(Task t) {
+    if (t.repeat == null) return;
+    final key = t.series ?? t.id;
+    if (!t.done) {
+      tasks.removeWhere(
+        (x) => x != t && (x.series ?? x.id) == key && x.day.isAfter(t.day) && !x.done && x.subs.every((s) => !s.done),
+      );
+    }
+    spawnRepeats(tasks, _today, _id);
+  }
+
+  /// Makes [t] repeat by [rule] (see [Repeat]), or stop with null. Either
+  /// way the series' occurrences still to come after [t] go; a new rule
+  /// starts a new series from [t].
+  void setRepeat(Task t, String? rule) {
+    final key = t.series ?? t.id;
+    final family = tasks.where((x) => x.repeat != null && (x.series ?? x.id) == key).toList();
+    tasks.removeWhere((x) => x != t && family.contains(x) && !x.done && x.day.isAfter(t.day));
+    for (final x in family) {
+      x.repeat = null;
+    }
+    t
+      ..repeat = rule
+      ..series = rule == null ? null : t.id;
+    if (rule != null) spawnRepeats(tasks, _today, _id);
     _changed();
   }
 
@@ -249,9 +394,32 @@ class PlannerModel extends ChangeNotifier {
     _changed();
   }
 
-  void remove(Task t) {
+  /// Deletes [t]. Deleting a repeating task stops the series, so it does
+  /// not just come back tomorrow. Pass the result to [undoRemove] to undo.
+  RemovedTask remove(Task t) {
+    final index = tasks.indexOf(t);
     tasks.remove(t);
+    final stopped = <Task>[];
+    if (t.repeat != null) {
+      final key = t.series ?? t.id;
+      for (final x in tasks) {
+        if (x.repeat != null && (x.series ?? x.id) == key) {
+          x.repeat = null;
+          stopped.add(x);
+        }
+      }
+    }
     if (_focusId == t.id) _focusId = null;
+    _changed();
+    return (task: t, index: index, stopped: stopped);
+  }
+
+  void undoRemove(RemovedTask r) {
+    if (tasks.contains(r.task)) return;
+    tasks.insert(r.index.clamp(0, tasks.length).toInt(), r.task);
+    for (final x in r.stopped) {
+      x.repeat = r.task.repeat;
+    }
     _changed();
   }
 
@@ -342,12 +510,25 @@ class PlannerModel extends ChangeNotifier {
     return ms <= 0 ? 0 : (ms / 1000).ceil();
   }
 
+  /// Credits the focus task with the time run since the session last
+  /// started (or was banked), and starts counting afresh from now. While a
+  /// session runs, [_focusLeft] holds what was left when it started.
+  void _bank() {
+    if (_focusEnds == null) return;
+    final now = focusSeconds;
+    final spent = _focusLeft - now;
+    if (spent > 0) focusTask?.focused += spent;
+    _focusLeft = now;
+  }
+
   void pickFocusTask(Task? t) {
+    _bank(); // time so far goes to the task it was spent on
     _focusId = t?.id;
     _changed();
   }
 
   void setFocusMinutes(int m) {
+    _bank();
     focusTotal = m * 60;
     _focusEnds = null;
     _focusLeft = focusTotal;
@@ -358,8 +539,10 @@ class PlannerModel extends ChangeNotifier {
 
   void startFocus() {
     if (focusRunning) return;
+    _bank(); // a session that ran out
     var left = focusSeconds;
     if (left <= 0) left = focusTotal;
+    _focusLeft = left;
     _focusEnds = DateTime.now().add(Duration(seconds: left));
     _focusOn = true;
     _syncTick();
@@ -368,13 +551,14 @@ class PlannerModel extends ChangeNotifier {
 
   void pauseFocus() {
     if (!focusRunning) return;
-    _focusLeft = focusSeconds;
+    _bank();
     _focusEnds = null;
     _syncTick();
     _changed();
   }
 
   void resetFocus() {
+    _bank();
     _focusEnds = null;
     _focusLeft = focusTotal;
     _focusOn = false;
@@ -384,6 +568,8 @@ class PlannerModel extends ChangeNotifier {
 
   /// Marks the focus task done and ends the session.
   void completeFocus() {
+    _bank();
+    _focusEnds = null;
     final t = focusTask;
     if (t != null && !t.done) toggle(t);
     _focusId = null;
