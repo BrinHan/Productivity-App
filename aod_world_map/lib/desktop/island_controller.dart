@@ -4,12 +4,14 @@ import 'dart:io';
 import 'dart:ui' show Color, Offset, Size;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show SystemSound, SystemSoundType;
 
 import 'action_items.dart';
 import 'agenda_service.dart';
 import 'app_catalog.dart' show InstalledApp;
 import 'app_files.dart';
 import 'google_service.dart';
+import 'island_services.dart';
 import 'meeting_detector.dart';
 import 'notes_model.dart';
 import 'notes_service.dart';
@@ -20,10 +22,13 @@ import 'unlock_watch.dart';
 /// [verify]: Windows Hello is checking you on the Hello screen; the island
 /// scans until it answers, then shows [success]. [focus]: a focus session
 /// from the planner, shown until it is reset or completed. [actions]: a
-/// finished meeting's suggested to-dos.
-enum IslandState { hidden, notch, idle, open, call, music, verify, success, meeting, focus, actions }
+/// finished meeting's suggested to-dos. [upcoming]: a call with a join link
+/// starts in a few minutes. [timer]: a countdown timer is running, shown
+/// like the iPhone's timer live activity.
+enum IslandState { hidden, notch, idle, open, call, music, verify, success, meeting, focus, actions, upcoming, timer }
 
-enum IslandPage { home, music, stocks, today, settings }
+/// [capture] is the one-line box the quick-capture hotkey opens; it has no tab.
+enum IslandPage { home, music, stocks, today, clock, weather, clipboard, settings, capture }
 
 enum ShortcutKind { web, app, screensaver, planner }
 
@@ -191,6 +196,29 @@ class IslandController extends ChangeNotifier {
   List<String> watchlist = ['AAPL', 'NVDA', 'TSLA', 'SNOW'];
   List<CalendarFeed> calendarFeeds = [];
 
+  /// Weather in °F rather than °C.
+  bool fahrenheit = Platform.localeName.endsWith('US');
+
+  // ---- island tabs (they run in the island process) ----
+  final TimerModel timers = TimerModel();
+  final WeatherService weather = WeatherService();
+  final ClipboardHistory clipboard = ClipboardHistory();
+
+  /// The call starting soon, while [IslandState.upcoming] shows it.
+  AgendaEvent? soon;
+  final Set<String> _soonShown = {};
+  Timer? _soonTimer, _weatherTimer;
+
+  /// When the timer last went off, for the Clock page to say so.
+  DateTime? rangAt;
+
+  /// How Pip dresses right now, for the weather and the hour.
+  PipLook get pipLook => lookFor(weather.now, DateTime.now());
+
+  /// Hands the keyboard back to the app that had it before the quick-capture
+  /// hotkey (set by the island process).
+  void Function()? giveBackFocus;
+
   /// Set by main(): the same planner the Home page edits. The island
   /// follows its focus session.
   PlannerModel? get planner => _planner;
@@ -236,13 +264,16 @@ class IslandController extends ChangeNotifier {
   bool get quiet => chromeMode && quietInChrome;
   bool get musicPlaying => (nowPlaying?.playing ?? false) || _demoMusic;
   bool get focusActive => planner?.focusActive ?? false;
-  IslandState get _resting => quiet
-      ? IslandState.notch
-      : (focusActive ? IslandState.focus : (musicPlaying ? IslandState.music : IslandState.idle));
+  bool get timerActive => timers.running;
+
+  /// A live activity (focus session or timer) that stays on screen.
+  IslandState? get _live => focusActive ? IslandState.focus : (timerActive ? IslandState.timer : null);
+
+  IslandState get _resting => quiet ? IslandState.notch : (_live ?? (musicPlaying ? IslandState.music : IslandState.idle));
 
   /// Where the island goes when the cursor is away: hidden, unless a focus
-  /// session is on, which stays on screen like a live activity.
-  IslandState get _away => focusActive && !quiet ? IslandState.focus : IslandState.hidden;
+  /// session or timer is on, which stays on screen like a live activity.
+  IslandState get _away => quiet ? IslandState.hidden : (_live ?? IslandState.hidden);
 
   // ---------------------------------------------------------- persistence
 
@@ -260,6 +291,12 @@ class IslandController extends ChangeNotifier {
     notes.onOffer = offerMeeting;
     notes.onFinished = offerActions;
     notes.startWatching();
+    timers.onDone = _timerDone;
+    timers.addListener(_onTimers);
+    weather.refresh();
+    _weatherTimer ??= Timer.periodic(const Duration(minutes: 15), (_) => weather.refresh());
+    clipboard.start();
+    _soonTimer ??= Timer.periodic(const Duration(seconds: 20), (_) => _checkSoon());
     _gTimer ??= Timer.periodic(const Duration(minutes: 2), (_) => google.autoBackupTick());
   }
 
@@ -292,6 +329,7 @@ class IslandController extends ChangeNotifier {
       stockCandles = (j['stockCandles'] as bool?) ?? true;
       final w = j['watchlist'];
       if (w is List) watchlist = [for (final e in w) if (e is String && e.isNotEmpty) e];
+      fahrenheit = (j['fahrenheit'] as bool?) ?? fahrenheit;
       final cal = j['calendars'];
       if (cal is List) {
         calendarFeeds = [
@@ -328,6 +366,7 @@ class IslandController extends ChangeNotifier {
           'stockRange': stockRange,
           'stockCandles': stockCandles,
           'watchlist': watchlist,
+          'fahrenheit': fahrenheit,
           'calendars': [for (final f in calendarFeeds) f.toJson()],
           'shortcuts': [for (final s in shortcuts) s.toJson()],
         });
@@ -420,6 +459,12 @@ class IslandController extends ChangeNotifier {
     _persist();
   }
 
+  void setFahrenheit(bool v) {
+    fahrenheit = v;
+    notifyListeners();
+    _persist();
+  }
+
   void addFeed(CalendarFeed f) {
     calendarFeeds.add(f);
     notifyListeners();
@@ -476,7 +521,10 @@ class IslandController extends ChangeNotifier {
   /// In Chrome (quiet mode) the island is only a tiny notch until clicked.
   void _applyQuiet() {
     if (quiet) {
-      if (state == IslandState.idle || state == IslandState.music || state == IslandState.focus) {
+      if (state == IslandState.idle ||
+          state == IslandState.music ||
+          state == IslandState.focus ||
+          state == IslandState.timer) {
         _set(IslandState.notch);
       }
     } else if (state == IslandState.notch) {
@@ -549,7 +597,11 @@ class IslandController extends ChangeNotifier {
     if (v == _over) return;
     _over = v;
     _overTimer?.cancel();
-    bool resting() => state == IslandState.idle || state == IslandState.music || state == IslandState.focus;
+    bool resting() =>
+        state == IslandState.idle ||
+        state == IslandState.music ||
+        state == IslandState.focus ||
+        state == IslandState.timer;
     if (v && openOnHover && !quiet && resting()) {
       _overTimer = Timer(const Duration(milliseconds: 350), () {
         if (_over && resting()) open(restingPage);
@@ -561,6 +613,7 @@ class IslandController extends ChangeNotifier {
   IslandPage get restingPage => switch (state) {
         IslandState.music => IslandPage.music,
         IslandState.focus => IslandPage.today,
+        IslandState.timer => IslandPage.clock,
         _ => IslandPage.home,
       };
 
@@ -622,6 +675,16 @@ class IslandController extends ChangeNotifier {
           ),
           demo: true,
         );
+      case IslandState.upcoming:
+        final now = DateTime.now();
+        soon = AgendaEvent('Team standup', now.add(const Duration(minutes: 4)),
+            now.add(const Duration(minutes: 34)), false, '', 0,
+            link: 'https://meet.google.com/abc-defg-hij');
+        _set(IslandState.upcoming);
+        _later(const Duration(seconds: 20), dismissSoon);
+      case IslandState.timer:
+        timers.setPick(const Duration(minutes: 1));
+        timers.start();
       case IslandState.verify:
         verifying(unlockMethod);
       case IslandState.success:
@@ -738,6 +801,99 @@ class IslandController extends ChangeNotifier {
     _set(near ? _resting : _away);
   }
 
+  // ---------------------------------------------------------- quick capture
+
+  /// The quick-capture hotkey: open the one-line box.
+  void capture() {
+    if (state == IslandState.call || state == IslandState.success || state == IslandState.verify) return;
+    open(IslandPage.capture);
+  }
+
+  /// Done capturing (added, or Esc): put the island and the keyboard back.
+  void endCapture() {
+    if (state == IslandState.open && page == IslandPage.capture) {
+      page = IslandPage.home;
+      close();
+    }
+    giveBackFocus?.call();
+  }
+
+  // ------------------------------------------------------- upcoming meeting
+
+  /// How long before a call the island counts down to it.
+  static const kSoonLead = Duration(minutes: 5);
+
+  void _checkSoon() {
+    final now = DateTime.now();
+    if (soon != null && now.isAfter(soon!.start.add(const Duration(minutes: 5)))) dismissSoon();
+    AgendaEvent? next;
+    for (final e in [...google.events, ...agenda.events]) {
+      if (e.allDay || e.link.isEmpty) continue;
+      final until = e.start.difference(now);
+      if (until > kSoonLead || until < const Duration(minutes: -2)) continue;
+      if (_soonShown.contains(_soonKey(e))) continue;
+      if (next == null || e.start.isBefore(next.start)) next = e;
+    }
+    if (next == null) return;
+    const busy = {IslandState.open, IslandState.call, IslandState.success, IslandState.verify, IslandState.meeting};
+    if (busy.contains(state)) return; // try again on the next check
+    _soonShown.add(_soonKey(next));
+    soon = next;
+    _timer?.cancel();
+    _set(IslandState.upcoming);
+  }
+
+  String _soonKey(AgendaEvent e) => '${e.title}|${e.start.millisecondsSinceEpoch}';
+
+  void joinSoon() {
+    final e = soon;
+    if (e == null) return;
+    openUrl?.call(e.link);
+    dismissSoon();
+  }
+
+  void dismissSoon() {
+    soon = null;
+    if (state == IslandState.upcoming) _set(near ? _resting : _away);
+  }
+
+  // ----------------------------------------------------------------- timers
+
+  bool _timerWas = false;
+
+  /// The timer started or stopped: bring its pill up or put it away, the
+  /// same way a focus session does.
+  void _onTimers() {
+    final on = timerActive;
+    if (on == _timerWas) return;
+    _timerWas = on;
+    const busy = {
+      IslandState.open,
+      IslandState.call,
+      IslandState.success,
+      IslandState.verify,
+      IslandState.meeting,
+      IslandState.actions,
+      IslandState.upcoming,
+      IslandState.focus,
+    };
+    if (busy.contains(state) || quiet) {
+      notifyListeners();
+    } else if (on) {
+      _timer?.cancel();
+      _set(IslandState.timer);
+    } else if (state == IslandState.timer) {
+      _set(near ? _resting : _away);
+    }
+  }
+
+  void _timerDone() {
+    rangAt = DateTime.now();
+    SystemSound.play(SystemSoundType.alert);
+    if (state == IslandState.call || state == IslandState.verify || state == IslandState.success) return;
+    open(IslandPage.clock);
+  }
+
   // Whether the planner's focus session was on, and had run out, last time.
   bool _focusWas = false, _finishedWas = false;
 
@@ -755,6 +911,7 @@ class IslandController extends ChangeNotifier {
       IslandState.verify,
       IslandState.meeting,
       IslandState.actions,
+      IslandState.upcoming,
     };
     if (busy.contains(state) || quiet) {
       notifyListeners();
@@ -806,6 +963,12 @@ class IslandController extends ChangeNotifier {
     gaze.dispose();
     agenda.dispose();
     _gTimer?.cancel();
+    _soonTimer?.cancel();
+    _weatherTimer?.cancel();
+    timers.removeListener(_onTimers);
+    timers.dispose();
+    weather.dispose();
+    clipboard.dispose();
     google.dispose();
     notes.dispose();
     super.dispose();

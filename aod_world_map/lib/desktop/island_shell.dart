@@ -10,6 +10,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'app_files.dart';
 import 'foreground_app.dart';
+import 'global_hotkey.dart';
 import 'island_controller.dart';
 import 'island_pages.dart';
 import 'now_playing.dart';
@@ -20,6 +21,16 @@ import 'unlock_watch.dart';
 import 'window_shell.dart' show launchApp, openWeb;
 
 const Size kIslandWindowSize = Size(640, 480);
+
+/// Hotkey id for quick capture.
+const kCaptureHotkey = 1;
+
+/// Quick-capture shortcuts to try, in order.
+const kCaptureHotkeys = [
+  (GlobalHotkey.ctrl | GlobalHotkey.alt, 0x4E, 'Ctrl+Alt+N'), // N
+  (GlobalHotkey.ctrl | GlobalHotkey.shift | GlobalHotkey.alt, 0x4E, 'Ctrl+Shift+Alt+N'),
+  (GlobalHotkey.win | GlobalHotkey.alt, 0x4E, 'Win+Alt+N'),
+];
 
 /// The dynamic island as its own small, always-on-top process. It starts
 /// with the app and stays when the app window closes, so it works over
@@ -45,6 +56,9 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   double _winLeft = 0, _winTop = 0, _zoneCx = 0, _zoneTop = 0;
   int Function(int)? _asyncKey;
   bool _lWas = false, _escWas = false, _annotateWas = false, _askWas = false;
+
+  /// The quick-capture shortcut that registered, for the tray menu.
+  String? _captureKeys;
 
   Future<void> _try(Future<void> Function() f) async {
     try {
@@ -87,6 +101,16 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
     });
 
     _initKeys();
+    // Quick capture. Registered, so the app in front never sees the keys,
+    // and the press lets the island take the keyboard. The first free
+    // combination wins (Claude's app takes Ctrl+Alt+Space).
+    island.giveBackFocus = GlobalHotkey.giveBackFocus;
+    for (final (mods, vk, label) in kCaptureHotkeys) {
+      if (await GlobalHotkey.register(kCaptureHotkey, mods, vk, island.capture)) {
+        _captureKeys = label;
+        break;
+      }
+    }
     await _initTray();
     island.sendMusic = (cmd) => _music?.send(cmd);
     island.openUrl = (u) => _try(() => openWeb(u));
@@ -253,6 +277,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
   /// Quits everything: the app window too.
   Future<void> quit() async {
     _poll?.cancel();
+    await GlobalHotkey.unregister(kCaptureHotkey);
     _unlock?.stop();
     _away?.stop();
     _trim?.cancel();
@@ -313,6 +338,7 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'open', label: 'Open app'),
         tray.MenuItem(key: 'planner', label: 'Open planner'),
         tray.MenuItem(key: 'annotate', label: 'Annotate screen  (Ctrl+Shift+A)'),
+        tray.MenuItem(key: 'capture', label: _captureKeys == null ? 'Quick capture' : 'Quick capture  ($_captureKeys)'),
         tray.MenuItem.separator(),
         tray.MenuItem(key: 'island', label: 'Island: open'),
         tray.MenuItem(key: 'notch', label: 'Island: Chrome notch'),
@@ -320,6 +346,8 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         tray.MenuItem(key: 'call', label: 'Island: incoming call'),
         tray.MenuItem(key: 'music', label: 'Island: music'),
         tray.MenuItem(key: 'actions', label: 'Island: meeting to-dos'),
+        tray.MenuItem(key: 'soon', label: 'Island: meeting starting soon'),
+        tray.MenuItem(key: 'timer', label: 'Island: 1 minute timer'),
         tray.MenuItem(key: 'face', label: 'Island: Face ID unlock'),
         tray.MenuItem(key: 'finger', label: 'Island: fingerprint unlock'),
         tray.MenuItem(key: 'pin', label: 'Island: PIN unlock'),
@@ -433,6 +461,12 @@ class IslandShell extends ChangeNotifier with tray.TrayListener {
         island.preview(IslandState.music);
       case 'actions':
         island.preview(IslandState.actions);
+      case 'soon':
+        island.preview(IslandState.upcoming);
+      case 'timer':
+        island.preview(IslandState.timer);
+      case 'capture':
+        island.capture();
       case 'face':
         island.unlocked(UnlockMethod.face);
       case 'finger':

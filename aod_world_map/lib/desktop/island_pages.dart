@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'app_catalog.dart';
 import 'island_controller.dart';
+import 'island_extras.dart';
 import 'island_home.dart';
 import 'island_widgets.dart';
 import 'stocks_home.dart';
@@ -19,6 +20,10 @@ const Size kOpenStocks = Size(560, 440);
 const Size kOpenToday = Size(600, 456);
 const Size kOpenMusic = Size(560, 214);
 const Size kOpenSettings = Size(500, 340);
+const Size kOpenClock = Size(520, 196);
+const Size kOpenWeather = Size(520, 200);
+const Size kOpenClipboard = Size(520, 340);
+const Size kOpenCapture = Size(520, 86);
 
 Size openSizeFor(IslandPage p) {
   switch (p) {
@@ -32,6 +37,14 @@ Size openSizeFor(IslandPage p) {
       return kOpenMusic;
     case IslandPage.home:
       return kOpenHome;
+    case IslandPage.clock:
+      return kOpenClock;
+    case IslandPage.weather:
+      return kOpenWeather;
+    case IslandPage.clipboard:
+      return kOpenClipboard;
+    case IslandPage.capture:
+      return kOpenCapture;
   }
 }
 
@@ -119,6 +132,15 @@ class IslandOpenContent extends StatelessWidget {
         body = TodayPage(c: c);
       case IslandPage.settings:
         body = _SettingsPage(c: c);
+      case IslandPage.clock:
+        body = IslandClockPage(c: c);
+      case IslandPage.weather:
+        body = IslandWeatherPage(c: c);
+      case IslandPage.clipboard:
+        body = IslandClipboardPage(c: c);
+      case IslandPage.capture:
+        // Just the box: no tabs to click away to.
+        return IslandCapturePage(c: c);
     }
     return Column(
       children: [
@@ -175,6 +197,10 @@ class _TopBar extends StatelessWidget {
           _tab(Icons.candlestick_chart_rounded, IslandPage.stocks),
           const SizedBox(width: 6),
           _tab(Icons.event_note_rounded, IslandPage.today),
+          const SizedBox(width: 6),
+          _tab(Icons.timer_outlined, IslandPage.clock),
+          const SizedBox(width: 6),
+          _tab(Icons.content_paste_rounded, IslandPage.clipboard),
           const Spacer(),
           if (c.startAnnotate != null) ...[
             IslandPressable(

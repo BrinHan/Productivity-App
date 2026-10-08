@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import 'island_controller.dart';
+import 'island_extras.dart';
 import 'island_live.dart';
 import 'island_pages.dart';
 import 'island_widgets.dart';
@@ -96,6 +97,10 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         return Size(math.max(520, idle.width + 160), math.max(88, idle.height + 20));
       case IslandState.focus:
         return Size(math.max(340, idle.width + 60), math.max(60, idle.height + 4));
+      case IslandState.upcoming:
+        return Size(math.max(470, idle.width + 120), math.max(76, idle.height + 16));
+      case IslandState.timer:
+        return Size(math.max(300, idle.width + 40), math.max(54, idle.height));
       case IslandState.verify:
       case IslandState.success:
         return const Size(92, 92);
@@ -222,6 +227,8 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
       c.open(IslandPage.music);
     } else if (_shown == IslandState.focus) {
       c.open(IslandPage.today);
+    } else if (_shown == IslandState.timer) {
+      c.open(IslandPage.clock);
     }
   }
 
@@ -259,6 +266,10 @@ class _DynamicIslandState extends State<DynamicIsland> with SingleTickerProvider
         return p == null ? const SizedBox.shrink() : IslandFocusContent(planner: p);
       case IslandState.actions:
         return IslandActionsContent(c: c);
+      case IslandState.upcoming:
+        return IslandUpcomingContent(c: c);
+      case IslandState.timer:
+        return IslandTimerContent(c: c);
       case IslandState.verify:
       case IslandState.success:
         // Keyed by method: a scan that ends another way starts over.
