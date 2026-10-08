@@ -3,6 +3,8 @@
 
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
+#include <flutter/method_channel.h>
+#include <flutter/encodable_value.h>
 
 #include <memory>
 
@@ -28,6 +30,13 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  // Global hotkeys for Dart ("meridian/hotkey"). Windows hands the window
+  // the foreground with WM_HOTKEY, so a hotkey can open something to type in.
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> hotkeys_;
+
+  // What was in front when a hotkey took the foreground, to hand it back.
+  HWND before_hotkey_ = nullptr;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_
