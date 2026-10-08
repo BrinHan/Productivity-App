@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'island_controller.dart';
+import 'island_services.dart' show PipLook, PipSky;
 
 class Heart {
   Heart(this.x, this.vx, this.age);
@@ -27,6 +28,10 @@ class PipModel {
   double sleep = 0, idleFor = 0;
   double fly = 0;
   bool flying = false;
+
+  /// What he's dressed for: the weather and the hour.
+  PipLook look = const PipLook();
+  bool get umbrella => look.sky == PipSky.rain || look.sky == PipSky.storm;
   double _hoverFor = 0, _heartTimer = 0;
   final List<double> _clicks = [];
   final List<Heart> particles = [];
@@ -141,8 +146,10 @@ class PipModel {
     hover += ((hovering ? 1.0 : 0.0) - hover) * (1 - math.exp(-dt * 10));
     ptrOn += ((ptr != null ? 1.0 : 0.0) - ptrOn) * (1 - math.exp(-dt * 14));
     fly += ((flying ? 1.0 : 0.0) - fly) * (1 - math.exp(-dt * 12));
+    // Drowsier at night: he nods off much sooner.
+    final sleepAfter = look.night ? 6.0 : 18.0;
     sleep +=
-        ((idleFor > 18 && !hovering ? 1.0 : 0.0) - sleep) *
+        ((idleFor > sleepAfter && !hovering ? 1.0 : 0.0) - sleep) *
         (1 - math.exp(-dt * 1.6));
 
     // petting: at least 3 direction changes over the head within 1 s, and
@@ -339,15 +346,28 @@ class PipPainter extends CustomPainter {
       ..isAntiAlias = true
       ..color = _ink;
 
+    final look = m.look;
+    // Rain and snow fall behind him, so he and his umbrella stay dry.
+    _weatherBehind(canvas, f, size);
+
     canvas.save();
     _pose(canvas, f);
     _feet(canvas, f, parts);
     _arms(canvas, f, parts);
     _body(canvas, f);
-    _sprout(canvas, f);
+    if (look.night) {
+      _nightcap(canvas, f);
+    } else {
+      _sprout(canvas, f);
+    }
     _eyes(canvas, f, line);
+    if (look.sky == PipSky.clear && !look.night && f.sleep < 0.5) _sunglasses(canvas, f);
     _blush(canvas, f);
     _mouth(canvas, f, line);
+    if (look.cold || look.sky == PipSky.snow) _scarf(canvas, f);
+    if (look.hot) _sweat(canvas, f);
+    if (m.umbrella) _umbrella(canvas, f);
+    if (look.sky == PipSky.cloudy || look.sky == PipSky.storm) _cloud(canvas, f, storm: look.sky == PipSky.storm);
     _sleepAndStartle(canvas, f);
     canvas.restore();
 
@@ -398,6 +418,7 @@ class PipPainter extends CustomPainter {
     final t = f.t, bs = f.bs, bw = f.bw, pet = f.pet;
     var la = 0.35 + 0.75 * pet, ra = -(0.35 + 0.75 * pet);
     if (m.dizzy > 0) la += math.sin(t * 9) * 0.3;
+    if (m.umbrella) ra = -2.5;
     if (m.wave > 0) ra = -2.3 + math.sin(t * 16) * 0.35;
     if (m.fly > 0.02) {
       final fl = math.sin(t * 26) * 0.4;
@@ -646,6 +667,209 @@ class PipPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(Offset(bw * 0.58, top - bs * 0.14), Offset(bw * 0.58, top - bs * 0.02), p);
       canvas.drawCircle(Offset(bw * 0.58, top + bs * 0.04), bs * 0.03, p);
+    }
+  }
+
+  // ---- dressed for the weather -------------------------------------------
+
+  /// Rain streaks or drifting snow across his box, behind him.
+  void _weatherBehind(Canvas canvas, _PipFrame f, Size size) {
+    final sky = m.look.sky;
+    if (sky != PipSky.rain && sky != PipSky.storm && sky != PipSky.snow) return;
+    final snow = sky == PipSky.snow;
+    final n = snow ? 9 : 10;
+    for (var i = 0; i < n; i++) {
+      final speed = snow ? 0.35 : 1.4;
+      final ph = (f.t * speed + i * 0.37) % 1.0;
+      final drift = snow ? math.sin(f.t * 1.5 + i) * f.bs * 0.05 : -ph * f.bs * 0.1;
+      final x = size.width * (((i * 0.618) % 1.0) * 1.3 - 0.15) + drift;
+      final y = -size.height * 0.15 + ph * size.height * 1.15;
+      final a = math.sin(ph * math.pi);
+      if (snow) {
+        canvas.drawCircle(
+          Offset(x, y),
+          f.bs * (0.02 + 0.012 * (i % 3)),
+          Paint()..color = Colors.white.withValues(alpha: 0.85 * a),
+        );
+      } else {
+        canvas.drawLine(
+          Offset(x, y),
+          Offset(x - f.bs * 0.025, y + f.bs * 0.09),
+          Paint()
+            ..strokeWidth = f.bs * 0.022
+            ..strokeCap = StrokeCap.round
+            ..color = const Color(0xFF7CC4FF).withValues(alpha: 0.75 * a),
+        );
+      }
+    }
+  }
+
+  /// A blue nightcap with a white brim, its tip and bobble flopping over.
+  void _nightcap(Canvas canvas, _PipFrame f) {
+    final bs = f.bs, bw = f.bw, top = f.top;
+    final brim = top + f.bh * 0.11;
+    final flop = math.sin(f.t * 1.3) * bs * 0.025 - f.sleep * bs * 0.04;
+    final tip = Offset(bw * 0.46 + flop, top - bs * 0.02 + flop.abs());
+    canvas.drawPath(
+      Path()
+        ..moveTo(-bw * 0.36, brim)
+        ..quadraticBezierTo(-bw * 0.20, top - bs * 0.30, bw * 0.10, top - bs * 0.20)
+        ..quadraticBezierTo(bw * 0.34, top - bs * 0.13, tip.dx, tip.dy)
+        ..quadraticBezierTo(bw * 0.30, top - bs * 0.02, bw * 0.36, brim)
+        ..close(),
+      Paint()..color = const Color(0xFF4F6BED),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(0, brim), width: bw * 0.80, height: bs * 0.075),
+        Radius.circular(bs * 0.04),
+      ),
+      Paint()..color = const Color(0xFFF2F2F7),
+    );
+    canvas.drawCircle(tip, bs * 0.05, Paint()..color = const Color(0xFFF2F2F7));
+  }
+
+  /// Dark shades with a glint, over his eyes in the sun.
+  void _sunglasses(Canvas canvas, _PipFrame f) {
+    final bs = f.bs, y = f.eyeY;
+    const lens = Color(0xF0101014);
+    final w = bs * 0.17, h = bs * 0.12;
+    for (final sgn in const [-1.0, 1.0]) {
+      final c = Offset(sgn * f.eyeX, y);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromCenter(center: c, width: w, height: h), Radius.circular(bs * 0.045)),
+        Paint()..color = lens,
+      );
+      canvas.drawLine(
+        c + Offset(-w * 0.28, -h * 0.18),
+        c + Offset(-w * 0.08, -h * 0.30),
+        Paint()
+          ..strokeWidth = bs * 0.018
+          ..strokeCap = StrokeCap.round
+          ..color = Colors.white.withValues(alpha: 0.7),
+      );
+    }
+    canvas.drawLine(
+      Offset(-f.eyeX + w / 2, y - h * 0.15),
+      Offset(f.eyeX - w / 2, y - h * 0.15),
+      Paint()
+        ..strokeWidth = bs * 0.025
+        ..color = lens,
+    );
+  }
+
+  /// A red striped scarf round his middle, one end hanging and swaying.
+  void _scarf(Canvas canvas, _PipFrame f) {
+    final bs = f.bs, bw = f.bw;
+    final y = f.top + f.bh * 0.84, h = bs * 0.085;
+    final red = Paint()..color = const Color(0xFFE5484D);
+    canvas.save();
+    canvas.clipPath(_bodyPath(bw, f.bh, f.top, f.bottom, f.pp, f.depth, f.sigma));
+    canvas.drawRect(Rect.fromLTRB(-bw, y - h / 2, bw, y + h / 2), red);
+    final stripe = Paint()
+      ..strokeWidth = bs * 0.018
+      ..color = Colors.white.withValues(alpha: 0.55);
+    for (var x = -bw * 0.5; x < bw * 0.5; x += bs * 0.08) {
+      canvas.drawLine(Offset(x, y - h / 2), Offset(x + bs * 0.03, y + h / 2), stripe);
+    }
+    canvas.restore();
+    canvas.save();
+    canvas.translate(bw * 0.18, y);
+    canvas.rotate(0.12 + math.sin(f.t * 2.1) * 0.08);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(-bs * 0.04, 0, bs * 0.08, bs * 0.17), Radius.circular(bs * 0.02)),
+      red,
+    );
+    canvas.restore();
+  }
+
+  /// A drop of sweat sliding down his head when it's hot.
+  void _sweat(Canvas canvas, _PipFrame f) {
+    final ph = (f.t * 0.45) % 1.0;
+    final o = Offset(f.bw * 0.36, f.top + f.bh * (0.18 + 0.2 * ph));
+    final s = f.bs * 0.045;
+    canvas.drawPath(
+      Path()
+        ..moveTo(o.dx, o.dy - s * 1.6)
+        ..quadraticBezierTo(o.dx + s * 1.1, o.dy, o.dx, o.dy + s)
+        ..quadraticBezierTo(o.dx - s * 1.1, o.dy, o.dx, o.dy - s * 1.6),
+      Paint()..color = const Color(0xFF8FD3FF).withValues(alpha: math.sin(ph * math.pi)),
+    );
+  }
+
+  /// A blue umbrella in his raised right hand, tipped over his head.
+  void _umbrella(Canvas canvas, _PipFrame f) {
+    final bs = f.bs;
+    // Where the raised right arm puts the hand (see _arms).
+    const raised = -2.5;
+    final shoulder = Offset(f.bw / 2 - bs * 0.02, f.top + f.bh * 0.52);
+    final hand = shoulder + Offset(-math.sin(raised) * bs * 0.24, math.cos(raised) * bs * 0.24);
+    final len = bs * 0.55, r = bs * 0.42;
+    canvas.save();
+    canvas.translate(hand.dx, hand.dy);
+    canvas.rotate(-0.5 + math.sin(f.t * 1.6) * 0.04);
+    final shaft = Paint()
+      ..strokeWidth = bs * 0.025
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke
+      ..color = const Color(0xFF3A3A40);
+    canvas.drawLine(Offset(0, bs * 0.04), Offset(0, -len), shaft);
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(-bs * 0.035, bs * 0.04), radius: bs * 0.035),
+      0,
+      math.pi,
+      false,
+      shaft,
+    );
+    // Canopy: a dome with a scalloped hem, and a few ribs.
+    final c = Offset(0, -len);
+    final dome = Path()..moveTo(-r, c.dy);
+    dome.arcTo(Rect.fromCircle(center: c, radius: r), math.pi, math.pi, false);
+    const scallops = 4;
+    for (var i = 0; i < scallops; i++) {
+      final x1 = r - 2 * r * (i + 1) / scallops, xm = r - 2 * r * (i + 0.5) / scallops;
+      dome.quadraticBezierTo(xm, c.dy - r * 0.16, x1, c.dy);
+    }
+    dome.close();
+    canvas.drawPath(dome, Paint()..color = const Color(0xFF4C9BFF));
+    final rib = Paint()
+      ..strokeWidth = bs * 0.012
+      ..color = Colors.white.withValues(alpha: 0.35);
+    for (final x in [-r * 0.5, 0.0, r * 0.5]) {
+      canvas.drawLine(Offset(0, c.dy - r), Offset(x, c.dy - r * 0.12), rib);
+    }
+    canvas.drawCircle(Offset(0, c.dy - r), bs * 0.025, Paint()..color = const Color(0xFF3A3A40));
+    canvas.restore();
+  }
+
+  /// A small cloud drifting over his head; grey with lightning in a storm.
+  void _cloud(Canvas canvas, _PipFrame f, {bool storm = false}) {
+    final bs = f.bs;
+    final c = Offset(-f.bw * 0.32 + math.sin(f.t * 0.45) * bs * 0.06, f.top - bs * 0.30);
+    final paint = Paint()..color = storm ? const Color(0xFF8E8E98) : Colors.white.withValues(alpha: 0.92);
+    canvas.drawCircle(c + Offset(-bs * 0.09, bs * 0.02), bs * 0.075, paint);
+    canvas.drawCircle(c + Offset(0, -bs * 0.03), bs * 0.10, paint);
+    canvas.drawCircle(c + Offset(bs * 0.10, bs * 0.02), bs * 0.07, paint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(c.dx - bs * 0.16, c.dy, c.dx + bs * 0.17, c.dy + bs * 0.09),
+        Radius.circular(bs * 0.045),
+      ),
+      paint,
+    );
+    if (storm && f.t % 3.2 < 0.18) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(c.dx + bs * 0.02, c.dy + bs * 0.08)
+          ..lineTo(c.dx - bs * 0.04, c.dy + bs * 0.19)
+          ..lineTo(c.dx + bs * 0.01, c.dy + bs * 0.19)
+          ..lineTo(c.dx - bs * 0.05, c.dy + bs * 0.31),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = bs * 0.03
+          ..strokeJoin = StrokeJoin.round
+          ..color = const Color(0xFFFFD60A),
+      );
     }
   }
 
@@ -916,6 +1140,7 @@ class _PipActorState extends State<PipActor>
     _m.gazeTarget = _ft >= 0
         ? Offset((vx / 400).clamp(-1.0, 1.0).toDouble(), 0)
         : widget.c.gaze.value;
+    _m.look = widget.c.pipLook;
     _m.step(dt);
 
     if (_spot == PipSpot.hidden && _vis < 0.01 && _ft < 0) {
