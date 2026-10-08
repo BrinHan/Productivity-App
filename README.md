@@ -28,6 +28,7 @@ day and the week, and a screensaver that shows where the sun is right now.
 - [Build from source](#build-from-source)
 - [How it works](#how-it-works)
 - [Your data](#your-data)
+- [License](#license)
 
 ## The dynamic island
 
@@ -255,6 +256,12 @@ copy. **Settings > Your data** saves everything (tasks, settings and
 meeting notes, but not sign-ins) to one backup file and restores from one.
 If something goes wrong, **Settings > About > Copy diagnostics** copies the
 error log from `%APPDATA%\AodWorldMap\logs` for a bug report.
+
+## License
+
+Copyright (c) 2026 Brian Han. All rights reserved. The source is here to
+read; using, copying or redistributing it needs written permission. See
+[LICENSE](LICENSE).
 
 ---
 
